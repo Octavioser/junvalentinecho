@@ -1,0 +1,32 @@
+.nav {
+    background-color: #000000;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    color: white;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    /* 세로 중앙 정렬 */
+    justify-content: center;
+    /* 가로 중앙 정렬 */
+    z-index: 1000;
+    /* 다른 콘텐츠 위에 표시 */
+}
+
+.nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+}
+
+.nav ul li {
+    list-style: none;
+    transform: none;
+    transition: all 0.1s ease-in-out;
+}
+
+.nav ul li:hover {
+    transform: scale(1.05);
+}

@@ -1,0 +1,75 @@
+.mainContent {
+    flex: 1;
+    /* 네비게이션 바 높이만큼 여백 추가 */
+    overflow: hidden;
+    /* 기본 오버플로우 숨김 */
+    display: flex;
+    align-items: center;
+    /* 수직 중앙 정렬 */
+}
+
+.scrollContainer {
+    width: 100%;
+    height: calc(100vh - 60px);
+    overflow-x: auto;
+    /* 가로 스크롤 활성화 */
+    overflow-y: hidden;
+    /* 세로 스크롤 비활성화 */
+    white-space: nowrap;
+    /* 줄바꿈 없이 가로로 배치 */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.container {
+    display: flex;
+    /* Flexbox로 가로 정렬 */
+    flex-direction: row;
+    /* 가로 방향 */
+    gap: 20px;
+}
+
+.movieCard {
+    flex: 0 0 auto;
+    /* 고정된 크기를 유지하고 늘어나지 않도록 설정 */
+    width: 200px;
+    /* 원하는 너비 설정 */
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* 가로 중앙 정렬 */
+    text-align: center;
+    /* 텍스트 중앙 정렬 */
+}
+
+.movieCard:hover {
+    transform: scale(1.05);
+    /* 호버 시 약간 확대 */
+}
+
+.moviePoster {
+    width: 100%;
+    height: 300px;
+    /* 원하는 높이 설정 */
+    object-fit: cover;
+    /* 이미지 비율 유지 */
+    cursor: pointer;
+    /* 클릭 가능 표시 */
+}
+
+.movieTitle {
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+}
+
+.movieTitle:hover {
+    color: #0070f3;
+    /* 호버 시 색상 변경 */
+}
