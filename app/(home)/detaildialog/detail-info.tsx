@@ -1,11 +1,11 @@
-import { API_URL } from "../../../constants";
+import { API_URL } from "../../constants";
 import styles from "./movie-info.module.css"
 
-export const getMovies = async (id: string) => (
+export const getMovies = async (id: number) => (
     await (await fetch(`${API_URL}/${id}`)).json()
 );
 
-export default async function MovieInfo({ id }: { id: string }) {
+export default async function MovieInfo({ id }: { id: number }) {
     const { poster_path, title, vote_average, overview, homepage } = await getMovies(id);
     await new Promise(resolve => setTimeout(resolve, 3000));
 
