@@ -1,0 +1,44 @@
+.container {
+    display: flex;
+    width: 100%;
+    height: calc(100vh - 60px);
+    ;
+}
+
+.left,
+.right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.3rem;
+}
+
+.rightDetail {
+    width: 80%;
+    height: 50%;
+    justify-content: center;
+    display: flex;
+}
+
+.left {
+    /* 왼쪽 영역 배경 */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    /* 2열 배치 */
+    gap: 10px;
+    /* 박스 간격 */
+    padding: 20px;
+}
+
+/* 세로가 긴 화면 (높이가 더 클 때) */
+@media (max-aspect-ratio: 1/1) {
+    .container {
+        flex-direction: column-reverse;
+        /* 아래쪽(Left)이 위로, 위쪽(Right)이 아래로 */
+    }
+
+    .rightDetail {
+        height: 100%;
+    }
+}

@@ -16,7 +16,7 @@ const nav = () => {
                 <Link href="https://soundcloud.com/junvalentinecho" target="_blank" rel="noopener noreferrer">SOUND</Link>
             </li>
             <li>
-                <Link href="/info">VISUAL</Link>
+                <Link href="/visual">VISUAL</Link>
             </li>
             <li>
                 <Link href="/info">INFO</Link>
