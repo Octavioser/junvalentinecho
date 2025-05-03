@@ -3,7 +3,7 @@
 import styles from "./home.module.css"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react";
-import Detaildialog from "./detaildialog/detail-dialog";
+import Detaildialog from "./detaildialog/Detaildialog";
 import MainImage from "../components/MainImage/MainImage";
 
 
@@ -53,13 +53,17 @@ const Gallery = ({ artworks }: { artworks: artworks[] }) => {
 
     // const { push } = useRouter(); push(`/movies/${id}`)
 
-    const { scrollContainer } = styles;
+    const { scrollContainer, posterTrack, posterCardFrame } = styles;
 
     return (
         <>
             <div className={scrollContainer} ref={scrollRef} onClick={() => { id && setId(0) }}>
                 {artworks.map(({ title, id, poster_path, top, width, left, zIndex }) =>
-                    <MainImage key={id} {...{ title, id, poster_path, top, width, left, zIndex, setId }} />
+                    <div key={id} className={posterTrack}>
+                        <div className={posterCardFrame}>
+                            <MainImage  {...{ title, id, poster_path, top, width, left, zIndex, setId }} />
+                        </div>
+                    </div>
                 )}
             </div>
             {id ? <Detaildialog id={id} artworks={artworks} /> : <></>}

@@ -1,10 +1,10 @@
 .nav {
-    background-color: #000000;
+    background-color: #00000000;
     position: fixed;
     width: 100%;
     top: 0;
     left: 0;
-    color: white;
+    color: black;
     height: 5vh;
     display: flex;
     align-items: center;
@@ -28,5 +28,5 @@
 }
 
 .nav ul li:hover {
-    transform: scale(1.05);
+    transform: scale(1.01);
 }

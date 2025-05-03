@@ -14,18 +14,16 @@ interface info {
 
 const MainImage = ({ title, id, poster_path, top, width, left, zIndex, setId }: info) => {
 
-    const { prosterTrack, prosterCard, metalFrame } = styles;
+    const { posterCard, metalFrame } = styles;
 
     return (
-        <div className={prosterTrack} key={id}>
-            <div className={prosterCard}>
-                <img className={metalFrame}
-                    style={{ top: `${top}%`, width: `${width}%`, left: `${left}%`, zIndex }}
-                    src={poster_path}
-                    alt={title}
-                    onClick={() => { setId(id) }}>
-                </img>
-            </div>
+        <div className={posterCard}>
+            <img className={metalFrame}
+                style={{ top: `${top}%`, width: `${width}%`, left: `${left}%`, zIndex }}
+                src={poster_path}
+                alt={title}
+                onClick={() => { setId(id) }}>
+            </img>
         </div>
     )
 }
