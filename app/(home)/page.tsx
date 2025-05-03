@@ -1,5 +1,4 @@
-import Movie from "./movie"
-import styles from "./home.module.css"
+import Gallery from "./Gallery";
 import { api } from "../common/comon";
 import { getJsonData, updateJsonData } from "../../jsondata/jsonhandlers";
 
@@ -19,10 +18,10 @@ const Home = async () => {
 
     // await api('/api/movie')
     const fileData = fs.readFileSync(dataFilePath, 'utf-8');
-    const movie = JSON.parse(fileData);
+    const data = JSON.parse(fileData);
 
-    return <main className={styles.mainContent}>
-        <Movie movie={movie || []} />
+    return <main>
+        <Gallery artworks={data || []} />
     </main>
 }
 export default Home;

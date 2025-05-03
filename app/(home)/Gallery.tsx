@@ -4,6 +4,7 @@ import styles from "./home.module.css"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react";
 import Detaildialog from "./detaildialog/detail-dialog";
+import MainImage from "../components/MainImage/MainImage";
 
 
 interface VideoLink {
@@ -12,19 +13,20 @@ interface VideoLink {
     name: string; // 비디오 제목
 }
 
-interface Movies {
+interface artworks {
     id: number; // 영화 ID
     poster_path: string; // 포스터 이미지 경로
-    vote_average: number; // 평균 평점
+    size: number; // 평균 평점
     overview: string; // 영화 줄거리
-    homepage: string; // 영화 공식 홈페이지 URL
-    vdieoLink: VideoLink[]; // 관련 비디오 링크 리스트
+    page: string; // 영화 공식 홈페이지 URL
     title: string; // 영화 제목
     top: number; // 상단 위치 (CSS 관련 값)
     width: number; // 너비 (CSS 관련 값)
+    left: number; // 왼쪽 위치 (CSS 관련 값)
+    zIndex: number; // z-index (CSS 관련 값)
 }
 
-const Movie = ({ movie }: { movie: Movies[] }) => {
+const Gallery = ({ artworks }: { artworks: artworks[] }) => {
 
     const [id, setId] = useState<number>(0);
 
@@ -51,32 +53,17 @@ const Movie = ({ movie }: { movie: Movies[] }) => {
 
     // const { push } = useRouter(); push(`/movies/${id}`)
 
-    const { scrollContainer, container, prosterTrack, prosterCard, poster } = styles;
+    const { scrollContainer } = styles;
 
     return (
         <>
             <div className={scrollContainer} ref={scrollRef} onClick={() => { id && setId(0) }}>
-                <div className={container} >
-                    {movie.map(({ title, id, poster_path, top, width }, index) =>
-                        <div className={prosterTrack} key={id}>
-                            <div className={prosterCard}>
-                                <img className={poster}
-                                    style={{ top: `${top}%`, width: `${width}%` }}
-                                    src={poster_path}
-                                    alt={title}
-                                    onClick={() => {
-                                        console.log(id)
-                                        setId(id)
-                                        console.log('setId')
-                                    }}>
-                                </img>
-                            </div>
-                        </div>
-                    )}
-                </div >
+                {artworks.map(({ title, id, poster_path, top, width, left, zIndex }) =>
+                    <MainImage key={id} {...{ title, id, poster_path, top, width, left, zIndex, setId }} />
+                )}
             </div>
-            {id ? <Detaildialog id={id} movie={movie} /> : <></>}
+            {id ? <Detaildialog id={id} artworks={artworks} /> : <></>}
         </>
     )
 }
-export default Movie;
+export default Gallery;

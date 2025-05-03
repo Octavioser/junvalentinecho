@@ -7,45 +7,32 @@ interface VideoLink {
     name: string; // 비디오 제목
 }
 
-interface Movies {
+interface artworks {
     id: number; // 영화 ID
     poster_path: string; // 포스터 이미지 경로
-    vote_average: number; // 평균 평점
+    size: number; // 평균 평점
     overview: string; // 영화 줄거리
-    homepage: string; // 영화 공식 홈페이지 URL
-    vdieoLink: VideoLink[]; // 관련 비디오 링크 리스트
+    page: string; // 영화 공식 홈페이지 URL
     title: string; // 영화 제목
     top: number; // 상단 위치 (CSS 관련 값)
     width: number; // 너비 (CSS 관련 값)
 }
 
-const detaildaialog = ({ id, movie }: { id: number, movie: Movies[] }) => {
+const detaildaialog = ({ id, artworks }: { id: number, artworks: artworks[] }) => {
 
-    console.log('rendering!!')
+    const { detaildialog, poster, info, container } = styles;
 
-    const { detaildialog, infoContainer, poster, title, info, container } = styles;
-
-    const { homepage, overview, poster_path, title: movieTitle, vote_average, vdieoLink } = movie.find(({ id: movieId }) => id === movieId);
+    const { page, overview, poster_path, title: movieTitle, size } = artworks.find(({ id: movieId }) => id === movieId);
 
     return <div className={detaildialog}>
         <div className={container}>
             <img className={poster} src={poster_path} alt={movieTitle}></img>
             <div className={info}>
                 <h1 >{movieTitle}</h1>
-                <h3>⭐{vote_average.toFixed(2)}</h3>
+                <h3>{size.toFixed(2)}</h3>
                 <p>{overview}</p>
-                <a href={homepage} target={"_blank"}>Homepage &rarr;</a>
+                <a href={page} target={"_blank"}>page &rarr;</a>
             </div>
-        </div>
-        <div className={container}>
-            {vdieoLink.map(({ videoId, key, name }) =>
-                <iframe key={videoId}
-                    src={`https://youtube.com/embed/${key}`}
-                    title={name}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                />
-            )}
         </div>
     </div>
 }
