@@ -5,7 +5,7 @@
     /* 이미지 가운데 정렬 */
     background-repeat: no-repeat;
     /* 반복 방지 */
-    background-image: url("./exhibition2.jpg");
+    background-image: url("./exhibition.jpg");
     border-radius: 6px;
     /* 외곽 그림자 + 안쪽 하이라이트 */
     box-shadow:
