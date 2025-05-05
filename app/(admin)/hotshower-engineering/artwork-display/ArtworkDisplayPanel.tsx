@@ -1,33 +1,42 @@
 "use client"
 
-import React, { useState } from 'react';
-import MainImage from "../../../components/MainImage/MainImage";
+import React, { useState, useEffect, useRef, use } from 'react';
+import MainImagePosterCard from "../../../components/MainImage/MainImagePosterCard";
+import ArtworkDisplayImage from './ArtworkDisplayImage';
+import { Artwork, ArtworkList } from "@/types";
 
-const ArtworkDisplayPanel = () => {
+const ArtworkDisplayPanel = ({ artworks, selectedArtwork }: { artworks: ArtworkList, selectedArtwork: Artwork }) => {
 
-    const [id, setId] = useState<number>(0);
-    const [title, setTitle] = useState<string>('개인작업실');
-    const [poster_path, setPosterPath] = useState<string>('https://image.tmdb.org/t/p/w780/1sQA7lfcF9yUyoLYC0e6Zo3jmxE.jpg');
-    const [top, setTop] = useState<number>(0);
-    const [width, setWidth] = useState<number>(50);
-    const [left, setLeft] = useState<number>(0);
-    const [zIndex, setZIndex] = useState<number>(0);
+    const posterFrameRef = useRef<HTMLDivElement>(null);
+
+    const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
+
+    const [displayPanelItem, setDisplayPanelItem] = useState<ArtworkList>([]);
+
+    useEffect(() => {
+        setDisplayPanelItem(artworks.filter(({ galleryId }) => galleryId === selectedArtwork?.galleryId))
+    }, [selectedArtwork])
 
     return (
-        <div style={{ display: 'flex', width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
-            <div style={{ width: '90%', aspectRatio: 1 / 1 }}>
-                <MainImage
-                    title={title}
-                    id={id}
-                    poster_path={poster_path}
-                    top={top}
-                    width={width}
-                    left={left}
-                    zIndex={zIndex}
-                    setId={setId}
-                />
+        <>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', height: '3.5%' }}>
+                <button style={{ display: 'flex', justifyContent: 'flex-end' }}>이미지 위치 저장</button>
             </div>
-        </div>
+            <div style={{ display: 'flex', width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+                <div ref={posterFrameRef} style={{ width: '90%', aspectRatio: 1 / 1 }}>
+                    <MainImagePosterCard>
+                        {(displayPanelItem || []).map((item, index) =>
+                            <ArtworkDisplayImage
+                                key={`displsyImg${index}`}
+                                posterFrameRef={posterFrameRef}
+                                setTargetItem={(item: Artwork) => setDisplayPanelItem((prev) => prev.map((i) => (i.id === item.id ? item : i)))}
+                                targetArtworks={item}
+                            />
+                        )}
+                    </MainImagePosterCard>
+                </div>
+            </div >
+        </>
     )
 }
 export default ArtworkDisplayPanel;

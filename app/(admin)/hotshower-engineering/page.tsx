@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
-import ArtworkDisplayPanel from './artwork-display/ArtworkDisplayPanel';
+
+import ArtworkPage from './ArtworkPage';
 
 
 export const metadata = { title: '개인작업실' }
 
+import fs from 'fs';
+import path from 'path';
 
-const hotshowerEngineering = () => {
+const HotshowerEngineering = () => {
 
+    const fileData = fs.readFileSync(path.join(process.cwd(), 'jsondata', 'movie.json'), 'utf-8');
+    const data = JSON.parse(fileData);
 
-
-    return <div style={{ width: '100vw', height: '100vh', display: 'flex' }}>
-        {/* 내용 입력영역 */}
-        <div style={{ backgroundColor: 'red', width: '50%' }}>
-            21312
-        </div>
-        {/* 이미지 위치 영역 */}
-        <div style={{ backgroundColor: 'yellow', width: '50%' }}>
-            <ArtworkDisplayPanel />
-        </div>
-    </div>
+    return (
+        <ArtworkPage artworks={data} />
+    )
 }
 
-export default hotshowerEngineering;
+export default HotshowerEngineering;

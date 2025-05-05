@@ -14,11 +14,11 @@ const dataFilePath = path.join(process.cwd(), 'jsondata', 'movie.json');
 
 const Home = async () => {
     // await updateJsonData(539972, "이게되넹 나이따ㅡ");
-    // const { ok, data: movie, error } = await api('/api/movie');
+    const { ok, data, error } = await api('/api/movie');
 
     // await api('/api/movie')
-    const fileData = fs.readFileSync(dataFilePath, 'utf-8');
-    const data = JSON.parse(fileData);
+    // const fileData = fs.readFileSync(dataFilePath, 'utf-8');
+    // const data = JSON.parse(fileData);
 
     return <main>
         <Gallery artworks={data || []} />
