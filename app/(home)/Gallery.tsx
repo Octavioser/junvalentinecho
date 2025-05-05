@@ -34,23 +34,30 @@ const Gallery = ({ artworks }: { artworks: ArtworkList }) => {
     }, []);
 
 
-    // const { push } = useRouter(); push(`/movies/${id}`)
+    const galleryList = artworks.reduce((acc: { [key: string]: ArtworkList }, cur: Artwork) => {
+        const key = `${cur.galleryId}`;
+        if (acc[key]) return { ...acc, [key]: acc[key].concat([cur]) };
+        return { ...acc, [key]: [cur] };
+    }, {})
 
     const { scrollContainer, posterTrack, posterCardFrame } = styles;
 
     return (
         <>
             <div className={scrollContainer} ref={scrollRef} onClick={() => { id && setId('') }}>
-                {artworks.map(({ title, id, poster_path, top, width, left, zIndex }) =>
+                {artworks.map(({ id, galleryId }) =>
                     <div key={id} className={posterTrack}>
                         <div className={posterCardFrame}>
                             <MainImagePosterCard>
-                                <img className={ImageStyle.metalFrame}
-                                    style={{ top: `${top}%`, width: `${width}%`, left: `${left}%`, zIndex }}
-                                    src={poster_path}
-                                    alt={title}
-                                    onClick={() => { setId(id) }}>
-                                </img>
+                                {(galleryList[galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex }, index) =>
+                                    <img key={`gallery${index}`}
+                                        className={ImageStyle.metalFrame}
+                                        style={{ top: `${top}%`, width: `${width}%`, left: `${left}%`, zIndex }}
+                                        src={poster_path}
+                                        alt={title}
+                                        onClick={() => { setId(id) }}>
+                                    </img>
+                                )}
                             </MainImagePosterCard>
                         </div>
                     </div>
