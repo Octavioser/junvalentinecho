@@ -16,9 +16,7 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList }) => {
             </div>
             {/* 이미지 위치 영역 */}
             <div style={{ width: '50%' }}>
-                {selectedArtwork &&
-                    <ArtworkDisplayPanel artworks={artworks} selectedArtwork={selectedArtwork} />
-                }
+                <ArtworkDisplayPanel artworks={artworks} selectedArtwork={selectedArtwork} />
             </div>
         </div>
     )
