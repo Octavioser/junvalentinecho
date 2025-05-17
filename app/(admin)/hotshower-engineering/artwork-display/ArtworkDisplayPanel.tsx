@@ -7,7 +7,7 @@ import ArtworkDisplayImage from './ArtworkDisplayImage';
 import { Artwork, ArtworkList } from "@/types";
 import { updateJsonData } from "../../../../jsondata/jsonhandlers";
 
-const ArtworkDisplayPanel = ({ artworks, selectedArtwork }: { artworks: ArtworkList, selectedArtwork: Artwork }) => {
+const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: ArtworkList, selectedArtworkId: String }) => {
 
     const posterFrameRef = useRef<HTMLDivElement>(null);
 
@@ -16,8 +16,8 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtwork }: { artworks: ArtworkL
     const router = useRouter();
 
     useEffect(() => {
-        setDisplayPanelItem(artworks.filter(({ galleryId }) => galleryId === selectedArtwork?.galleryId))
-    }, [selectedArtwork])
+        setDisplayPanelItem(artworks.filter(({ galleryId }) => galleryId === artworks.find(({ id }) => id === selectedArtworkId)?.galleryId))
+    }, [selectedArtworkId])
 
     return (
         <>
@@ -43,6 +43,17 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtwork }: { artworks: ArtworkL
                                 posterFrameRef={posterFrameRef}
                                 setTargetItem={(item: Artwork) => setDisplayPanelItem((prev) => prev.map((i) => (i.id === item.id ? item : i)))}
                                 targetArtworks={item}
+                                refreshZindex={(id: string) => {
+                                    // 제일 최근에 수정한 이미지을 제일 위로 올리기
+                                    const targetItem = displayPanelItem.find((i) => i.id === id);
+                                    const zIndexSortList = displayPanelItem.sort((a, b) => b.zIndex - a.zIndex);
+                                    setDisplayPanelItem(
+                                        zIndexSortList
+                                            .filter((i) => i.id !== id)
+                                            .concat(targetItem)
+                                            .map((item, zIndex) => ({ ...item, zIndex }))
+                                    )
+                                }}
                             />
                         )}
                     </MainImagePosterCard>

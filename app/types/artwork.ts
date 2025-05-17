@@ -14,6 +14,7 @@ export interface Artwork {
     width: number; // 너비 (CSS 관련 값)
     left: number; // 왼쪽 위치 (CSS 관련 값)
     zIndex: number; // z-index (CSS 관련 값)
+    visualYn: string; // 비주얼 ID
 }
 
 export type ArtworkList = Artwork[];

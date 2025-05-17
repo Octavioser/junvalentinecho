@@ -4,12 +4,12 @@ import VisualDetail from "./visualDetail";
 
 const Visual = async () => {
 
-    const { ok, data: movie, error } = await api('/api/movie');
+    const { ok, data: Artwork, error } = await api('/api/movie');
 
     const { container, left, right } = styles;
     return (
         <div className={container}>
-            <VisualDetail movie={movie || []} />
+            <VisualDetail Artwork={(Artwork || []).filter(({ visualYn }) => visualYn === 'Y')} />
         </div>
     );
 }

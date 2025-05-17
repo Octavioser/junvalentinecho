@@ -9,10 +9,11 @@ interface params {
     targetArtworks: Artwork;
     setTargetItem: (item: Artwork) => void; // 타겟 아이템 설정 함수
     posterFrameRef: React.RefObject<HTMLDivElement>; // 포스터 프레임 참조
+    refreshZindex: (id: string) => void; // zIndex 업데이트 함수
 }
 
 
-const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem }: params) => {
+const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, refreshZindex }: params) => {
 
     const dragging = useRef(false);
     const imgRef = useRef<HTMLImageElement | null>(null);
@@ -57,6 +58,9 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem }: 
     const handleDown = (e: React.MouseEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
         if (!imgRef.current || !posterFrameRef.current) return;
         // 드래그 시작
+
+        refreshZindex(id); // zIndex 업데이트
+
         dragging.current = true;
         const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
         const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;

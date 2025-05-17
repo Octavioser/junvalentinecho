@@ -1,0 +1,62 @@
+.pageWrapper {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+}
+
+.leftPanel {
+    width: 50%;
+    border-right: 1px solid #000;
+}
+
+.topBar {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    height: 3.5%;
+    margin-bottom: 5%;
+}
+
+.addButton {
+    display: flex;
+    width: 10%;
+    justify-content: center;
+}
+
+.tabBar {
+    display: flex;
+    width: 100%;
+    height: 3.5%;
+}
+
+.tabButton {
+    width: 20%;
+    height: 100%;
+    border: 1px solid #000;
+    text-align: center;
+    background-color: #fff;
+    color: #000;
+    cursor: pointer;
+}
+
+.active {
+    background-color: #000;
+    color: #fff;
+}
+
+.rightPanel {
+    width: 50%;
+}
+
+.imagePreview {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+.previewImage {
+    width: 50%;
+    height: auto;
+}
