@@ -27,11 +27,13 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                 <button
                     style={{ display: 'flex', justifyContent: 'flex-end' }}
                     onClick={async () => {
-                        for (const item of displayPanelItem) {
-                            startTransition(async () => {
+                        startTransition(async () => {
+                            for (const item of displayPanelItem) {
+
                                 await updateJsonData(item.id, item);
-                            })
-                        }
+
+                            }
+                        })
                         alert('저장되었습니다.');
                         router.refresh(); // 페이지 새로고침
                     }}
