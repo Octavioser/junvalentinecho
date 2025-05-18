@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { useRouter } from "next/navigation";
 import MainImagePosterCard from "../../../components/MainImage/MainImagePosterCard";
 import ArtworkDisplayImage from './ArtworkDisplayImage';
@@ -15,6 +15,8 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
 
     const router = useRouter();
 
+    const [isPending, startTransition] = useTransition();
+
     useEffect(() => {
         setDisplayPanelItem(artworks.filter(({ galleryId }) => galleryId === artworks.find(({ id }) => id === selectedArtworkId)?.galleryId))
     }, [selectedArtworkId])
@@ -26,7 +28,9 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                     style={{ display: 'flex', justifyContent: 'flex-end' }}
                     onClick={async () => {
                         for (const item of displayPanelItem) {
-                            await updateJsonData(item.id, item);
+                            startTransition(async () => {
+                                await updateJsonData(item.id, item);
+                            })
                         }
                         alert('저장되었습니다.');
                         router.refresh(); // 페이지 새로고침
