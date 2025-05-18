@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import MainImagePosterCard from "../../../components/MainImage/MainImagePosterCard";
 import ArtworkDisplayImage from './ArtworkDisplayImage';
 import { Artwork, ArtworkList } from "@/types";
-import { updateJsonData } from "../../../../jsondata/jsonhandlers";
+import { updateJsonData } from "@/common/Jsonhandlers";
 
 const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: ArtworkList, selectedArtworkId: String }) => {
 
@@ -28,6 +28,7 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                         for (const item of displayPanelItem) {
                             await updateJsonData(item.id, item);
                         }
+                        alert('저장되었습니다.');
                         router.refresh(); // 페이지 새로고침
                     }}
                 >

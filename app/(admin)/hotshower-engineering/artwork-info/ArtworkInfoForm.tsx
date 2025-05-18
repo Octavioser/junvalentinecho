@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from "react";
 import { Artwork, ArtworkList } from "@/types";
-import GridComponents from "./GridComponents";
+import GridComponents from "@/components/grid/GridComponents";
 
 const ArtworkInfoForm = ({ tab, artworks, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: ArtworkList, selectedArtworkId: String, setSelectedArtworkId: React.Dispatch<React.SetStateAction<String>> }) => {
 
@@ -25,10 +25,11 @@ const ArtworkInfoForm = ({ tab, artworks, selectedArtworkId, setSelectedArtworkI
             {tab === '2' &&
                 <GridComponents
                     columnList={[
-                        { name: 'id', header: 'GroupId', type: 'string' },
+                        { name: 'id', header: 'ID', type: 'string' },
+                        { name: 'galleryId', header: '갤러리그룹', type: 'string' },
                         { name: 'title', header: '제목', type: 'string' },
                     ]}
-                    artworks={artworks.reduce((acc: ArtworkList, curr: Artwork) => {
+                    artworks={(artworks.filter(({ galleryId }) => galleryId)).reduce((acc: ArtworkList, curr: Artwork) => {
                         const existingGroup = acc.find((item) => item.galleryId === curr.galleryId);
                         if (existingGroup) return [
                             ...acc.filter(({ galleryId }) => galleryId !== curr.galleryId),

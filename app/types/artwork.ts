@@ -1,6 +1,6 @@
 export interface Artwork {
     id: string; // 영화 ID
-    galleryId: string; // 갤러리 ID
+    galleryId: number; // 갤러리 ID
     poster_path: string; // 이미지 경로
     size: string; // 사이즈
     title: string; // 영화 제목

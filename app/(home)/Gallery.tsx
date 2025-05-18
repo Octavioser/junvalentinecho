@@ -33,6 +33,9 @@ const Gallery = ({ artworks }: { artworks: ArtworkList }) => {
         };
     }, []);
 
+    // 중복된 galleryId를 가진 Artwork 객체를 제거
+    const groupIdList = Array.from(new Map(artworks.map(item => [item.galleryId, item])).values()) || [];
+
 
     const galleryList = artworks.reduce((acc: { [key: string]: ArtworkList }, cur: Artwork) => {
         const key = `${cur.galleryId}`;
@@ -45,7 +48,7 @@ const Gallery = ({ artworks }: { artworks: ArtworkList }) => {
     return (
         <>
             <div className={scrollContainer} ref={scrollRef} onClick={() => { id && setId('') }}>
-                {artworks.map(({ id, galleryId }) =>
+                {groupIdList.map(({ id, galleryId }) =>
                     <div key={id} className={posterTrack}>
                         <div className={posterCardFrame}>
                             <MainImagePosterCard>

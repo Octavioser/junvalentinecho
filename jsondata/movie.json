@@ -10,7 +10,7 @@
     "left": 10,
     "zIndex": 1,
     "page": "https://www.sonicthehedgehogmovie.com",
-    "galleryId": "939243",
+    "galleryId": 1,
     "visualYn": "Y"
   },
   {
@@ -24,7 +24,7 @@
     "left": 70,
     "zIndex": 1,
     "page": "https://www.kravenmovie.com",
-    "galleryId": "539972",
+    "galleryId": 2,
     "visualYn": "N"
   },
   {
@@ -33,12 +33,12 @@
     "poster_path": "https://image.tmdb.org/t/p/w780/3L3l6LsiLGHkTG4RFB2aBA6BttB.jpg",
     "overview": "Fifteen years after vanishing from the CIA to start a family, elite spies Matt and Emily jump back into the world of espionage when their cover is blown.",
     "title": "Back in Action",
-    "top": 39.66141306984453,
+    "top": 49.62889959036489,
     "width": 30,
-    "left": 56.81909647286017,
+    "left": 6.831991048104876,
     "zIndex": 0,
     "page": "https://www.netflix.com/title/81307099",
-    "galleryId": "12324",
+    "galleryId": 3,
     "visualYn": "Y"
   },
   {
@@ -47,12 +47,12 @@
     "poster_path": "https://image.tmdb.org/t/p/w780/5qGIxdEO841C0tdY8vOdLoRVrr0.jpg",
     "overview": "A gothic tale of obsession between a haunted young woman and the terrifying vampire infatuated with her, causing untold horror in its wake.",
     "title": "Nosferatu",
-    "top": 3.5596033743611706,
+    "top": 4.559084533853901,
     "width": 30,
-    "left": 55.40538608362461,
+    "left": 61.20842940495831,
     "zIndex": 1,
     "page": "https://www.focusfeatures.com/nosferatu",
-    "galleryId": "12324",
+    "galleryId": 3,
     "visualYn": "Y"
   }
 ]

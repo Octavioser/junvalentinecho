@@ -1,6 +1,6 @@
 import Gallery from "./Gallery";
 import { api } from "../common/comon";
-import { getJsonData, updateJsonData } from "../../jsondata/jsonhandlers";
+import { getJsonData, updateJsonData } from "@/common/Jsonhandlers";
 
 import fs from 'fs';
 import path from 'path';

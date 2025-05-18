@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getJsonData, updateJsonData } from "../../../jsondata/jsonhandlers";
+import { getJsonData, updateJsonData } from "@/common/Jsonhandlers";
 import ArtworkPage from './ArtworkPage';
 
 
