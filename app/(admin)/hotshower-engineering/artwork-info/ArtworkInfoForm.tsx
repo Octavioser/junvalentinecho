@@ -5,10 +5,8 @@ import GridComponents from "@/components/grid/GridComponents";
 
 const ArtworkInfoForm = ({ tab, artworks, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: ArtworkList, selectedArtworkId: String, setSelectedArtworkId: React.Dispatch<React.SetStateAction<String>> }) => {
 
-
-
     return (
-        <div style={{ width: '98.5%', height: '87%' }}>
+        <div style={{ width: '99.9%', height: '94%' }}>
             {['1', '3'].includes(tab) &&
                 <GridComponents
                     columnList={[

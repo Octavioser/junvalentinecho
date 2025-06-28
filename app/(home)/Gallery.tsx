@@ -3,15 +3,13 @@
 import styles from "./home.module.css"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react";
-import Detaildialog from "./detaildialog/Detaildialog";
 import MainImagePosterCard from "../components/MainImage/MainImagePosterCard";
 import ImageStyle from "../components/MainImage/MainImage.module.css";
 import { Artwork, ArtworkList } from "@/types";
+import Link from "next/link";
 
 
 const Gallery = ({ artworks }: { artworks: ArtworkList }) => {
-
-    const [id, setId] = useState<string>('');
 
     const scrollRef = useRef<HTMLDivElement>(null); // Ref 생성
 
@@ -47,26 +45,29 @@ const Gallery = ({ artworks }: { artworks: ArtworkList }) => {
 
     return (
         <>
-            <div className={scrollContainer} ref={scrollRef} onClick={() => { id && setId('') }}>
+            <div className={scrollContainer} ref={scrollRef}>
                 {groupIdList.map(({ id, galleryId }) =>
                     <div key={id} className={posterTrack}>
                         <div className={posterCardFrame}>
                             <MainImagePosterCard>
-                                {(galleryList[galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex }, index) =>
-                                    <img key={`gallery${index}`}
-                                        className={ImageStyle.metalFrame}
-                                        style={{ top: `${top}%`, width: `${width}%`, left: `${left}%`, zIndex }}
-                                        src={poster_path}
-                                        alt={title}
-                                        onClick={() => { setId(id) }}>
-                                    </img>
+                                {(galleryList[galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season }, index) =>
+                                    <Link href={`/season/${season}?id=${id}`} key={id}>
+                                        <img
+                                            className={ImageStyle.metalFrame}
+                                            style={{ top: `${top}%`, width: `${width}%`, left: `${left}%`, zIndex, cursor: 'pointer', userSelect: 'none' }}
+                                            src={poster_path}
+                                            alt={title}
+                                            draggable={false}
+                                            onContextMenu={e => e.preventDefault()}
+                                        >
+                                        </img>
+                                    </Link>
                                 )}
                             </MainImagePosterCard>
                         </div>
                     </div>
                 )}
             </div>
-            {id && <Detaildialog id={id} artworks={artworks} />}
         </>
     )
 }

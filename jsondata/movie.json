@@ -1,5 +1,6 @@
 [
   {
+    "season": "0",
     "size": 7.9,
     "id": "939243",
     "poster_path": "https://image.tmdb.org/t/p/w780/d8Ryb8AunYAuycVKDp5HpdWPKgC.jpg",
@@ -10,26 +11,28 @@
     "left": 42.89053842280316,
     "zIndex": 0,
     "page": "https://www.sonicthehedgehogmovie.com",
-    "galleryId": 1,
+    "galleryId": 4,
     "visualYn": "Y"
   },
   {
+    "season": "0",
     "size": 6.621,
     "id": "539972",
     "poster_path": "https://image.tmdb.org/t/p/w780/i47IUSsN126K11JUzqQIOi1Mg1M.jpg",
     "overview": "Kraven Kravinoff's complex relationship with his ruthless gangster father, Nikolai, starts him down a path of vengeance with brutal consequences, motivating him to become not only the greatest hunter in the world, but also one of its most feared.",
     "title": "이게되넹 나이따ㅡ",
-    "top": 20,
+    "top": 9.761311032126436,
     "width": 20,
-    "left": 70,
-    "zIndex": 1,
+    "left": 14.212888746393094,
+    "zIndex": 0,
     "page": "https://www.kravenmovie.com",
     "galleryId": 2,
-    "visualYn": "N"
+    "visualYn": "Y"
   },
   {
+    "season": "0",
     "size": 6.73,
-    "id": 993710,
+    "id": "993710",
     "poster_path": "https://image.tmdb.org/t/p/w780/3L3l6LsiLGHkTG4RFB2aBA6BttB.jpg",
     "overview": "Fifteen years after vanishing from the CIA to start a family, elite spies Matt and Emily jump back into the world of espionage when their cover is blown.",
     "title": "Back in Action",
@@ -39,11 +42,12 @@
     "zIndex": 0,
     "page": "https://www.netflix.com/title/81307099",
     "galleryId": 3,
-    "visualYn": "Y"
+    "visualYn": ""
   },
   {
+    "season": "1",
     "size": 6.6,
-    "id": 426063,
+    "id": "426063",
     "poster_path": "https://image.tmdb.org/t/p/w780/5qGIxdEO841C0tdY8vOdLoRVrr0.jpg",
     "overview": "A gothic tale of obsession between a haunted young woman and the terrifying vampire infatuated with her, causing untold horror in its wake.",
     "title": "Nosferatu",

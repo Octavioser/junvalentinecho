@@ -79,7 +79,11 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
         <>
             <div className={topBarWrapper}>
                 <p>{openDialog === 'mod' ? '변경' : '추가'}</p>
-                <div onClick={() => { setOpenDialog(null) }} >x</div>
+                <div style={{ height: '100%' }}
+                    onClick={() => { setOpenDialog(null) }}
+                >
+                    <p>x</p>
+                </div>
             </div>
             <div className={inputWrapper}>
                 <div style={{ width: '70%' }}>

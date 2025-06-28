@@ -25,7 +25,7 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
         <>
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', height: '3.5%' }}>
                 <button
-                    style={{ display: 'flex', justifyContent: 'flex-end' }}
+                    style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}
                     onClick={async () => {
                         startTransition(async () => {
                             for (const item of displayPanelItem) {
@@ -40,7 +40,7 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                 >
                     이미지 위치 저장
                 </button>
-            </div>
+            </div >
             <div style={{ display: 'flex', width: '100%', height: '96.5%', justifyContent: 'center', alignItems: 'center' }}>
                 <div ref={posterFrameRef} style={{ width: '90%', aspectRatio: 1 / 1 }}>
                     <MainImagePosterCard>

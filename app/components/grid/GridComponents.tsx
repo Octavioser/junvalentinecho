@@ -12,7 +12,7 @@ const GridComponents = ({ columnList, artworks, selectedArtworkId, setSelectedAr
                 position: 'relative',
                 backgroundColor: '#FAFAFA',
                 width: '99.5%',
-                height: '83%',
+                height: '99%',
                 borderRight: '2px solid #E1E1E1',
                 borderLeft: '2px solid #E1E1E1',
                 borderBottom: '2px solid #E1E1E1',

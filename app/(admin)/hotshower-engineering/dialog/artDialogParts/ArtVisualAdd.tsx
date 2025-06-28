@@ -14,7 +14,7 @@ const ArtVisualAdd = ({ artworks, setOpenDialog }: { artworks: ArtworkList, setO
 
 
     return (
-        <>
+        <div style={{ width: '99.9%', height: '95%' }}>
             <GridComponents
                 columnList={[
                     { name: 'id', header: 'ID', type: 'string' },
@@ -27,7 +27,7 @@ const ArtVisualAdd = ({ artworks, setOpenDialog }: { artworks: ArtworkList, setO
                 setSelectedArtworkId={setTargetID}
 
             />
-            <div style={{ height: '16%', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+            <div style={{ height: '5%', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                 <button onClick={async () => {
                     const targetData = artworks.find((artwork) => artwork.id === targetID);
                     await updateJsonData(targetID, { ...targetData, visualYn: 'Y' });
@@ -37,7 +37,7 @@ const ArtVisualAdd = ({ artworks, setOpenDialog }: { artworks: ArtworkList, setO
                     router.refresh(); // 페이지 새로고침
                 }}>추가</button>
             </div>
-        </>
+        </div>
     )
 
 }

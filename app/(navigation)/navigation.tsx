@@ -30,7 +30,7 @@ const nav = () => {
                     </li>
                 </ul>
             </nav>
-            <div style={{ marginTop: '5vh' }}></div>
+            <div style={{ marginTop: '5vh', borderBottom: '1px solid #f0f0f0' }}></div>
         </>
     )
 }

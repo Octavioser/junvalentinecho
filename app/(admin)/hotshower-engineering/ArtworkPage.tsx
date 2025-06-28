@@ -32,6 +32,21 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList }) => {
         <>
             <div className={pageWrapper}>
                 <div className={leftPanel}>
+                    <div className={tabBar}>
+                        {[{ header: '이미지전체', value: '1' }, { header: '메인전시장표시', value: '2' }, { header: '비쥬얼표시', value: '3' }].map(({ header, value }, index) => (
+                            <div
+                                key={`artworkBtn${index}`}
+                                className={`${tabButton} ${tab === value ? active : ''}`}
+                                onClick={() => {
+                                    setTab(value);
+                                    setSelectedArtworkId(null);
+                                }}
+                            >
+                                {header}
+                            </div>
+                        ))}
+
+                    </div>
                     <div className={topBar}>
 
                         {tab === '1' &&
@@ -76,21 +91,6 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList }) => {
 
                             </>
                         }
-                    </div>
-
-                    <div className={tabBar}>
-                        {[{ header: '이미지전체', value: '1' }, { header: '메인전시장표시', value: '2' }, { header: '비쥬얼표시', value: '3' }].map(({ header, value }, index) => (
-                            <div
-                                key={`artworkBtn${index}`}
-                                className={`${tabButton} ${tab === value ? active : ''}`}
-                                onClick={() => {
-                                    setTab(value);
-                                    setSelectedArtworkId(null);
-                                }}
-                            >
-                                {header}
-                            </div>
-                        ))}
                     </div>
 
                     <ArtworkInfoForm

@@ -13,7 +13,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
 
     const router = useRouter();
     return (
-        <>
+        <div style={{ width: '99.9%', height: '95%' }}>
             <GridComponents
                 columnList={[
                     { name: 'id', header: 'ID', type: 'string' },
@@ -25,7 +25,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                 selectedArtworkId={targetID}
                 setSelectedArtworkId={setTargetID}
             />
-            <div style={{ height: '16%', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
+            <div style={{ height: '5%', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                 <button onClick={async () => {
                     const targetData = artworks.find((artwork) => artwork.id === targetID);
 
@@ -43,7 +43,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                     router.refresh(); // 페이지 새로고침
                 }}>추가</button>
             </div>
-        </>
+        </div>
     )
 
 }
