@@ -1,14 +1,14 @@
-"use client"
+"use client";
 import React, { useState } from "react";
 import ArtworkDisplayPanel from './artwork-display/ArtworkDisplayPanel';
 import ArtworkInfoForm from './artwork-info/ArtworkInfoForm';
 import { Artwork, ArtworkList } from "@/types";
 import ArtAddDialog from "./dialog/ArtAddDialog";
 import styles from "./ArtworkPage.module.css";
-import { updateJsonData } from "@/common/Jsonhandlers";
 import { useRouter } from "next/navigation";
+import { delArtwork, delImage, updateArtwork } from "@/common/comon";
 
-const ArtworkPage = ({ artworks }: { artworks: ArtworkList }) => {
+const ArtworkPage = ({ artworks }: { artworks: ArtworkList; }) => {
 
     const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
     const [tab, setTab] = useState<string>('1');
@@ -51,20 +51,36 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList }) => {
 
                         {tab === '1' &&
                             <>
-                                <button className={addButton} onClick={() => { setOpenDialog('add') }}>추가</button>
-                                <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod') }}>수정</button>
+                                <button className={addButton} onClick={() => { setOpenDialog('add'); }}>추가</button>
+                                <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>수정</button>
+                                <button className={addButton} disabled={!selectedArtworkId}
+                                    onClick={async () => {
+                                        const poster_path = artworks.find((artwork) => artwork.id === selectedArtworkId)?.poster_path;
+                                        if (!(poster_path && selectedArtworkId)) {
+                                            alert('삭제실패하였습니다.');
+                                            console.error(`posterPath==> ${poster_path}, || selectedArtworkId==> ${selectedArtworkId}`);
+                                            return;
+                                        }
+                                        await delImage(poster_path);
+                                        await delArtwork(selectedArtworkId);
+                                        setSelectedArtworkId(null);
+                                        alert('삭제되었습니다.');
+                                        router.refresh(); // 페이지 새로고침
+                                    }}>
+                                    삭제
+                                </button>
                             </>
                         }
                         {tab === '2' && <>
-                            <button className={addButton} onClick={() => { setOpenDialog('add') }}>그룹채번</button>
-                            <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod') }}>기존추가</button>
+                            <button className={addButton} onClick={() => { setOpenDialog('add'); }}>그룹채번</button>
+                            <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>기존추가</button>
                             <button className={addButton}
                                 disabled={!selectedArtworkId}
                                 onClick={async () => {
                                     const targetgalleryId = artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
                                     const targetData = artworks.filter((artwork) => artwork.galleryId === targetgalleryId);
                                     for (const item of targetData) {
-                                        await updateJsonData(item.id, { ...item, galleryId: 0 });
+                                        await updateArtwork({ ...item, galleryId: null });
                                     }
                                     setSelectedArtworkId(null);
                                     alert('그룹이 삭제되었습니다.');
@@ -76,12 +92,12 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList }) => {
                         }
                         {tab === '3' &&
                             <>
-                                <button className={addButton} onClick={() => { setOpenDialog('add') }}>추가</button>
+                                <button className={addButton} onClick={() => { setOpenDialog('add'); }}>추가</button>
                                 <button className={addButton}
                                     disabled={!selectedArtworkId}
                                     onClick={async () => {
                                         const targetData = artworks.find((artwork) => artwork.id === selectedArtworkId);
-                                        await updateJsonData(selectedArtworkId, { ...targetData, visualYn: '' });
+                                        await updateArtwork({ ...targetData, visualYn: '' });
                                         setSelectedArtworkId(null);
                                         alert('비쥬얼 표시가 삭제되었습니다.');
                                         router.refresh(); // 페이지 새로고침
@@ -116,6 +132,6 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList }) => {
             </div>
             {openDialog && <ArtAddDialog artworks={artworks} selectedArtworkId={selectedArtworkId} setSelectedArtworkId={setSelectedArtworkId} openDialog={openDialog} setOpenDialog={setOpenDialog} tab={tab} />}
         </>
-    )
-}
+    );
+};
 export default ArtworkPage;

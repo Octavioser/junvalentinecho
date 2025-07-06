@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import styles from "./home.module.css"
-import { useRouter } from "next/navigation"
+import styles from "./home.module.css";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import MainImagePosterCard from "../components/MainImage/MainImagePosterCard";
 import ImageStyle from "../components/MainImage/MainImage.module.css";
@@ -9,7 +9,7 @@ import { Artwork, ArtworkList } from "@/types";
 import Link from "next/link";
 
 
-const Gallery = ({ artworks }: { artworks: ArtworkList }) => {
+const Gallery = ({ artworks }: { artworks: ArtworkList; }) => {
 
     const scrollRef = useRef<HTMLDivElement>(null); // Ref 생성
 
@@ -32,14 +32,14 @@ const Gallery = ({ artworks }: { artworks: ArtworkList }) => {
     }, []);
 
     // 중복된 galleryId를 가진 Artwork 객체를 제거
-    const groupIdList = Array.from(new Map(artworks.map(item => [item.galleryId, item])).values()) || [];
+    const groupIdList = Array.from(new Map(artworks.filter((item) => item.galleryId).map(item => [item.galleryId, item])).values()) || [];
 
 
-    const galleryList = artworks.reduce((acc: { [key: string]: ArtworkList }, cur: Artwork) => {
+    const galleryList = artworks.reduce((acc: { [key: string]: ArtworkList; }, cur: Artwork) => {
         const key = `${cur.galleryId}`;
         if (acc[key]) return { ...acc, [key]: acc[key].concat([cur]) };
         return { ...acc, [key]: [cur] };
-    }, {})
+    }, {});
 
     const { scrollContainer, posterTrack, posterCardFrame } = styles;
 
@@ -69,6 +69,6 @@ const Gallery = ({ artworks }: { artworks: ArtworkList }) => {
                 )}
             </div>
         </>
-    )
-}
+    );
+};
 export default Gallery;

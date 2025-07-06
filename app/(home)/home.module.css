@@ -18,7 +18,7 @@
     /* 슬라이더 내부 트랙 (이미지가 움직이는 영역) */
     flex: 0 0 auto;
     /* 고정된 크기를 유지하고 늘어나지 않도록 설정 */
-    width: 100vw;
+    width: 100%;
 
     display: flex;
     flex-direction: column;
@@ -28,7 +28,6 @@
 
     align-items: center;
     height: 100%;
-
 }
 
 .posterCardFrame {

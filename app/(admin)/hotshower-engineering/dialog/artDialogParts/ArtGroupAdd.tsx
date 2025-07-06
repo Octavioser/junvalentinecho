@@ -1,11 +1,11 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { Artwork, ArtworkList } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
-import { updateJsonData } from "@/common/Jsonhandlers";
+import { updateArtwork } from "@/common/comon";
 
-const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDialog, setOpenDialog }: { artworks: ArtworkList, selectedArtworkId: string, setSelectedArtworkId: React.Dispatch<React.SetStateAction<string>>, openDialog: string, setOpenDialog: React.Dispatch<React.SetStateAction<string>> }) => {
+const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDialog, setOpenDialog }: { artworks: ArtworkList, selectedArtworkId: string, setSelectedArtworkId: React.Dispatch<React.SetStateAction<string>>, openDialog: string, setOpenDialog: React.Dispatch<React.SetStateAction<string>>; }) => {
 
     const [targetID, setTargetID] = useState<string>(null);
 
@@ -35,7 +35,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                         : // 기존그룹에 추가 
                         (artworks.find((artwork) => artwork.id === selectedArtworkId) || {}).galleryId;
 
-                    await updateJsonData(targetID, { ...targetData, galleryId });
+                    await updateArtwork({ ...targetData, galleryId });
                     setTargetID(null);
                     setOpenDialog(null);
                     setSelectedArtworkId(null);
@@ -44,7 +44,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                 }}>추가</button>
             </div>
         </div>
-    )
+    );
 
-}
+};
 export default ArtGroupAdd;

@@ -13,6 +13,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@vercel/blob": "^1.1.1",
+    "@vercel/kv": "^3.0.0",
     "next": "^15.2.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

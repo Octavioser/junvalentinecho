@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { useRouter } from "next/navigation";
 import MainImagePosterCard from "../../../components/MainImage/MainImagePosterCard";
 import ArtworkDisplayImage from './ArtworkDisplayImage';
 import { Artwork, ArtworkList } from "@/types";
-import { updateJsonData } from "@/common/Jsonhandlers";
+import { updateArtwork } from '@/common/comon';
 
-const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: ArtworkList, selectedArtworkId: String }) => {
+const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: ArtworkList, selectedArtworkId: String; }) => {
 
     const posterFrameRef = useRef<HTMLDivElement>(null);
 
@@ -15,11 +15,9 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
 
     const router = useRouter();
 
-    const [isPending, startTransition] = useTransition();
-
     useEffect(() => {
-        setDisplayPanelItem(artworks.filter(({ galleryId }) => galleryId === artworks.find(({ id }) => id === selectedArtworkId)?.galleryId))
-    }, [selectedArtworkId])
+        setDisplayPanelItem(artworks.filter(({ galleryId }) => galleryId === artworks.find(({ id }) => id === selectedArtworkId)?.galleryId));
+    }, [selectedArtworkId]);
 
     return (
         <>
@@ -27,13 +25,9 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                 <button
                     style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}
                     onClick={async () => {
-                        startTransition(async () => {
-                            for (const item of displayPanelItem) {
-
-                                await updateJsonData(item.id, item);
-
-                            }
-                        })
+                        for (const item of displayPanelItem) {
+                            await updateArtwork(item);
+                        }
                         alert('저장되었습니다.');
                         router.refresh(); // 페이지 새로고침
                     }}
@@ -59,7 +53,7 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                                             .filter((i) => i.id !== id)
                                             .concat(targetItem)
                                             .map((item, zIndex) => ({ ...item, zIndex }))
-                                    )
+                                    );
                                 }}
                             />
                         )}
@@ -67,6 +61,6 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                 </div>
             </div >
         </>
-    )
-}
+    );
+};
 export default ArtworkDisplayPanel;

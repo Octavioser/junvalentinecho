@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 import ImageStyle from "../../../components/MainImage/MainImage.module.css";
@@ -23,6 +23,8 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
     const imgStartY = useRef(0);
 
     const { id, poster_path, title, top, width, left, zIndex } = targetArtworks;
+
+    console.log(targetArtworks);
 
     const handleMove = (e: React.MouseEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
         if (!dragging.current || !posterFrameRef.current) return;
@@ -53,7 +55,7 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
         // 기준점을 업데이트 (다음 move에 대비)
         imgStartX.current = clientX;
         imgStartY.current = clientY;
-    }
+    };
 
     const handleDown = (e: React.MouseEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
         if (!imgRef.current || !posterFrameRef.current) return;
@@ -68,7 +70,7 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
         imgStartX.current = clientX;
         // 마우스 클릭 시 이미지 Y 시작 위치 계산
         imgStartY.current = clientY;
-    }
+    };
 
     return (
         <img className={ImageStyle.metalFrame}
@@ -87,6 +89,6 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
 
         >
         </img>
-    )
-}
+    );
+};
 export default ArtworkDisplayImage;
