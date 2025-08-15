@@ -1,15 +1,10 @@
-import React, { useState } from 'react';
 import { getArtworks } from "@/common/comon";
-import ArtworkPage from './ArtworkPage';
-
-
-export const metadata = { title: '개인작업실' };
+import ArtworkPage from "./ArtworkPage";
 
 const HotshowerEngineering = async () => {
-
-    return (
-        <ArtworkPage artworks={await getArtworks()} />
-    );
+    // login, middle ware에서 해당 토큰 체크
+    const artworks = await getArtworks();
+    return <ArtworkPage artworks={artworks} />;
 };
-
 export default HotshowerEngineering;
+

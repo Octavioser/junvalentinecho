@@ -15,7 +15,6 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList; }) => {
     const [openDialog, setOpenDialog] = useState<"add" | "mod">(null);
 
     const router = useRouter();
-    console.log('artworks!!!', artworks);
     const {
         pageWrapper,
         leftPanel,
