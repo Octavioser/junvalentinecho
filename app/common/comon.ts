@@ -55,7 +55,7 @@ export const uploadImage = async (file: File, title: string, url?: string | null
     const targetPath = `images/${slug(baseTitle)}.${ext}`;
 
     // 4) 업로드: 공개 접근, 1년 캐시, 캐시 무효화를 위한 랜덤 접미사, 덮어쓰기 허용
-    const { pathname } = await put(targetPath, file, {
+    const { url: newUrl } = await put(targetPath, file, {
         access: "public",
         contentType: file.type || undefined,
         cacheControlMaxAge: 60 * 60 * 24 * 365, // 1년(초)
@@ -63,7 +63,7 @@ export const uploadImage = async (file: File, title: string, url?: string | null
     });
 
     // 5) 퍼블릭 URL 반환
-    return pathname;
+    return newUrl;
 };
 
 // 이미지 삭제 
