@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { getJsonData, updateJsonData } from "@/common/Jsonhandlers";
+import { getArtworks } from "@/common/comon";
 import SeasonDetail from "./SeasonDetail";
 
 
-export const metadata = { title: 'season' }
+export const metadata = { title: 'season' };
 
-const HotshowerEngineering = async ({ params, searchParams }: { params: Promise<{ season: string }>, searchParams: Promise<{ id?: string }> }) => {
+const HotshowerEngineering = async ({ params, searchParams }: { params: Promise<{ season: string; }>, searchParams: Promise<{ id?: string; }>; }) => {
 
-    const Artwork = await getJsonData();
+    const Artwork = await getArtworks();
 
     const { season: param } = await params;
 
@@ -15,7 +15,7 @@ const HotshowerEngineering = async ({ params, searchParams }: { params: Promise<
 
     return (
         <SeasonDetail artworks={(Artwork || []).filter(({ season }) => season === param)} id={id} />
-    )
-}
+    );
+};
 
 export default HotshowerEngineering;

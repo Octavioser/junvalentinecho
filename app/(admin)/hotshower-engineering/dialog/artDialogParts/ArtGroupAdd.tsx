@@ -5,7 +5,7 @@ import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
 import { updateArtwork } from "@/common/comon";
 
-const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDialog, setOpenDialog }: { artworks: ArtworkList, selectedArtworkId: string, setSelectedArtworkId: React.Dispatch<React.SetStateAction<string>>, openDialog: string, setOpenDialog: React.Dispatch<React.SetStateAction<string>>; }) => {
+const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDialog, setOpenDialog }: { artworks: ArtworkList, selectedArtworkId: string, setSelectedArtworkId: React.Dispatch<React.SetStateAction<string>>, openDialog: 'add' | 'mod', setOpenDialog: React.Dispatch<React.SetStateAction<string>>; }) => {
 
     const [targetID, setTargetID] = useState<string>(null);
 

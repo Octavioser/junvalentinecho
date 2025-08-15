@@ -1,11 +1,11 @@
-"use client"
+"use client";
 import React, { useEffect, useState } from "react";
 import { Artwork, ArtworkList } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
-import { updateJsonData } from "@/common/Jsonhandlers";
+import { updateArtwork } from "@/common/comon";
 
-const ArtVisualAdd = ({ artworks, setOpenDialog }: { artworks: ArtworkList, setOpenDialog: React.Dispatch<React.SetStateAction<string>> }) => {
+const ArtVisualAdd = ({ artworks, setOpenDialog }: { artworks: ArtworkList, setOpenDialog: React.Dispatch<React.SetStateAction<string>>; }) => {
 
     const [targetID, setTargetID] = useState<string>(null);
 
@@ -30,7 +30,7 @@ const ArtVisualAdd = ({ artworks, setOpenDialog }: { artworks: ArtworkList, setO
             <div style={{ height: '5%', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
                 <button onClick={async () => {
                     const targetData = artworks.find((artwork) => artwork.id === targetID);
-                    await updateJsonData(targetID, { ...targetData, visualYn: 'Y' });
+                    await updateArtwork({ ...targetData, visualYn: 'Y' });
                     setTargetID(null);
                     setOpenDialog(null);
                     alert('비쥬얼 표시가 추가되었습니다.');
@@ -38,7 +38,7 @@ const ArtVisualAdd = ({ artworks, setOpenDialog }: { artworks: ArtworkList, setO
                 }}>추가</button>
             </div>
         </div>
-    )
+    );
 
-}
+};
 export default ArtVisualAdd;

@@ -12,7 +12,7 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList; }) => {
 
     const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
     const [tab, setTab] = useState<string>('1');
-    const [openDialog, setOpenDialog] = useState<string>(null);
+    const [openDialog, setOpenDialog] = useState<"add" | "mod">(null);
 
     const router = useRouter();
     console.log('artworks!!!', artworks);

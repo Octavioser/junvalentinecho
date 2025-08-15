@@ -8,8 +8,7 @@ export const metadata = { title: '개인작업실' };
 const HotshowerEngineering = async () => {
 
     return (
-        <></>
-        // <ArtworkPage artworks={await getArtworks()} />
+        <ArtworkPage artworks={await getArtworks()} />
     );
 };
 
