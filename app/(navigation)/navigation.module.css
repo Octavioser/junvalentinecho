@@ -35,6 +35,7 @@
 
 
 .hamburger {
+    color: black;
     z-index: 101;
     display: none;
     align-items: center;

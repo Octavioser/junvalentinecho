@@ -12,7 +12,8 @@ const Player = () => {
         playButton,
         buttonIcon,
         nextIcon,
-        equalizerContainer
+        equalizerContainer,
+        canvasStyle
     } = styles;
 
     const [isPlaying, setIsPlaying] = useState(false);
@@ -172,11 +173,7 @@ const Player = () => {
             </button>
         </div >
         <div className={equalizerContainer}>
-            <canvas
-                ref={canvasRef}
-                width={'250px'}
-                height={'80%'}
-            />
+            <canvas className={canvasStyle} ref={canvasRef} />
         </div>
         <audio
             ref={audioRef}
