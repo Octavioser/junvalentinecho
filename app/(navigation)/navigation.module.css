@@ -1,24 +1,87 @@
-.nav {
-    background: linear-gradient(135deg, #fff 0%, #fafafa 100%);
-    position: fixed;
-    width: 100%;
+.navContainer {
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
     top: 0;
     left: 0;
-    color: black;
-    height: 5vh;
-    display: flex;
+    width: 20%;
+    height: 100%;
+    position: fixed;
+    pointer-events: none;
+}
+
+.navContainer:has(.buttonGroup.open) {
+    background-color: white;
+    pointer-events: auto;
+}
+
+.buttonGroup {
+    width: 50%;
+    height: 100%;
+    transform: translateX(-100%);
+    opacity: 0;
+    transition: transform 0.4s ease, opacity 0.4s ease 0.1s;
+}
+
+.buttonGroup.mainOpen {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.buttonGroup.open {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+
+.hamburger {
+    z-index: 101;
+    display: none;
     align-items: center;
-    /* 세로 중앙 정렬 */
     justify-content: center;
-    /* 가로 중앙 정렬 */
-    z-index: 1000;
-    /* 다른 콘텐츠 위에 표시 */
+    width: 32px;
+    height: 32px;
+    font-size: 24px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: fixed;
+    top: var(--sp);
+    left: var(--sp);
+}
+
+.hamburger.show {
+    display: inline-flex;
+}
+
+
+.mainTitle {
+    align-items: center;
+    display: flex;
+    height: 8%;
+    padding-left: calc(var(--sp) * 2);
+    margin-bottom: 20%;
+}
+
+.nav {
+    height: 100%;
+    pointer-events: none;
+    visibility: hidden;
+    color: black;
+    padding-left: calc(var(--sp) * 2);
+    pointer-events: none;
+}
+
+.nav.show {
+    visibility: visible;
+    pointer-events: auto;
 }
 
 .nav ul {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     gap: 50px;
+
 }
 
 .nav ul li {
@@ -29,4 +92,59 @@
 
 .nav ul li:hover {
     transform: scale(1.01);
+}
+
+/* 세로가 긴 화면 (높이가 더 클 때) */
+@media (max-aspect-ratio: 1/1) {
+    .navContainer {
+        width: 100%;
+    }
+
+    .mainTitle {
+        padding: 0%;
+        justify-content: center;
+        margin-bottom: 0%;
+    }
+
+    .hamburger {
+        display: inline-flex;
+    }
+
+    .buttonGroup {
+        width: 100%;
+    }
+
+    .buttonGroup.mainOpen {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    .buttonGroup>.nav {
+        padding: 0;
+        width: 100%;
+        justify-items: center;
+        align-content: center;
+        box-sizing: border-box;
+        transform: translateY(-10%);
+        pointer-events: none;
+        visibility: hidden;
+    }
+
+    .buttonGroup.open {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    .navContainer:has(.buttonGroup.open) .mainTitle {
+        display: none;
+    }
+
+    .buttonGroup.open>.nav {
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .nav ul {
+        text-align: center;
+    }
 }

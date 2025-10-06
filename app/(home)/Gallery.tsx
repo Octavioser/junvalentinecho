@@ -7,7 +7,7 @@ import MainImagePosterCard from "../components/MainImage/MainImagePosterCard";
 import ImageStyle from "../components/MainImage/MainImage.module.css";
 import { Artwork, ArtworkList } from "@/types";
 import Link from "next/link";
-
+import Player from "./(player)/Player";
 
 const Gallery = ({ artworks }: { artworks: ArtworkList; }) => {
 
@@ -41,11 +41,18 @@ const Gallery = ({ artworks }: { artworks: ArtworkList; }) => {
         return { ...acc, [key]: [cur] };
     }, {});
 
-    const { scrollContainer, posterTrack, posterCardFrame } = styles;
+    const {
+        scrollContainer,
+        posterTrack,
+        posterCardFrame,
+        posterCardExplainContainer,
+        posterCardExplain,
+        posterCardExplainSub
+    } = styles;
 
     return (
-        <>
-            <div className={scrollContainer} ref={scrollRef}>
+        <div className={styles.homeContainer} ref={scrollRef}>
+            <div className={scrollContainer}>
                 {groupIdList.map(({ id, galleryId }) =>
                     <div key={id} className={posterTrack}>
                         <div className={posterCardFrame}>
@@ -64,11 +71,24 @@ const Gallery = ({ artworks }: { artworks: ArtworkList; }) => {
                                     </Link>
                                 )}
                             </MainImagePosterCard>
+                            <div className={posterCardExplainContainer}>
+                                {(galleryList[galleryId] || []).map(({ title, size }, index) =>
+                                    <div key={`explain${index}`} className={posterCardExplain}>
+                                        <span>{title}</span>
+                                        <span className={posterCardExplainSub}>{`${size} cm`}</span>
+                                        <span className={posterCardExplainSub}>{`${size} cm`}</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
+
                     </div>
                 )}
             </div>
-        </>
+            <div className={styles.playerContainer}>
+                <Player />
+            </div>
+        </div>
     );
 };
 export default Gallery;

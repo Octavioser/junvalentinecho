@@ -1,17 +1,15 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Artwork, ArtworkList } from "@/types";
-import styles from "./Season.module.css"
-const SeasonDetail = ({ artworks, id }: { artworks: ArtworkList, id: string | null }) => {
+import styles from "./Season.module.css";
+const SeasonDetail = ({ artworks, id }: { artworks: ArtworkList, id: string | null; }) => {
 
     useEffect(() => {
         if (id) {
             setIsClickId(id);
             setShowId(id);
         }
-    }, [id])
-
-    console.log(id)
+    }, [id]);
 
     const { container, leftPanel, rightPanel, leftBox, rightDetail, selectBox } = styles;
 
@@ -28,12 +26,11 @@ const SeasonDetail = ({ artworks, id }: { artworks: ArtworkList, id: string | nu
                         className={`${leftBox} ${showId === id ? selectBox : ''}`}
                         style={(showId || id) === id ? { cursor: 'pointer' } : { filter: 'blur(4px)' }}
                         onClick={() => {
-                            console.log(id)
-                            setIsClickId(id)
+                            setIsClickId(id);
                         }}
-                        onMouseOver={() => { setShowId(id) }}
+                        onMouseOver={() => { setShowId(id); }}
                         onMouseOut={() => {
-                            if (!isClickId) setShowId(null)
+                            if (!isClickId) setShowId(null);
                             if (isClickId !== id) {
                                 setIsClickId(null);
                                 setShowId(null);
@@ -77,7 +74,7 @@ const SeasonDetail = ({ artworks, id }: { artworks: ArtworkList, id: string | nu
 
             </div>
         </div>
-    )
+    );
 
-}
+};
 export default SeasonDetail;

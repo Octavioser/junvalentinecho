@@ -125,15 +125,17 @@ q:after {
     content: none;
 }
 
+html,
+body {
+    height: 100dvh;
+}
+
 table {
     border-collapse: collapse;
     border-spacing: 0;
 }
 
 body {
-    font-family: "Playfair Display", serif;
-    font-weight: 400;
-    font-style: normal;
 
     background-color: white;
     color: black;
@@ -168,4 +170,9 @@ input::-webkit-inner-spin-button {
 input::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+:root {
+    --sp: 8px;
+    /* 기본 간격 */
 }
