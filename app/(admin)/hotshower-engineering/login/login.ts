@@ -10,12 +10,13 @@ import { SignJWT } from 'jose';
 export const loginAction = async (formData: FormData) => {
     "use server";
 
+    const id = String(formData.get("eg") ?? "");
     const code = String(formData.get("code") ?? "");
     const ok = authenticator.verify({
         token: code,
         secret: process.env.ADMIN_TOTP_SECRET!, // Base32
     });
-    if (!ok) redirect("/");
+    if (!ok || id !== process.env.ADMIN_TOTP_EMAIL) return redirect("/");
     // ▶ JWT 만들기 (8시간 유효)
     const jwt = await new SignJWT({ sub: "admin-1", role: "admin", v: 1 })
         .setProtectedHeader({ alg: "HS256" })

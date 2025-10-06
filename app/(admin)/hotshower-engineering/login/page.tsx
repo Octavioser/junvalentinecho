@@ -6,14 +6,23 @@ const LoginFom = () => {
 
     return <div className={style.loginCotainer}>
         <form action={loginAction} className="w-full max-w-sm space-y-3">
-            <input
-                name="code"
-                autoFocus
-                pattern="\d*"
-                className="w-full border rounded px-3 py-2"
-            />
-            <button className="w-full border rounded px-3 py-2">로그인</button>
-
+            <div className={style.loginInputContainer}>
+                <div>
+                    <input
+                        type="text"
+                        name="eg"
+                        autoFocus
+                    />
+                </div>
+                <div>
+                    <input
+                        name="code"
+                        autoFocus
+                        pattern="\d*"
+                    />
+                </div>
+                <button>로그인</button>
+            </div>
         </form>
     </div>;
 };
