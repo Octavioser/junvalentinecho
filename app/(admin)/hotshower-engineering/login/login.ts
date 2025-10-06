@@ -16,6 +16,10 @@ export const loginAction = async (formData: FormData) => {
         token: code,
         secret: process.env.ADMIN_TOTP_SECRET!, // Base32
     });
+    console.log('ok===>', !!ok);
+    console.log('id===>', id);
+    console.log('process.env.ADMIN_TOTP_EMAIL===>', process.env.ADMIN_TOTP_EMAIL);
+    console.log('result===>', id === process.env.ADMIN_TOTP_EMAIL);
     if (!ok || id !== process.env.ADMIN_TOTP_EMAIL) return redirect("/");
     // ▶ JWT 만들기 (8시간 유효)
     const jwt = await new SignJWT({ sub: "admin-1", role: "admin", v: 1 })
