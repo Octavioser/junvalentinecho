@@ -1,21 +1,23 @@
+import { Metadata } from 'next';
 import React, { useState } from 'react';
-import { getArtworks } from "@/common/comon";
 import SeasonDetail from "./SeasonDetail";
 
 
-export const metadata = { title: 'season' };
-
-const HotshowerEngineering = async ({ params, searchParams }: { params: Promise<{ season: string; }>, searchParams: Promise<{ id?: string; }>; }) => {
-
-    const Artwork = await getArtworks();
+export async function generateMetadata({ params, }: { params: Promise<{ season: string; }>; }): Promise<Metadata> {
+    const { season: param } = await params;
+    return {
+        title: param ? `${param}` : "Season",
+    };
+}
+const Season = async ({ params, searchParams }: { params: Promise<{ season: string; }>, searchParams: Promise<{ id?: string; }>; }) => {
 
     const { season: param } = await params;
 
     const { id } = await searchParams;
 
     return (
-        <SeasonDetail artworks={(Artwork || []).filter(({ season }) => season === param)} id={id} />
+        <SeasonDetail param={param} id={id} />
     );
 };
 
-export default HotshowerEngineering;
+export default Season;

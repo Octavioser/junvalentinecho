@@ -1,8 +1,18 @@
- .mediaPlayer {
+ .mediaPlayerConTainer {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     width: 148px;
+     flex-direction: column;
+     padding-top: var(--sp);
+ }
+
+ .playerButtonGroup {
      display: flex;
      align-items: center;
      justify-content: center;
      gap: var(--sp);
+     width: 100%;
  }
 
  .controlButton {
@@ -62,6 +72,35 @@
  .playButton .button-icon {
      width: 20px;
      height: 20px;
+ }
+
+ .mediaName {
+     width: 140px;
+     height: calc(var(--sp) * 2);
+     overflow: hidden;
+     /* 넘친 부분 숨김 */
+     white-space: nowrap;
+     /* 한 줄 유지 */
+     position: relative;
+ }
+
+ .mediaNameText {
+     display: inline-block;
+     animation: scroll 8s linear infinite;
+     text-align: right;
+ }
+
+ /* 핵심 애니메이션 */
+ @keyframes scroll {
+     from {
+         transform: translateX(200%);
+         /* 오른쪽 밖에서 시작 */
+     }
+
+     to {
+         transform: translateX(-100%);
+         /* 왼쪽 밖으로 끝 */
+     }
  }
 
  .equalizerContainer {

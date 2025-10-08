@@ -3,16 +3,17 @@
 import React, { useState, useEffect, useRef, useTransition } from 'react';
 import { useRouter } from "next/navigation";
 import MainImagePosterCard from "../../../components/MainImage/MainImagePosterCard";
+import MainImageRatio from '@/components/MainImage/MainImageRatio';
 import ArtworkDisplayImage from './ArtworkDisplayImage';
-import { Artwork, ArtworkList } from "@/types";
-import { updateArtwork } from '@/common/comon';
+import { Artwork } from "@/types";
+import { updateAllArtwork } from '@/common/comon';
 
-const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: ArtworkList, selectedArtworkId: String; }) => {
+const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwork[], selectedArtworkId: String; }) => {
 
     const posterFrameRef = useRef<HTMLDivElement>(null);
 
-    const [displayPanelItem, setDisplayPanelItem] = useState<ArtworkList>([]);
-
+    const [displayPanelItem, setDisplayPanelItem] = useState<Artwork[]>([]);
+    console.log('Gallery===>', displayPanelItem);
     const router = useRouter();
 
     useEffect(() => {
@@ -25,9 +26,11 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                 <button
                     style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}
                     onClick={async () => {
-                        for (const item of displayPanelItem) {
-                            await updateArtwork(item);
-                        }
+                        await updateAllArtwork(artworks.map(e => {
+                            const target = displayPanelItem.find((i) => i.id === e.id);
+                            if (target) return target;
+                            return e;
+                        }));
                         alert('저장되었습니다.');
                         router.refresh(); // 페이지 새로고침
                     }}
@@ -58,6 +61,7 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                             />
                         )}
                     </MainImagePosterCard>
+                    {displayPanelItem[0]?.galleryRaito && <MainImageRatio ratio={displayPanelItem[0].galleryRaito} />}
                 </div>
             </div >
         </>

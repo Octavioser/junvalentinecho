@@ -2,48 +2,9 @@
     display: flex;
     width: 100%;
     height: 100%;
-    ;
-}
-
-/* 
-.left {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.6em;
-} */
-
-.right {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.6em;
-    background-color: rgba(230, 230, 230, 0.223);
-    border-left: 1px solid rgba(230, 230, 230, 0.4);
-    box-sizing: border-box;
-}
-
-.rightDetail {
-    width: 100%;
-    height: 100%;
-    justify-content: center;
-    display: flex;
-}
-
-.rightDetailImg {
-    max-width: 100%;
-    max-height: 100%;
-    height: auto;
-    object-fit: contain;
-    user-select: none;
 }
 
 .left {
-    font-size: 0.6em;
-    flex: 1;
-    /* 왼쪽 영역 배경 */
     display: grid;
     align-items: center;
     justify-content: center;
@@ -54,16 +15,67 @@
     padding: 20px;
     overflow: hidden;
     text-overflow: ellipsis;
+    width: 50%;
+    height: 100%;
+    box-sizing: border-box;
 }
+
+.right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50%;
+    height: 100%;
+    border-left: 1px solid rgba(230, 230, 230, 0.3);
+    box-sizing: border-box;
+}
+
+.rightDetailImgContainer {
+    width: 80%;
+    /* ✅ 이제 .rightDetail 기준으로 계산됨 */
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.rightDetailImgContainer.show {
+    display: flex;
+}
+
+
+.rightDetailImg {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    user-select: none;
+}
+
+
 
 /* 세로가 긴 화면 (높이가 더 클 때) */
 @media (max-aspect-ratio: 1/1) {
     .container {
         flex-direction: column-reverse;
-        /* 아래쪽(Left)이 위로, 위쪽(Right)이 아래로 */
     }
 
-    .rightDetail {
-        height: 100%;
+    .left {
+        width: 100%;
+        height: 50%;
+    }
+
+    .right {
+        width: 100%;
+        height: 50%;
+        border-left: none;
+        border-bottom: 1px solid rgba(230, 230, 230, 0.3);
+    }
+
+    .rightDetailImgContainer {
+        width: auto;
+        height: 80%;
     }
 }

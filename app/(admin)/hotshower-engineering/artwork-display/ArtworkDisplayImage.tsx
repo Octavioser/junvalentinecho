@@ -22,9 +22,7 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
     // 이미지 y시작위치
     const imgStartY = useRef(0);
 
-    const { id, poster_path, title, top, width, left, zIndex } = targetArtworks;
-
-    console.log(targetArtworks);
+    const { id, poster_path, title, top, width, galleryRaito, left, zIndex } = targetArtworks;
 
     const handleMove = (e: React.MouseEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
         if (!dragging.current || !posterFrameRef.current) return;
@@ -75,7 +73,7 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
     return (
         <img className={ImageStyle.metalFrame}
             ref={imgRef}
-            style={{ top: `${top}%`, width: `${width}%`, left: `${left}%`, zIndex }}
+            style={{ top: `${top}%`, width: `${width * galleryRaito / 100}%`, left: `${left}%`, zIndex }}
             src={poster_path}
             alt={title}
             draggable={false}

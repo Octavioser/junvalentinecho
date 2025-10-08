@@ -16,39 +16,35 @@ const Nav = () => {
 
     const [navOpen, setNavOpen] = useState(false);
 
-    const { navContainer, mainTitle, buttonGroup, hamburger, nav, show, open, mainOpen } = styles;
+    const { navContainer, mainTitle, hamburger, nav, show, open } = styles;
 
     return (
         <Fragment>
-            <button className={`${hamburger} ${isMain ? '' : show}`}
+            <button className={hamburger}
                 onClick={() => setNavOpen((prev) => !prev)}
             >☰
             </button>
             <div className={navContainer}>
-                <div className={mainTitle}>
-                    {isMain ? 'JOONHYEOK DANIEL CHO' : ''}
-                </div>
-                <div className={`${buttonGroup} ${navOpen ? open : ""} ${isMain ? mainOpen : ''}`}>
-                    <nav className={`${nav} ${(isMain || navOpen) ? show : ''}`}>
-                        <ul>
-                            <li>
-                                <Link href="/">HOME</Link>
-                            </li>
-                            <li>
-                                <Link href="https://soundcloud.com/junvalentinecho" target="_blank" rel="noopener noreferrer">SOUND</Link>
-                            </li>
-                            <li>
-                                <Link href="/visual">VISUAL</Link>
-                            </li>
-                            <li>
-                                <Link href="/info">cv/bio</Link>
-                            </li>
-                            <li>
-                                <Link href="https://www.xip.red/" target="_blank" rel="noopener noreferrer">XIP</Link>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
+                {isMain && <div className={mainTitle}><span>JOONHYEOK DANIEL CHO</span></div>}
+                <nav className={`${nav} ${navOpen ? show : ''}`}>
+                    <ul>
+                        <li>
+                            <Link href="/" onClick={() => { setNavOpen(false); }}><span>HOME</span></Link>
+                        </li>
+                        <li>
+                            <Link href="https://soundcloud.com/junvalentinecho" onClick={() => { setNavOpen(false); }} target="_blank" rel="noopener noreferrer"><span>SOUND</span></Link>
+                        </li>
+                        <li>
+                            <Link href="/visual" onClick={() => { setNavOpen(false); }}><span>VISUAL</span></Link>
+                        </li>
+                        <li>
+                            <Link href="/info" onClick={() => { setNavOpen(false); }}><span>cv/bio</span></Link>
+                        </li>
+                        <li>
+                            <Link href="https://www.xip.red/" onClick={() => { setNavOpen(false); }} target="_blank" rel="noopener noreferrer"><span>XIP</span></Link>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </Fragment>
     );

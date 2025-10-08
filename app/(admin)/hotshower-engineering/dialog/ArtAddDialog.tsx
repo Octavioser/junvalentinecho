@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Artwork, ArtworkList } from "@/types";
+import { Artwork } from "@/types";
 import styles from "./ArtAddDialog.module.css";
 import ArtNewAddForm from "./artDialogParts/ArtNewAddForm";
 import ArtVisualAdd from "./artDialogParts/ArtVisualAdd";
@@ -17,7 +17,7 @@ const ArtAddDialog = (
         setOpenDialog,
         tab
     }: {
-        artworks: ArtworkList,
+        artworks: Artwork[],
         selectedArtworkId: string,
         setSelectedArtworkId: React.Dispatch<React.SetStateAction<string>>,
         openDialog: "add" | "mod",

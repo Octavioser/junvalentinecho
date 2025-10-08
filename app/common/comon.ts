@@ -1,35 +1,35 @@
 'use server';
-import { Artwork, ArtworkList } from "@/types";
+import { Artwork } from "@/types";
 import { put, del, head, list } from '@vercel/blob';
 
-export const api = async (apiUrl: string) => {
-    try {
-        const fetchdata = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${apiUrl}`, {
-            method: 'POST', // POST 요청
-            headers: {
-                'Content-Type': 'application/json', // 요청 타입
-            },
-        });
-        // fetch 실패시 에러 처리
-        if (!fetchdata.ok) throw new Error(`HTTP Error: ${fetchdata.status}`);
-        // json 형태 변환시 에러 처리
-        return await (async () => {
-            try {
-                return { ok: true, data: await fetchdata.json(), error: null, };
-            }
-            catch (error: any) {
-                throw new Error(`json() Error status: ${fetchdata.status}`);
-            }
-        })();
-    } catch (error: any) {
-        console.log(error);
-        return {
-            ok: false,
-            data: null,
-            error: error.message || 'error',
-        };
-    }
-};
+// export const api = async (apiUrl: string) => {
+//     try {
+//         const fetchdata = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${apiUrl}`, {
+//             method: 'POST', // POST 요청
+//             headers: {
+//                 'Content-Type': 'application/json', // 요청 타입
+//             },
+//         });
+//         // fetch 실패시 에러 처리
+//         if (!fetchdata.ok) throw new Error(`HTTP Error: ${fetchdata.status}`);
+//         // json 형태 변환시 에러 처리
+//         return await (async () => {
+//             try {
+//                 return { ok: true, data: await fetchdata.json(), error: null, };
+//             }
+//             catch (error: any) {
+//                 throw new Error(`json() Error status: ${fetchdata.status}`);
+//             }
+//         })();
+//     } catch (error: any) {
+//         console.log(error);
+//         return {
+//             ok: false,
+//             data: null,
+//             error: error.message || 'error',
+//         };
+//     }
+// };
 
 const slug = (s: string) =>
     s
@@ -95,7 +95,7 @@ export const delImage = async (url: string) => {
 const JSON_BASENAME = "artwork";
 const JSON_PREFIX = "data/";
 
-export const readList = async (): Promise<ArtworkList> => {
+export const readList = async (): Promise<Artwork[]> => {
     // 해당 경로 파일들 가져오기 
     const { blobs } = await list({ prefix: JSON_PREFIX });
     // json만 
@@ -105,11 +105,11 @@ export const readList = async (): Promise<ArtworkList> => {
     jsons.sort(
         (a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime()
     );
-    const res = await fetch(jsons[0].url, { cache: "no-store" });
+    const res = await fetch(jsons[0].url, {});
     return res.ok ? await res.json() : [];
 };
 
-export const writeList = async (artworkList: ArtworkList) => {
+export const writeList = async (artworkList: Artwork[]) => {
     // 1) 새 버전 업로드 (URL 바뀌므로 즉시 최신 보장)
     const ver = Date.now();
     const targetPath = `${JSON_PREFIX}${JSON_BASENAME}-${ver}.json`;
@@ -128,26 +128,27 @@ export const writeList = async (artworkList: ArtworkList) => {
 
 
 // 이미지 정보 데이터 가져오기
-export const getArtworks = async (): Promise<ArtworkList> => {
+export const getArtworks = async (): Promise<Artwork[]> => {
     return await readList();
 };
 
 // 이미지 정보 추가하기
-export const addArtwork = async (artwork: Artwork): Promise<Artwork> => {
-    const data = await readList();
-    await writeList([...data, artwork]);
-    return artwork;
+export const addArtwork = async (artwork: Artwork[], targetArtWork: Artwork): Promise<void> => {
+    await writeList([...artwork, targetArtWork]);
 };
 
 // 이미지 정보 수정하기
-export const updateArtwork = async (artwork: Artwork): Promise<void> => {
-    const data = await readList();
-    await writeList(data.map((item) => (item.id === artwork.id ? artwork : item)));
+export const updateArtwork = async (artwork: Artwork[], targetArtWork: Artwork): Promise<void> => {
+    await writeList(artwork.map((item) => (item.id === targetArtWork.id ? targetArtWork : item)));
+};
+
+// 이미지 전체 정보 수정하기
+export const updateAllArtwork = async (artwork: Artwork[]): Promise<void> => {
+    await writeList([...artwork]);
 };
 
 // 이미지 정보 삭제하기
-export const delArtwork = async (id: string): Promise<void> => {
-    const data = await readList();
-    await writeList(data.filter((item) => item.id !== id));
+export const delArtwork = async (artwork: Artwork[], id: string): Promise<void> => {
+    await writeList(artwork.filter((item) => item.id !== id));
 };
 

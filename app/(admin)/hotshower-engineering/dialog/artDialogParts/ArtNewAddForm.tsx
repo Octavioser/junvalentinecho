@@ -1,21 +1,24 @@
 "use client";
 import styles from "../ArtAddDialog.module.css";
 import React, { useEffect, useState } from "react";
-import { Artwork, ArtworkList } from "@/types";
+import { Artwork } from "@/types";
 import { uploadImage, addArtwork, updateArtwork } from "@/common/comon";
 import { useRouter } from "next/navigation";
 
 type FormState = {
     id: string;
-    size: string;
     season: string;
+    year: number;
     title: string;
+    material: string;
+    location: string;
     width: number;
+    height: number;
     overview: string;
     poster_path: string;
 };
 
-const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog }: { artworks: ArtworkList, selectedArtworkId: string, openDialog: string, setOpenDialog: React.Dispatch<React.SetStateAction<string>>; }) => {
+const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog }: { artworks: Artwork[], selectedArtworkId: string, openDialog: string, setOpenDialog: React.Dispatch<React.SetStateAction<string>>; }) => {
 
     const router = useRouter();
 
@@ -23,10 +26,13 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
 
     const [form, setForm] = useState<FormState>({
         id: '',
-        size: '',
         season: '',
+        year: undefined,
         title: '',
-        width: 0,
+        material: '',
+        location: '',
+        width: undefined,
+        height: undefined,
         overview: '',
         poster_path: '',
     });
@@ -35,9 +41,8 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
     useEffect(() => {
 
         if (openDialog === 'mod') {
-            const { id, size, season, title, width, overview, poster_path } = artworks.find((artwork: Artwork) => artwork.id === selectedArtworkId) || {};
-            console.log(width);
-            setForm({ id, size, season, title, width, overview, poster_path });
+            const { id, season, year, title, material, location, width, height, overview, poster_path } = artworks.find((artwork: Artwork) => artwork.id === selectedArtworkId) || {};
+            setForm({ id, season, year, title, material, location, width, height, overview, poster_path });
         }
     }, [openDialog]);
 
@@ -75,31 +80,50 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
     };
 
     const handleSubmit = async () => {
-
         try {
-            const { season, id, size, overview, title, width, poster_path } = form;
+            const { id, season, year, title, material, location, width, height, overview, poster_path } = form;
 
             // 모든 필드가 채워졌는지 검사
             if (
                 !id ||
                 !season ||
+                !year ||
                 !title ||
                 !width ||
-                !poster_path
+                !height ||
+                !overview
             ) {
                 alert('필수값이 입력되지 않았습니다.');
                 return;
             }
 
-            // width 
-            if (!/^\d+$/.test(String(width)) || width > 100 || width <= 0) {
-                alert('width는 숫자만 입력 가능하며 100 이하 0보다 커야 입력 가능합니다.');
+            // formYear
+            if (!/^\d+$/.test(String(year)) || year < 2000 || year > 2100) {
+                alert('년도를 확인해주세요.');
+                return;
+            }
+
+            // width
+            if (!/^\d+(\.\d+)?$/.test(String(width)) || width < 0) {
+                alert('width는 숫자만 입력 가능하며 0보다 커야 입력 가능합니다.');
+                return;
+            }
+
+            // height
+            if (!/^\d+(\.\d+)?$/.test(String(height)) || height < 0) {
+                alert('width는 숫자만 입력 가능하며 0보다 커야 입력 가능합니다.');
                 return;
             }
 
             // ID 중복 검사
             if (openDialog === 'add' && artworks.some((artwork: Artwork) => artwork.id === id)) {
                 alert('중복된 ID입니다.');
+                return;
+            }
+
+            // 사진검사
+            if (openDialog === 'add' && !inputFile) {
+                alert('사진을 넣어주세요.');
                 return;
             }
 
@@ -113,40 +137,45 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
             // 새로추가
             if (openDialog === 'add') {
                 const url = await uploadImage(inputFile, title.trim());
-                await addArtwork({
+                await addArtwork(artworks, {
                     id, // 영화 ID
                     poster_path: url, // 이미지 경로
-                    size, // 사이즈
                     title, // 영화 제목
                     overview, // 내용   
                     season, // 시즌
+                    year,
+                    material, // 재료
+                    location, // 위치
                     width, // 너비 (CSS 관련 값)
+                    height, // 높이 (CSS 관련 값)
                     insertDt: kst, // 등록일 
                     updateDt: null, // 수정일
                     top: null, // 상단 위치 (CSS 관련 값)
                     left: null,// 왼쪽 위치 (CSS 관련 값)
                     zIndex: null, // z-index (CSS 관련 값)
                     galleryId: null, // 갤러리 ID
+                    galleryRaito: null, // 갤러리 배율
                     visualYn: null, // 비주얼 ID
                 });
             }
             else if (openDialog === 'mod') {
                 const url = inputFile ? await uploadImage(inputFile, title.trim()) : poster_path;
                 const orginArtwork = artworks.find((artwork: Artwork) => artwork.id === selectedArtworkId);
-                await updateArtwork({
+                await updateArtwork(artworks, {
                     ...orginArtwork,
                     id, // 영화 ID
                     poster_path: url, // 이미지 경로
-                    size, // 사이즈
                     title, // 영화 제목
                     overview, // 내용   
                     season, // 시즌
+                    year,
+                    material, // 재료
+                    location, // 위치
                     width, // 너비 (CSS 관련 값)
+                    height, // 높이 (CSS 관련 값)
                     updateDt: kst,
                 });
             }
-
-
 
             // 실제 저장 로직
             alert('저장되었습니다.');
@@ -160,9 +189,22 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
 
     };
 
-    const { topBarWrapper, inputWrapper } = styles;
+    const { topBarWrapper, inputWrapper, formWrapper } = styles;
 
-    const { id, size, season, title, width, overview, poster_path } = form;
+
+
+    const {
+        id: formId,
+        season: formSeason,
+        year: formYear,
+        title: formTitle,
+        material: fomMaterial,
+        location: fomLocation,
+        width: formWidth,
+        height: formHeight,
+        overview: formOverview,
+        poster_path: formPoster_path
+    } = form;
 
     return (
         <>
@@ -175,55 +217,56 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
                 </div>
             </div>
             <div className={inputWrapper}>
-                <div style={{ width: '70%' }}>
-                    <form
-                        style={{
-                            width: '100%',
-                            padding: '1rem',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '12px',
-                        }}
+                <div style={{ width: '60%' }}>
+                    <form className={formWrapper}
                         onSubmit={async (e) => {
                             e.preventDefault(); // 새로고침 막기
                             await handleSubmit();
                         }}
                     >
+                        {openDialog === 'add' && <label>
+                            ID(고유 식별번호(url에 표시됨)):
+                            <input style={{ width: '50%' }} type="text" name="id" value={formId} onChange={handleChange} required />
+                        </label>
+                        }
                         <label>
-                            <legend>내용에 포함될 정보</legend>
-                            Size:
-                            <input style={{ width: '50%' }} type="text" name="size" value={size} onChange={handleChange} />
+                            제목:
+                            <input style={{ width: '50%' }} type="text" name="title" value={formTitle} onChange={handleChange} required />
                         </label>
                         <label>
-                            <legend>고유 식별번호(url에 표시됨)</legend>
-                            ID:
-                            <input style={{ width: '50%' }} type="text" name="id" value={id} onChange={handleChange} required />
+                            시즌:
+                            <input style={{ width: '50%' }} type="text" name="season" value={formSeason} onChange={handleChange} required />
                         </label>
                         <label>
-                            Season:
-                            <input style={{ width: '50%' }} type="text" name="season" value={season} onChange={handleChange} required />
+                            년도:
+                            <input style={{ width: '50%' }} type="text" name="year" value={formYear} onChange={handleChange} required />
+                        </label>
+                        <label>
+                            재료:
+                            <input style={{ width: '50%' }} type="text" name="material" value={fomMaterial} onChange={handleChange} />
+                        </label>
+                        <label>
+                            위치:
+                            <input style={{ width: '50%' }} type="text" name="location" value={fomLocation} onChange={handleChange} />
+                        </label>
+                        <label>
+                            실제 가로(cm)width:
+                            <input style={{ width: '20%' }} type="number" step="0.01" name="width" value={formWidth} onChange={handleChange} required />
                         </label>
 
                         <label>
-                            Title:
-                            <input style={{ width: '50%' }} type="text" name="title" value={title} onChange={handleChange} required />
+                            실제 세로(cm)height:
+                            <input style={{ width: '20%' }} type="number" step="0.01" name="height" value={formHeight} onChange={handleChange} required />
                         </label>
-                        <fieldset>
-                            <legend>사진크기 최대 100 (퍼센트 단위이며 height 사진비율에 맞춰서 들어감)</legend><br />
-                            width:
-                            <input style={{ width: '20%' }} type="number" name="width" value={width} onChange={handleChange} required />
-                        </fieldset>
 
-                        <label>
-                            Overview:
+                        <label>Overview: </label>
 
-                        </label>
                         <label>
                             <textarea
-                                style={{ width: '60%', fontSize: '0.5rem' }}
+                                style={{ width: '60%', fontSize: '0.7rem' }}
                                 name="overview"
                                 rows={4}
-                                value={overview}
+                                value={formOverview}
                                 onChange={handleChange}
                             />
                         </label>
@@ -238,9 +281,9 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
                     </form>
                 </div>
                 <div style={{ width: '30%', display: 'flex', justifyContent: 'center', alignItems: 'center', borderLeft: '1px solid #ccc' }}>
-                    {poster_path && (
+                    {formPoster_path && (
                         <img
-                            src={poster_path}
+                            src={formPoster_path}
                             alt="미리보기"
                             style={{ maxWidth: '50%', maxHeight: 'auto', border: '1px solid #ccc' }}
                         />

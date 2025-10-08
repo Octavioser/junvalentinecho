@@ -1,16 +1,18 @@
 "use client";
 import { useState } from "react";
 import styles from "./visual.module.css";
-import { Artwork, ArtworkList } from "@/types";
+import { Artwork } from "@/types";
 import Link from "next/link";
+import { useArtworks } from "@/providers/ArtworksProvider";
 
 
+const VisualDetail = () => {
 
-const VisualDetail = ({ Artwork }: { Artwork: ArtworkList; }) => {
+    const Artwork = (useArtworks().artworks || []).filter(({ visualYn }) => visualYn === 'Y');
 
     const [showId, setShowId] = useState<String | null>(null);
 
-    const { container, left, right, rightDetail, rightDetailImg } = styles;
+    const { container, left, right, rightDetailImgContainer, rightDetailImg, show } = styles;
 
     return (
         <div className={container}>
@@ -22,29 +24,24 @@ const VisualDetail = ({ Artwork }: { Artwork: ArtworkList; }) => {
                             onMouseOver={() => { setShowId(id); }}
                             onMouseOut={() => { setShowId(null); }}
                         >
-                            {overview}
+                            <span>{id}</span>
                         </div>
                     </Link>
                 ))}
             </div>
             <div className={right}>
-                <div className={rightDetail}>
-                    {Artwork.map(({ id, title, poster_path, width }) => (
+                {Artwork.map(({ id, title, poster_path, width }) => (
+                    <div key={`rightDetial${id}`} className={`${rightDetailImgContainer} ${id === showId ? show : ''}`}>
                         <img
                             className={rightDetailImg}
                             key={id}
-                            style={{
-                                display: id === showId ? 'flex' : 'none',
-                                width: `${width}%`,
-                            }}
                             src={poster_path}
                             alt={title}
                             draggable={false}
                             onContextMenu={e => e.preventDefault()}
                         />
-                    ))}
-                </div>
-
+                    </div>
+                ))}
             </div>
         </div>
     );

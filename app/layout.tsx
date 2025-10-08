@@ -1,6 +1,8 @@
 import "../styles/global.css";
 import { Inter } from "next/font/google";
 import Nav from "./(navigation)/navigation";
+import { getArtworks } from "@/common/comon";
+import { ArtworksProvider } from './providers/ArtworksProvider';
 
 const inter = Inter({
   subsets: ["latin"], // 필요 subset 선택 (latin, latin-ext, etc.)
@@ -10,20 +12,25 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | hotShower",
+    template: "%s | Joonhyeok Daniel Cho",
     default: "Loading...."
   },
   description: 'junvalentinecho 작품들을 소개합니다.'
 };
 
 import { Metadata } from "next";
-export default function RootLayout({ children }: { children: React.ReactNode; }) {
+export default async function RootLayout({ children }: { children: React.ReactNode; }) {
 
+  const artworks = await getArtworks();
   return (
     <html lang="en" className={inter.className}>
       <body>
-        <Nav />
-        {children}
+        <div className="layoutRoot">
+          <Nav />
+          <ArtworksProvider initialArtworks={artworks}>
+            <div className="childContainer">{children}</div>
+          </ArtworksProvider>
+        </div>
       </body>
     </html>
   );

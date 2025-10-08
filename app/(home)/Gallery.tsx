@@ -1,17 +1,20 @@
 "use client";
 
 import styles from "./home.module.css";
-import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import MainImagePosterCard from "../components/MainImage/MainImagePosterCard";
 import ImageStyle from "../components/MainImage/MainImage.module.css";
-import { Artwork, ArtworkList } from "@/types";
+import { Artwork } from "@/types";
 import Link from "next/link";
 import Player from "./(player)/Player";
+import { useArtworks } from "@/providers/ArtworksProvider";
+import MainImageRatio from "@/components/MainImage/MainImageRatio";
 
-const Gallery = ({ artworks }: { artworks: ArtworkList; }) => {
+const Gallery = () => {
 
     const scrollRef = useRef<HTMLDivElement>(null); // Ref 생성
+
+    const artworks = useArtworks().artworks;
 
     useEffect(() => {
         const scrollContainer = scrollRef.current;
@@ -35,7 +38,7 @@ const Gallery = ({ artworks }: { artworks: ArtworkList; }) => {
     const groupIdList = Array.from(new Map(artworks.filter((item) => item.galleryId).map(item => [item.galleryId, item])).values()) || [];
 
 
-    const galleryList = artworks.reduce((acc: { [key: string]: ArtworkList; }, cur: Artwork) => {
+    const galleryList = artworks.reduce((acc: { [key: string]: Artwork[]; }, cur: Artwork) => {
         const key = `${cur.galleryId}`;
         if (acc[key]) return { ...acc, [key]: acc[key].concat([cur]) };
         return { ...acc, [key]: [cur] };
@@ -46,37 +49,39 @@ const Gallery = ({ artworks }: { artworks: ArtworkList; }) => {
         posterTrack,
         posterCardFrame,
         posterCardExplainContainer,
-        posterCardExplain,
-        posterCardExplainSub
+        posterCardExplain
     } = styles;
 
     return (
         <div className={styles.homeContainer} ref={scrollRef}>
             <div className={scrollContainer}>
-                {groupIdList.map(({ id, galleryId }) =>
+                {groupIdList.map(({ id, galleryId, galleryRaito }) =>
                     <div key={id} className={posterTrack}>
                         <div className={posterCardFrame}>
-                            <MainImagePosterCard>
-                                {(galleryList[galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season }, index) =>
-                                    <Link href={`/season/${season}?id=${id}`} key={id}>
-                                        <img
-                                            className={ImageStyle.metalFrame}
-                                            style={{ top: `${top}%`, width: `${width}%`, left: `${left}%`, zIndex, cursor: 'pointer', userSelect: 'none' }}
-                                            src={poster_path}
-                                            alt={title}
-                                            draggable={false}
-                                            onContextMenu={e => e.preventDefault()}
-                                        >
-                                        </img>
-                                    </Link>
-                                )}
-                            </MainImagePosterCard>
+                            <div style={{ width: '100%', aspectRatio: 1 / 1 }}>
+                                <MainImagePosterCard>
+                                    {(galleryList[galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season }, index) =>
+                                        <Link href={`/season/${season}?id=${id}`} key={id}>
+                                            <img
+                                                className={ImageStyle.metalFrame}
+                                                style={{ top: `${top}%`, width: `${width * galleryRaito / 100}%`, left: `${left}%`, zIndex, cursor: 'pointer', userSelect: 'none' }}
+                                                src={poster_path}
+                                                alt={title}
+                                                draggable={false}
+                                                onContextMenu={e => e.preventDefault()}
+                                            >
+                                            </img>
+                                        </Link>
+                                    )}
+                                </MainImagePosterCard>
+                                {galleryRaito && <MainImageRatio ratio={galleryRaito} />}
+                            </div>
                             <div className={posterCardExplainContainer}>
-                                {(galleryList[galleryId] || []).map(({ title, size }, index) =>
+                                {(galleryList[galleryId] || []).map(({ title, width, height, material }, index) =>
                                     <div key={`explain${index}`} className={posterCardExplain}>
                                         <span>{title}</span>
-                                        <span className={posterCardExplainSub}>{`${size} cm`}</span>
-                                        <span className={posterCardExplainSub}>{`${size} cm`}</span>
+                                        <span>{`${width} x ${height} cm`}</span>
+                                        <span>{material}</span>
                                     </div>
                                 )}
                             </div>

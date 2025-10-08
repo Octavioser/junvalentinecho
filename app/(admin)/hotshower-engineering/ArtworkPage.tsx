@@ -2,13 +2,13 @@
 import React, { useState } from "react";
 import ArtworkDisplayPanel from './artwork-display/ArtworkDisplayPanel';
 import ArtworkInfoForm from './artwork-info/ArtworkInfoForm';
-import { Artwork, ArtworkList } from "@/types";
+import { Artwork } from "@/types";
 import ArtAddDialog from "./dialog/ArtAddDialog";
 import styles from "./ArtworkPage.module.css";
 import { useRouter } from "next/navigation";
-import { delArtwork, delImage, updateArtwork } from "@/common/comon";
+import { delArtwork, delImage, updateAllArtwork, updateArtwork } from "@/common/comon";
 
-const ArtworkPage = ({ artworks }: { artworks: ArtworkList; }) => {
+const ArtworkPage = ({ artworks }: { artworks: Artwork[]; }) => {
 
     const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
     const [tab, setTab] = useState<string>('1');
@@ -61,7 +61,7 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList; }) => {
                                             return;
                                         }
                                         await delImage(poster_path);
-                                        await delArtwork(selectedArtworkId);
+                                        await delArtwork(artworks, selectedArtworkId);
                                         setSelectedArtworkId(null);
                                         alert('삭제되었습니다.');
                                         router.refresh(); // 페이지 새로고침
@@ -77,10 +77,12 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList; }) => {
                                 disabled={!selectedArtworkId}
                                 onClick={async () => {
                                     const targetgalleryId = artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
-                                    const targetData = artworks.filter((artwork) => artwork.galleryId === targetgalleryId);
-                                    for (const item of targetData) {
-                                        await updateArtwork({ ...item, galleryId: null });
-                                    }
+                                    await updateAllArtwork(artworks.map((artwork) => {
+                                        if (artwork.galleryId === targetgalleryId) {
+                                            return { ...artwork, galleryId: null };
+                                        }
+                                        return artwork;
+                                    }));
                                     setSelectedArtworkId(null);
                                     alert('그룹이 삭제되었습니다.');
                                     router.refresh(); // 페이지 새로고침
@@ -96,7 +98,7 @@ const ArtworkPage = ({ artworks }: { artworks: ArtworkList; }) => {
                                     disabled={!selectedArtworkId}
                                     onClick={async () => {
                                         const targetData = artworks.find((artwork) => artwork.id === selectedArtworkId);
-                                        await updateArtwork({ ...targetData, visualYn: '' });
+                                        await updateArtwork(artworks, { ...targetData, visualYn: '' });
                                         setSelectedArtworkId(null);
                                         alert('비쥬얼 표시가 삭제되었습니다.');
                                         router.refresh(); // 페이지 새로고침

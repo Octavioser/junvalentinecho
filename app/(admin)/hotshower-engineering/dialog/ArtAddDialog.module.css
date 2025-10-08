@@ -1,7 +1,7 @@
 .dialogStyle {
     /* 팝업으로 많이 이용 */
     position: absolute;
-    width: 50%;
+    width: 80%;
     height: 60%;
     left: 50%;
     /* 왼쪽에서 중앙 */
@@ -30,7 +30,21 @@
     width: 100%;
     height: 90%;
     display: flex;
-    font-size: 0.6em;
+}
+
+.formWrapper {
+    width: 100%;
+    padding: var(--sp);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+    justify-content: center;
+}
+
+.formWrapper>label {
+    display: flex;
+    justify-content: space-between;
 }
 
 .overlayStyle {
