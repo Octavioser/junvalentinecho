@@ -7,6 +7,7 @@ import MainImageRatio from '@/components/MainImage/MainImageRatio';
 import ArtworkDisplayImage from './ArtworkDisplayImage';
 import { Artwork } from "@/types";
 import { updateAllArtwork } from '@/common/comon';
+import styles from "../ArtworkPage.module.css";
 
 const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwork[], selectedArtworkId: String; }) => {
 
@@ -21,10 +22,9 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
     }, [selectedArtworkId]);
 
     return (
-        <>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', height: '3.5%' }}>
-                <button
-                    style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}
+        <div style={{ display: 'flex', flex: 1, flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', height: '3.5%', marginTop: '4px' }}>
+                <button className={styles.addButton}
                     onClick={async () => {
                         await updateAllArtwork(artworks.map(e => {
                             const target = displayPanelItem.find((i) => i.id === e.id);
@@ -38,7 +38,7 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                     이미지 위치 저장
                 </button>
             </div >
-            <div style={{ display: 'flex', width: '100%', height: '96.5%', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ display: 'flex', flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <div ref={posterFrameRef} style={{ width: '90%', aspectRatio: 1 / 1 }}>
                     <MainImagePosterCard>
                         {(displayPanelItem || []).map((item, index) =>
@@ -63,8 +63,8 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
                     </MainImagePosterCard>
                     {displayPanelItem[0]?.galleryRaito && <MainImageRatio ratio={displayPanelItem[0].galleryRaito} />}
                 </div>
-            </div >
-        </>
+            </div>
+        </div >
     );
 };
 export default ArtworkDisplayPanel;

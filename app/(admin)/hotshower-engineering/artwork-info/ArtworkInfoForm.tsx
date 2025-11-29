@@ -9,10 +9,11 @@ const ArtworkInfoForm = ({ tab, artworks, selectedArtworkId, setSelectedArtworkI
     const grid13Data = artworks.map(e => ({ ...e, size: `${e.width} x ${e.height}` }));
 
     return (
-        <div style={{ width: '99.9%', height: '94%' }}>
+        <div style={{ boxSizing: 'border-box', width: '100%', flex: 1, padding: 'var(--sp)' }}>
             {['1', '3'].includes(tab) &&
                 <GridComponents
                     columnList={[
+                        { name: 'season', header: '시즌', type: 'string' },
                         { name: 'id', header: 'ID', type: 'string' },
                         { name: 'title', header: '제목', type: 'string' },
                         { name: 'size', header: '사이즈', type: 'number' },

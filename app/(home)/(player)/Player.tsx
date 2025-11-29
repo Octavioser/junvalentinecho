@@ -164,8 +164,18 @@ const Player = () => {
         <div className={mediaPlayerConTainer} >
             <div className={playerButtonGroup}>
                 <button className={`${controlButton} ${inventoryButton}`}>
-                    <svg viewBox="0 0 24 24" fill="currentColor" className={buttonIcon}>
-                        <path d="M4 11.5h16v3H4z" />
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={buttonIcon}
+                    >
+                        <path d="M4 6h16" />
+                        <path d="M4 12h16" />
+                        <path d="M4 18h10" />
                     </svg>
                 </button>
 

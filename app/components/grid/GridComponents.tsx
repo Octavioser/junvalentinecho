@@ -20,6 +20,7 @@ const GridComponents = ({ columnList, artworks, selectedArtworkId, setSelectedAr
                 fontSize: '0.7rem',
                 overflow: 'auto',
                 boxSizing: 'border-box',
+                borderRadius: '8px'
             }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead style={{ backgroundColor: '#F4F4F4' }}>

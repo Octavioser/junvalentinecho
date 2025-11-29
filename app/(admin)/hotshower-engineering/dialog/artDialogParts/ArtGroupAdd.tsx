@@ -44,9 +44,18 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
         <div style={{ height: '10%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
             <div style={{ height: '50%', width: '100%' }}>
                 <label>
-                    그룹 배율:
-                    <input style={{ width: '10%' }} type="text" name="title" value={galleryRaito} onChange={(e) => setGalleryRaito(Number(e.target.value))} required />
-                    %
+                    {'그룹 배율: '}
+                    <input
+                        style={{ width: '10%' }}
+                        type="text"
+                        name="title"
+                        value={galleryRaito ?? ''}
+                        onChange={(e) =>
+                            setGalleryRaito(Number(e.target.value))
+                        }
+                        required
+                    />
+                    {' %'}
                 </label>
             </div>
             <div style={{ height: '50%', display: 'flex', justifyContent: 'flex-end' }}>

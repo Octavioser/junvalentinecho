@@ -1,16 +1,19 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import styles from "./visual.module.css";
-import { Artwork } from "@/types";
-import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { useArtworks } from "@/providers/ArtworksProvider";
 
 
 const VisualDetail = () => {
+    const router = useRouter();
 
     const Artwork = (useArtworks().artworks || []).filter(({ visualYn }) => visualYn === 'Y');
 
     const [showId, setShowId] = useState<String | null>(null);
+
+    const clickFunc = useRef<Function>(null);
+
 
     const { container, left, right, rightDetailImgContainer, rightDetailImg, show } = styles;
 
@@ -18,15 +21,26 @@ const VisualDetail = () => {
         <div className={container}>
             <div className={left}>
                 {Artwork.map(({ id, overview, season }) => (
-                    <Link href={`/season/${season}`} key={id}>
-                        <div
-                            style={(showId || id) === id ? { cursor: 'pointer' } : { filter: 'blur(4px)' }}
-                            onMouseOver={() => { setShowId(id); }}
-                            onMouseOut={() => { setShowId(null); }}
-                        >
-                            <span>{id}</span>
-                        </div>
-                    </Link>
+                    <div
+                        key={`veiw${id}`}
+                        style={(showId || id) === id ? { cursor: 'pointer' } : { filter: 'blur(4px)' }}
+                        onMouseOver={() => { setShowId(id); }}
+                        onMouseOut={() => { setShowId(null); }}
+                        onPointerDown={(e: React.PointerEvent<HTMLDivElement>) => {
+                            clickFunc.current = () => {
+                                const pointerType = e.pointerType;
+                                if (pointerType === 'touch' && id !== showId) {
+                                    setShowId(id);
+                                    return;
+                                }
+                                router.push(`/season/${season}?id=${id}`);
+                            };
+                        }}
+                        onPointerLeave={() => { clickFunc.current = null; }}
+                        onPointerUp={() => { clickFunc.current && clickFunc.current(); }}
+                    >
+                        <span>{id}</span>
+                    </div>
                 ))}
             </div>
             <div className={right}>

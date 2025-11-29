@@ -26,13 +26,20 @@ const ArtworkPage = ({ artworks }: { artworks: Artwork[]; }) => {
         rightPanel,
         imagePreview,
         previewImage,
+        headerPanel
     } = styles;
     return (
         <>
             <div className={pageWrapper}>
                 <div className={leftPanel}>
+                    <div className={headerPanel}>이미지 관리</div>
                     <div className={tabBar}>
-                        {[{ header: '이미지전체', value: '1' }, { header: '메인전시장표시', value: '2' }, { header: '비쥬얼표시', value: '3' }].map(({ header, value }, index) => (
+                        {[
+                            { header: '이미지전체', value: '1' },
+                            { header: '메인전시장표시', value: '2' },
+                            { header: '비쥬얼표시(시즌별 대표)', value: '3' },
+                            { header: '음악', value: '4' }
+                        ].map(({ header, value }, index) => (
                             <div
                                 key={`artworkBtn${index}`}
                                 className={`${tabButton} ${tab === value ? active : ''}`}
@@ -89,6 +96,7 @@ const ArtworkPage = ({ artworks }: { artworks: Artwork[]; }) => {
                                 }}>
                                 그룹삭제
                             </button>
+                            <button className={addButton} onClick={() => { }}>그룹순서</button>
                         </>
                         }
                         {tab === '3' &&
@@ -119,6 +127,7 @@ const ArtworkPage = ({ artworks }: { artworks: Artwork[]; }) => {
                 </div>
 
                 <div className={rightPanel}>
+                    <div className={headerPanel}>이미지 미리보기</div>
                     {['1', '3'].includes(tab) && selectedArtworkId && (() => {
                         const targetData = artworks.find((artwork) => artwork.id === selectedArtworkId) || { poster_path: '', title: '' };
                         const { poster_path, title } = targetData;
