@@ -1,7 +1,7 @@
 'use server';
 import { Artwork, MusicBlob } from "@/types";
 import { put, del, head, list } from '@vercel/blob';
-
+import { unstable_noStore } from 'next/cache';
 // export const api = async (apiUrl: string) => {
 //     try {
 //         const fetchdata = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${apiUrl}`, {
@@ -96,6 +96,7 @@ const JSON_BASENAME = "artwork";
 const JSON_PREFIX = "data/";
 
 export const readList = async (): Promise<Artwork[]> => {
+    unstable_noStore();
     // 해당 경로 파일들 가져오기 
     const { blobs } = await list({ prefix: JSON_PREFIX });
     // json만 
