@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MusicBlob } from "@/types";
-
+import { upload } from '@vercel/blob/client';
 
 const MusicAdd = ({ musicList, setOpenDialog, setIsLoading }:
     { musicList: MusicBlob[], setOpenDialog: React.Dispatch<React.SetStateAction<string>>, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
@@ -39,22 +39,19 @@ const MusicAdd = ({ musicList, setOpenDialog, setIsLoading }:
                     // await putMusic(inputFile);
                     try {
 
+
                         if (!inputFile) {
                             alert('파일을 먼저 선택하세요.');
                             return;
                         }
 
-
-                        const formData = new FormData();
-                        formData.append('file', inputFile);
-                        const res = await fetch('/api/music/upload', {
-                            method: 'POST',
-                            body: formData
+                        const blob = await upload(`music/${inputFile.name}`, inputFile, {
+                            access: 'public',
+                            handleUploadUrl: '/api/music/upload-token',   // 서버 토큰 발급 라우트
+                            multipart: true,                      // 큰 파일이면 권장
+                            clientPayload: JSON.stringify({ kind: 'music' }),
                         });
-                        if (!res.ok) {
-                            const err = await res.json();
-                            throw new Error(err.error);
-                        }
+                        if (!blob?.url) throw new Error('Upload succeeded but no URL returned');
 
                         setOpenDialog(null);
                         alert('음악이 추가되었습니다.');
