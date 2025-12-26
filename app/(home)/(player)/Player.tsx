@@ -25,6 +25,8 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [playUrl, setPlayUrl] = useState(musicList[0]?.url || '');
 
+    const isFirst = useRef(true);
+
     const [isDropDownOpen, setIsDropDwownOpen] = useState(false);
 
     const mediaSourceCache = new WeakMap<HTMLMediaElement, MediaElementAudioSourceNode>();
@@ -168,6 +170,10 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
 
 
     useEffect(() => {
+        if (isFirst.current) {
+            isFirst.current = false;
+            return;
+        }
         audioRef.current && audioRef.current.play();
     }, [playUrl]);
 
