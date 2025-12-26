@@ -50,6 +50,36 @@
      color: #333;
  }
 
+ .dropDownUp {
+     position: absolute;
+     bottom: 130%;
+     left: 0;
+     border: 1px solid #ccc;
+     background: #fff;
+     list-style: none;
+     padding: 0;
+     margin: 0;
+     overflow: hidden;
+     /* 넘친 부분 숨김 */
+     white-space: nowrap;
+ }
+
+ .dropDownUp li {
+     padding: var(--sp) calc(var(--sp) * 2);
+     cursor: pointer;
+     transition: all 0.2s ease;
+     border-bottom: 1px solid #f5f5f5;
+ }
+
+ .dropDownUp li:last-child {
+     border-bottom: none;
+ }
+
+ .dropDownUp li:hover {
+     background: #000;
+     color: #fff;
+ }
+
  .playButton {
      width: 40px;
      height: 40px;

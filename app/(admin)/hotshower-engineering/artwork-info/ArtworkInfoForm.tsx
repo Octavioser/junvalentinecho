@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
-import { Artwork } from "@/types";
+import { Artwork, MusicBlob } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 
-const ArtworkInfoForm = ({ tab, artworks, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: Artwork[], selectedArtworkId: String, setSelectedArtworkId: React.Dispatch<React.SetStateAction<String>>; }) => {
+const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: String, setSelectedArtworkId: React.Dispatch<React.SetStateAction<String>>; }) => {
 
 
     const grid13Data = artworks.map(e => ({ ...e, size: `${e.width} x ${e.height}` }));
@@ -19,7 +19,7 @@ const ArtworkInfoForm = ({ tab, artworks, selectedArtworkId, setSelectedArtworkI
                         { name: 'size', header: '사이즈', type: 'number' },
                         { name: 'overview', header: '내용', type: 'string' }
                     ]}
-                    artworks={tab === '1' ? grid13Data : grid13Data.filter(({ visualYn }) => visualYn === 'Y')}
+                    gridData={tab === '1' ? grid13Data : grid13Data.filter(({ visualYn }) => visualYn === 'Y')}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
                 />
@@ -32,14 +32,25 @@ const ArtworkInfoForm = ({ tab, artworks, selectedArtworkId, setSelectedArtworkI
                         { name: 'title', header: '제목', type: 'string' },
                         { name: 'galleryRaito', header: '배율', type: 'string' },
                     ]}
-                    artworks={(artworks.filter(({ galleryId }) => galleryId)).reduce((acc: Artwork[], curr: Artwork) => {
+                    gridData={(artworks.filter(({ galleryId }) => galleryId)).reduce((acc: Artwork[], curr: Artwork) => {
                         const existingGroup = acc.find((item) => item.galleryId === curr.galleryId);
                         if (existingGroup) return [
                             ...acc.filter(({ galleryId }) => galleryId !== curr.galleryId),
                             { ...curr, title: `${existingGroup.title} | ${curr.title}` }
                         ];
                         return [...acc, curr];
-                    }, [])}
+                    }, []).sort((a, b) => a.galleryId - b.galleryId)}
+                    selectedArtworkId={selectedArtworkId}
+                    setSelectedArtworkId={setSelectedArtworkId}
+                />
+            }
+            {tab === '4' &&
+                <GridComponents
+                    columnList={[
+                        { name: 'title', header: '제목', type: 'string' },
+                        { name: 'uploadedAt', header: '파일업로드', type: 'string' },
+                    ]}
+                    gridData={musicList}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
                 />

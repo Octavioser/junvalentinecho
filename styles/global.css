@@ -191,6 +191,12 @@ span {
     transform-origin: center;
 }
 
+li {
+    font-size: 11px;
+    transform: scaleY(0.75);
+    transform-origin: center;
+}
+
 :root {
     --nav-width: 60px;
     --sp: 8px;

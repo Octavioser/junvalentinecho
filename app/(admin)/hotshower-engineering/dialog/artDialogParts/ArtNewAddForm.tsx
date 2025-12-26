@@ -4,21 +4,29 @@ import React, { useEffect, useState } from "react";
 import { Artwork } from "@/types";
 import { uploadImage, addArtwork, updateArtwork } from "@/common/comon";
 import { useRouter } from "next/navigation";
+import { f } from "@vercel/blob/dist/create-folder-C02EFEPE.cjs";
 
 type FormState = {
     id: string;
     season: string;
-    year: number;
+    year: number | '';
     title: string;
     material: string;
     location: string;
-    width: number;
-    height: number;
+    width: number | '';
+    height: number | '';
     overview: string;
     poster_path: string;
 };
 
-const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog }: { artworks: Artwork[], selectedArtworkId: string, openDialog: string, setOpenDialog: React.Dispatch<React.SetStateAction<string>>; }) => {
+const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog, setIsLoading }:
+    {
+        artworks: Artwork[],
+        selectedArtworkId: string,
+        openDialog: string,
+        setOpenDialog: React.Dispatch<React.SetStateAction<string>>;
+        setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    }) => {
 
     const router = useRouter();
 
@@ -27,12 +35,12 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
     const [form, setForm] = useState<FormState>({
         id: '',
         season: '',
-        year: undefined,
+        year: '',
         title: '',
         material: '',
         location: '',
-        width: undefined,
-        height: undefined,
+        width: '',
+        height: '',
         overview: '',
         poster_path: '',
     });
@@ -126,6 +134,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
                 alert('사진을 넣어주세요.');
                 return;
             }
+            setIsLoading(true);
 
             // 한국시간
             const kst = (() => {
@@ -184,6 +193,8 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
         } catch (error) {
             console.log(error);
             alert('저장에 실패했습니다.');
+        } finally {
+            setIsLoading(false);
         }
 
 
@@ -209,12 +220,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog 
     return (
         <>
             <div className={topBarWrapper}>
-                <p>{openDialog === 'mod' ? '변경' : '추가'}</p>
-                <div style={{ height: '100%' }}
-                    onClick={() => { setOpenDialog(null); }}
-                >
-                    <p>x</p>
-                </div>
+                <p>{openDialog === 'mod' ? '[변경]' : '[추가]'}</p>
             </div>
             <div className={inputWrapper}>
                 <div style={{ width: '60%' }}>

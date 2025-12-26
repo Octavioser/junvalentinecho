@@ -19,3 +19,12 @@ export interface Artwork {
     left: number | null; // 왼쪽 위치 (CSS 관련 값)
     zIndex: number | null; // z-index (CSS 관련 값)
 }
+
+export interface MusicBlob {
+    id: string;
+    url: string;
+    downloadUrl: string;
+    pathname: string;
+    uploadedAt: string;
+    title: string;
+}

@@ -4,7 +4,7 @@ import { Artwork } from "@/types";
 
 
 
-const GridComponents = ({ columnList, artworks, selectedArtworkId, setSelectedArtworkId }: { columnList: any[], artworks: Artwork[], selectedArtworkId: String, setSelectedArtworkId: React.Dispatch<React.SetStateAction<String>>; }) => {
+const GridComponents = ({ columnList, gridData, selectedArtworkId, setSelectedArtworkId }: { columnList: any[], gridData: any[], selectedArtworkId: String, setSelectedArtworkId: React.Dispatch<React.SetStateAction<String>>; }) => {
 
     return (
         <div
@@ -31,7 +31,7 @@ const GridComponents = ({ columnList, artworks, selectedArtworkId, setSelectedAr
                     </tr>
                 </thead>
                 <tbody style={{ backgroundColor: 'white' }}>
-                    {artworks.map((data, index) =>
+                    {gridData.map((data, index) =>
                         <tr key={`tbodyTr${index}`} >
                             {columnList.map(({ name: colName, header, type }, index) =>
                                 <td key={'text' + colName + index}

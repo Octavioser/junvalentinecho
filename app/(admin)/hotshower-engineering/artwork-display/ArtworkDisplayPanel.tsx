@@ -9,12 +9,12 @@ import { Artwork } from "@/types";
 import { updateAllArtwork } from '@/common/comon';
 import styles from "../ArtworkPage.module.css";
 
-const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwork[], selectedArtworkId: String; }) => {
+const ArtworkDisplayPanel = ({ artworks, selectedArtworkId, setIsLoading }: { artworks: Artwork[], selectedArtworkId: String, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
 
     const posterFrameRef = useRef<HTMLDivElement>(null);
 
     const [displayPanelItem, setDisplayPanelItem] = useState<Artwork[]>([]);
-    console.log('Gallery===>', displayPanelItem);
+
     const router = useRouter();
 
     useEffect(() => {
@@ -26,20 +26,28 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId }: { artworks: Artwor
             <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', height: '3.5%', marginTop: '4px' }}>
                 <button className={styles.addButton}
                     onClick={async () => {
-                        await updateAllArtwork(artworks.map(e => {
-                            const target = displayPanelItem.find((i) => i.id === e.id);
-                            if (target) return target;
-                            return e;
-                        }));
-                        alert('저장되었습니다.');
-                        router.refresh(); // 페이지 새로고침
+                        setIsLoading(true);
+                        try {
+                            await updateAllArtwork(artworks.map(e => {
+                                const target = displayPanelItem.find((i) => i.id === e.id);
+                                if (target) return target;
+                                return e;
+                            }));
+                            alert('저장되었습니다.');
+                            router.refresh(); // 페이지 새로고침
+                        } catch (error) {
+                            console.log(error);
+                            alert('저장에 실패했습니다.');
+                        } finally {
+                            setIsLoading(false);
+                        }
                     }}
                 >
                     이미지 위치 저장
                 </button>
             </div >
             <div style={{ display: 'flex', flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div ref={posterFrameRef} style={{ width: '90%', aspectRatio: 1 / 1 }}>
+                <div ref={posterFrameRef} style={{ width: '85%', aspectRatio: 1 / 1 }}>
                     <MainImagePosterCard>
                         {(displayPanelItem || []).map((item, index) =>
                             <ArtworkDisplayImage

@@ -2,17 +2,23 @@
 import React, { useState } from "react";
 import ArtworkDisplayPanel from './artwork-display/ArtworkDisplayPanel';
 import ArtworkInfoForm from './artwork-info/ArtworkInfoForm';
-import { Artwork } from "@/types";
+import { Artwork, MusicBlob } from "@/types";
 import ArtAddDialog from "./dialog/ArtAddDialog";
 import styles from "./ArtworkPage.module.css";
 import { useRouter } from "next/navigation";
-import { delArtwork, delImage, updateAllArtwork, updateArtwork } from "@/common/comon";
+import { delArtwork, delImage, updateAllArtwork, updateArtwork, delMusic } from "@/common/comon";
+import ShowLoading from "./loading/ShowLoading";
 
-const ArtworkPage = ({ artworks }: { artworks: Artwork[]; }) => {
+const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: MusicBlob[]; }) => {
 
     const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
     const [tab, setTab] = useState<string>('1');
     const [openDialog, setOpenDialog] = useState<"add" | "mod">(null);
+
+    const [sortMode, setSortMode] = useState<boolean>(false);
+    const [sortViewArtWorks, setSortViewArtWorks] = useState<Artwork[]>([]);
+
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const router = useRouter();
     const {
@@ -61,43 +67,145 @@ const ArtworkPage = ({ artworks }: { artworks: Artwork[]; }) => {
                                 <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>수정</button>
                                 <button className={addButton} disabled={!selectedArtworkId}
                                     onClick={async () => {
-                                        const poster_path = artworks.find((artwork) => artwork.id === selectedArtworkId)?.poster_path;
-                                        if (!(poster_path && selectedArtworkId)) {
-                                            alert('삭제실패하였습니다.');
-                                            console.error(`posterPath==> ${poster_path}, || selectedArtworkId==> ${selectedArtworkId}`);
-                                            return;
+                                        setIsLoading(true);
+                                        try {
+                                            const poster_path = artworks.find((artwork) => artwork.id === selectedArtworkId)?.poster_path;
+                                            if (!(poster_path && selectedArtworkId)) {
+                                                alert('삭제실패하였습니다.');
+                                                console.error(`posterPath==> ${poster_path}, || selectedArtworkId==> ${selectedArtworkId}`);
+                                                return;
+                                            }
+                                            await delImage(poster_path);
+                                            await delArtwork(artworks, selectedArtworkId);
+                                            setSelectedArtworkId(null);
+                                            alert('삭제되었습니다.');
+                                            router.refresh(); // 페이지 새로고침
+                                        } catch (error) {
+                                            console.log(error);
+                                            alert('삭제에 실패했습니다.');
+                                        } finally {
+                                            setIsLoading(false);
                                         }
-                                        await delImage(poster_path);
-                                        await delArtwork(artworks, selectedArtworkId);
-                                        setSelectedArtworkId(null);
-                                        alert('삭제되었습니다.');
-                                        router.refresh(); // 페이지 새로고침
+
                                     }}>
                                     삭제
                                 </button>
                             </>
                         }
-                        {tab === '2' && <>
-                            <button className={addButton} onClick={() => { setOpenDialog('add'); }}>그룹채번</button>
-                            <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>기존추가</button>
-                            <button className={addButton}
-                                disabled={!selectedArtworkId}
-                                onClick={async () => {
-                                    const targetgalleryId = artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
-                                    await updateAllArtwork(artworks.map((artwork) => {
-                                        if (artwork.galleryId === targetgalleryId) {
-                                            return { ...artwork, galleryId: null };
-                                        }
-                                        return artwork;
-                                    }));
-                                    setSelectedArtworkId(null);
-                                    alert('그룹이 삭제되었습니다.');
-                                    router.refresh(); // 페이지 새로고침
-                                }}>
-                                그룹삭제
-                            </button>
-                            <button className={addButton} onClick={() => { }}>그룹순서</button>
-                        </>
+                        {tab === '2' &&
+                            <>
+                                {sortMode ?
+                                    <>
+                                        <button className={addButton} disabled={!selectedArtworkId} onClick={() => {
+                                            setSortViewArtWorks((prev) => {
+                                                const targetGroupId = sortViewArtWorks.find(({ id }) => id === selectedArtworkId).galleryId;
+
+                                                const galleryIndexList = [...new Set(sortViewArtWorks.filter((item) => item.galleryId).map(item => item.galleryId))]
+                                                    .sort((a, b) => a - b);
+                                                const targetIndex = galleryIndexList.indexOf(targetGroupId);
+
+                                                if (targetIndex > 0) {
+                                                    return prev.map(e => {
+                                                        const nextGroupId = galleryIndexList[targetIndex - 1];
+                                                        const galleryId = (() => {
+                                                            if (e.galleryId === targetGroupId) return nextGroupId;
+                                                            if (e.galleryId === nextGroupId) return targetGroupId;
+                                                            return e.galleryId;
+                                                        })();
+                                                        return { ...e, galleryId };
+                                                    });
+                                                }
+                                                return prev;
+                                            });
+                                        }}>
+                                            ∧
+                                        </button>
+                                        <button className={addButton} disabled={!selectedArtworkId} onClick={() => {
+                                            setSortViewArtWorks((prev) => {
+                                                const targetGroupId = sortViewArtWorks.find(({ id }) => id === selectedArtworkId).galleryId;
+
+                                                const galleryIndexList = [...new Set(sortViewArtWorks.filter((item) => item.galleryId).map(item => item.galleryId))]
+                                                    .sort((a, b) => a - b);
+                                                const targetIndex = galleryIndexList.indexOf(targetGroupId);
+
+                                                if (targetIndex < galleryIndexList.length - 1) {
+                                                    return prev.map(e => {
+                                                        const nextGroupId = galleryIndexList[targetIndex + 1];
+                                                        const galleryId = (() => {
+                                                            if (e.galleryId === targetGroupId) return nextGroupId;
+                                                            if (e.galleryId === nextGroupId) return targetGroupId;
+                                                            return e.galleryId;
+                                                        })();
+                                                        return { ...e, galleryId };
+                                                    });
+                                                }
+                                                return prev;
+                                            });
+
+                                        }}>
+                                            ∨
+                                        </button>
+                                        <button className={addButton} onClick={() => {
+                                            setSortMode(false);
+                                            setSortViewArtWorks([]);
+                                        }}>취소</button>
+                                        <button className={addButton} onClick={async () => {
+                                            setIsLoading(true);
+                                            try {
+                                                await updateAllArtwork(sortViewArtWorks);
+                                                alert('저장되었습니다.');
+                                                setSortMode(false);
+                                                setSortViewArtWorks([]);
+                                                router.refresh(); // 페이지 새로고침    
+                                            } catch (error) {
+                                                console.log(error);
+                                                alert('저장에 실패했습니다.');
+                                            } finally {
+                                                setIsLoading(false);
+                                            }
+
+                                        }}>
+                                            저장
+                                        </button>
+                                    </>
+                                    :
+                                    <>
+                                        <button className={addButton} onClick={() => { setOpenDialog('add'); }}>그룹새로채번</button>
+                                        <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>기존그룹추가 및 배율저장</button>
+                                        <button className={addButton}
+                                            disabled={!selectedArtworkId}
+                                            onClick={async () => {
+                                                setIsLoading(true);
+                                                try {
+                                                    const targetgalleryId = artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
+                                                    await updateAllArtwork(artworks.map((artwork) => {
+                                                        if (artwork.galleryId === targetgalleryId) {
+                                                            return { ...artwork, galleryId: null };
+                                                        }
+                                                        return artwork;
+                                                    }));
+                                                    setSelectedArtworkId(null);
+                                                    alert('그룹이 삭제되었습니다.');
+                                                    router.refresh(); // 페이지 새로고침
+                                                } catch (error) {
+                                                    console.log(error);
+                                                    alert('저장에 실패했습니다.');
+                                                } finally {
+                                                    setIsLoading(false);
+                                                }
+
+                                            }}>
+                                            그룹삭제
+                                        </button>
+                                        <button className={addButton} onClick={() => {
+                                            setSortMode(true);
+                                            setSortViewArtWorks(artworks);
+                                        }}>
+                                            그룹순서
+                                        </button>
+                                    </>
+                                }
+                            </>
                         }
                         {tab === '3' &&
                             <>
@@ -105,11 +213,45 @@ const ArtworkPage = ({ artworks }: { artworks: Artwork[]; }) => {
                                 <button className={addButton}
                                     disabled={!selectedArtworkId}
                                     onClick={async () => {
-                                        const targetData = artworks.find((artwork) => artwork.id === selectedArtworkId);
-                                        await updateArtwork(artworks, { ...targetData, visualYn: '' });
-                                        setSelectedArtworkId(null);
-                                        alert('비쥬얼 표시가 삭제되었습니다.');
-                                        router.refresh(); // 페이지 새로고침
+                                        setIsLoading(true);
+                                        try {
+                                            const targetData = artworks.find((artwork) => artwork.id === selectedArtworkId);
+                                            await updateArtwork(artworks, { ...targetData, visualYn: '' });
+                                            setSelectedArtworkId(null);
+                                            alert('비쥬얼 표시가 삭제되었습니다.');
+                                            router.refresh(); // 페이지 새로고침
+                                        } catch (error) {
+                                            console.log(error);
+                                            alert('저장에 실패했습니다.');
+                                        } finally {
+                                            setIsLoading(false);
+                                        }
+
+                                    }}
+                                >삭제
+                                </button>
+
+                            </>
+                        }
+                        {tab === '4' &&
+                            <>
+                                <button className={addButton} onClick={() => { setOpenDialog('add'); }}>추가</button>
+                                <button className={addButton}
+                                    disabled={!selectedArtworkId}
+                                    onClick={async () => {
+                                        setIsLoading(true);
+                                        try {
+                                            const targetData = musicList.find((e) => e.id === selectedArtworkId);
+                                            await delMusic(targetData.pathname);
+                                            setSelectedArtworkId(null);
+                                            alert('선택한 음악이 삭제되었습니다.');
+                                            router.refresh(); // 페이지 새로고침
+                                        } catch (error) {
+                                            console.log(error);
+                                            alert('삭제에 실패했습니다.');
+                                        } finally {
+                                            setIsLoading(false);
+                                        }
                                     }}
                                 >삭제
                                 </button>
@@ -120,7 +262,8 @@ const ArtworkPage = ({ artworks }: { artworks: Artwork[]; }) => {
 
                     <ArtworkInfoForm
                         tab={tab}
-                        artworks={artworks}
+                        artworks={sortMode ? sortViewArtWorks : artworks}
+                        musicList={musicList}
                         selectedArtworkId={selectedArtworkId}
                         setSelectedArtworkId={setSelectedArtworkId}
                     />
@@ -137,10 +280,11 @@ const ArtworkPage = ({ artworks }: { artworks: Artwork[]; }) => {
                             </div>
                         );
                     })()}
-                    {tab === '2' && <ArtworkDisplayPanel artworks={artworks} selectedArtworkId={selectedArtworkId} />}
+                    {tab === '2' && <ArtworkDisplayPanel artworks={artworks} selectedArtworkId={selectedArtworkId} setIsLoading={setIsLoading} />}
                 </div>
-            </div>
-            {openDialog && <ArtAddDialog artworks={artworks} selectedArtworkId={selectedArtworkId} setSelectedArtworkId={setSelectedArtworkId} openDialog={openDialog} setOpenDialog={setOpenDialog} tab={tab} />}
+            </div >
+            {openDialog && <ArtAddDialog artworks={artworks} musicList={musicList} selectedArtworkId={selectedArtworkId} setSelectedArtworkId={setSelectedArtworkId} openDialog={openDialog} setOpenDialog={setOpenDialog} tab={tab} setIsLoading={setIsLoading} />}
+            {isLoading && <ShowLoading ></ShowLoading>}
         </>
     );
 };

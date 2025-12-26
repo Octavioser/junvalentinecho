@@ -1,7 +1,9 @@
+import { Fragment, useState, useEffect, useRef, use } from "react";
+import { MusicBlob } from '@/types';
 import styles from './Player.module.css';
-import { Fragment, useState, useEffect, useRef } from "react";
 
-const Player = () => {
+
+const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
 
     const {
         mediaPlayerConTainer,
@@ -10,6 +12,7 @@ const Player = () => {
         inventoryButton,
         prevButton,
         nextButton,
+        dropDownUp,
         playButton,
         buttonIcon,
         nextIcon,
@@ -20,6 +23,9 @@ const Player = () => {
     } = styles;
 
     const [isPlaying, setIsPlaying] = useState(false);
+    const [playUrl, setPlayUrl] = useState(musicList[0]?.url || '');
+
+    const [isDropDownOpen, setIsDropDwownOpen] = useState(false);
 
     const mediaSourceCache = new WeakMap<HTMLMediaElement, MediaElementAudioSourceNode>();
 
@@ -159,27 +165,54 @@ const Player = () => {
             window.removeEventListener('resize', resize);  // 리스너 제거
         };
     }, [isPlaying]);                                      // 재생 여부 바뀔 때 이 이펙트 재실
+
+
+    useEffect(() => {
+        audioRef.current && audioRef.current.play();
+    }, [playUrl]);
+
     return <Fragment>
 
         <div className={mediaPlayerConTainer} >
             <div className={playerButtonGroup}>
-                <button className={`${controlButton} ${inventoryButton}`}>
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={buttonIcon}
+                <div style={{ position: 'relative' }}>
+                    <button className={`${controlButton} ${inventoryButton}`}
+                        onClick={() => {
+                            setIsDropDwownOpen(true);
+                        }}
                     >
-                        <path d="M4 6h16" />
-                        <path d="M4 12h16" />
-                        <path d="M4 18h10" />
-                    </svg>
-                </button>
+                        <svg
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={buttonIcon}
+                        >
+                            <path d="M4 6h16" />
+                            <path d="M4 12h16" />
+                            <path d="M4 18h10" />
+                        </svg>
+                    </button>
+                    {isDropDownOpen && (
+                        <ul className={dropDownUp}>
+                            {musicList.map((item) =>
+                                <li key={item.id} onClick={async () => {
+                                    setIsDropDwownOpen(false);
+                                    setPlayUrl(item.url);
+                                }}>{item.title}</li>
+                            )}
+                        </ul>
+                    )}
+                </div>
 
-                <button className={`${controlButton} ${prevButton}`}>
+                <button className={`${controlButton} ${prevButton}`}
+                    onClick={() => {
+                        const targetIndex = musicList.findIndex(({ url }) => url === playUrl);
+                        setPlayUrl(targetIndex === 0 ? musicList[musicList.length - 1].url : musicList[targetIndex - 1].url);
+                    }}
+                >
                     <svg viewBox="0 0 24 24" fill="currentColor" className={buttonIcon}>
                         <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
                     </svg>
@@ -214,7 +247,12 @@ const Player = () => {
                     )}
                 </button>
 
-                <button className={`${controlButton} ${nextButton}`}>
+                <button className={`${controlButton} ${nextButton}`}
+                    onClick={() => {
+                        const targetIndex = musicList.findIndex(({ url }) => url === playUrl);
+                        setPlayUrl(targetIndex === musicList.length - 1 ? musicList[0].url : musicList[targetIndex + 1].url);
+                    }}
+                >
                     <svg viewBox="0 0 24 24" fill="currentColor" className={`${buttonIcon} ${nextIcon}`}>
                         <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
                     </svg>
@@ -223,10 +261,10 @@ const Player = () => {
             <div className={mediaName}>
                 {isPlaying ?
                     <div className={mediaNameText}>
-                        <span className={mediaNameText}>{`${(audioRef?.current?.src || '').split('/').slice(-1)[0].split('.').slice(0, -1).join('.')}`}</span>
+                        <span className={mediaNameText}>{`${(playUrl || '').split('/').slice(-1)[0].split('.').slice(0, -1).join('.')}`}</span>
                     </div>
                     :
-                    <span>{`${(audioRef?.current?.src || '').split('/').slice(-1)[0].split('.').slice(0, -1).join('.')}`}</span>
+                    <span>{`${(playUrl || '').split('/').slice(-1)[0].split('.').slice(0, -1).join('.')}`}</span>
                 }
             </div>
         </div>
@@ -235,10 +273,14 @@ const Player = () => {
         </div>
         <audio
             ref={audioRef}
-            src="https://uwkvvru2scgcmnbh.public.blob.vercel-storage.com/music/hyper.wav"
+            src={playUrl}
             style={{ width: 0, height: 0, opacity: 0, position: 'absolute' }}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
+            onEnded={() => {
+                const targetIndex = musicList.findIndex(({ url }) => url === playUrl);
+                setPlayUrl(targetIndex === musicList.length - 1 ? musicList[0].url : musicList[targetIndex + 1].url);
+            }}
             crossOrigin='anonymous'
         />
     </Fragment>;

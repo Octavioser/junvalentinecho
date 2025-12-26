@@ -4,14 +4,14 @@ import styles from "./home.module.css";
 import { use, useEffect, useRef, useState, RefObject } from "react";
 import MainImagePosterCard from "../components/MainImage/MainImagePosterCard";
 import ImageStyle from "../components/MainImage/MainImage.module.css";
-import { Artwork } from "@/types";
+import { Artwork, MusicBlob } from "@/types";
 import Link from "next/link";
 import Player from "./(player)/Player";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import MainImageRatio from "@/components/MainImage/MainImageRatio";
 import MainImgDialog from "./(mainImgDailog)/MainImgDialog";
 
-const Gallery = () => {
+const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
     const { artworks } = useArtworks();
 
     const scrollRef = useRef<HTMLDivElement>(null); // Ref 생성
@@ -179,7 +179,8 @@ const Gallery = () => {
     useEffect(() => {
         // 중복된 galleryId를 가진 Artwork 객체를 제거
         setGroupIdList(
-            Array.from(new Map(artworks.filter((item) => item.galleryId).map(item => [item.galleryId, item])).values()) || []
+            (Array.from(new Map(artworks.filter((item) => item.galleryId).map(item => [item.galleryId, item])).values()) || [])
+                .sort((a, b) => a.galleryId - b.galleryId)
         );
 
         setDisplayGroupList(
@@ -244,7 +245,7 @@ const Gallery = () => {
                 )}
             </div>
             <div className={styles.playerContainer}>
-                <Player />
+                <Player musicList={musicList} />
             </div>
             {dialogImage && <MainImgDialog targetImg={dialogImage} dialogClose={() => { setDialogImage(null); }} />}
         </div>

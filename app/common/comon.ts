@@ -1,5 +1,5 @@
 'use server';
-import { Artwork } from "@/types";
+import { Artwork, MusicBlob } from "@/types";
 import { put, del, head, list } from '@vercel/blob';
 
 // export const api = async (apiUrl: string) => {
@@ -152,3 +152,30 @@ export const delArtwork = async (artwork: Artwork[], id: string): Promise<void> 
     await writeList(artwork.filter((item) => item.id !== id));
 };
 
+
+export const getMusicList = async (): Promise<MusicBlob[]> => {
+    // 해당 경로 파일들 가져오기 
+    const { blobs } = await list({ prefix: "music/" });
+
+    return blobs.filter(blob =>
+        blob.pathname.endsWith('.mp3') ||
+        blob.pathname.endsWith('.wav')
+    ).map((e: any) => ({
+        ...e,
+        title: e.pathname.split('/')[1],
+        id: e.url,
+        uploadedAt: e.uploadedAt.toLocaleString()
+    }));
+};
+
+// export const putMusic = async (file: File) => {
+//     const pathname = `music/${file.name}`;
+//     await put(pathname, file, {
+//         access: 'public',
+//         contentType: file.type || 'audio/mpeg'
+//     });
+// };
+
+export const delMusic = async (pathname: string) => {
+    await del(pathname);
+};
