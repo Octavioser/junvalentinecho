@@ -32,19 +32,6 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, i
         setRatio(Math.round(initialScale * 100));
     }, [initialScale]);
 
-    const innerContent = (
-        <div
-            ref={isAdmin ? null : contentRef}
-            style={{
-                width: '100%',
-                height: '100%',
-                '--inverse-scale': 1 / (initialScale || 1)
-            } as React.CSSProperties}
-        >
-            {children}
-        </div>
-    );
-
     return (
         <div
             className={posterCard}
@@ -54,7 +41,7 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, i
             style={{ touchAction: 'none' }}
         >
             {isAdmin ? (
-                innerContent
+                children
             ) : (
                 <TransformWrapper
                     initialScale={initialScale}
@@ -68,7 +55,16 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, i
                             wrapperStyle={{ width: '100%', height: '100%' }}
                             contentStyle={{ width: '100%', height: '100%' }}
                         >
-                            {innerContent}
+                            <div
+                                ref={contentRef}
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    '--inverse-scale': 1 / (initialScale || 1)
+                                } as React.CSSProperties}
+                            >
+                                {children}
+                            </div>
                         </TransformComponent>
                     </>
                 </TransformWrapper>
