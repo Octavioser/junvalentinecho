@@ -9,26 +9,25 @@ import MusicAdd from "./artDialogParts/MusicAdd";
 
 
 
-const ArtAddDialog = (
-    { artworks,
-        musicList,
-        selectedArtworkId,
-        setSelectedArtworkId,
-        openDialog,
-        setOpenDialog,
-        tab,
-        setIsLoading
-    }: {
-        artworks: Artwork[],
-        musicList: MusicBlob[],
-        selectedArtworkId: string,
-        setSelectedArtworkId: React.Dispatch<React.SetStateAction<string>>,
-        openDialog: "add" | "mod",
-        setOpenDialog: React.Dispatch<React.SetStateAction<string>>,
-        tab: string;
-        setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    }
-) => {
+const ArtAddDialog = ({
+    artworks,
+    musicList,
+    selectedArtworkId,
+    setSelectedArtworkId,
+    openDialog,
+    setOpenDialog,
+    tab,
+    setIsLoading
+}: {
+    artworks: Artwork[],
+    musicList: MusicBlob[],
+    selectedArtworkId: string | null,
+    setSelectedArtworkId: React.Dispatch<React.SetStateAction<string | null>>,
+    openDialog: "add" | "mod",
+    setOpenDialog: React.Dispatch<React.SetStateAction<"add" | "mod" | null>>,
+    tab: string;
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
 
     const { dialogStyle, overlayStyle } = styles;
 

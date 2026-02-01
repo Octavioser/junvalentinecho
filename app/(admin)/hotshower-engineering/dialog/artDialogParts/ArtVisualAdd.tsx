@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { updateArtwork } from "@/common/comon";
 
 const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
-    { artworks: Artwork[], setOpenDialog: React.Dispatch<React.SetStateAction<string>>, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
+    { artworks: Artwork[], setOpenDialog: React.Dispatch<React.SetStateAction<"add" | "mod" | null>>, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
 
-    const [targetID, setTargetID] = useState<string>(null);
+    const [targetID, setTargetID] = useState<string | null>(null);
 
 
     const router = useRouter();
@@ -33,6 +33,10 @@ const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
                     setIsLoading(true);
                     try {
                         const targetData = artworks.find((artwork) => artwork.id === targetID);
+                        if (!targetData) {
+                            alert('이미지를 찾을 수 없습니다.');
+                            return;
+                        }
                         await updateArtwork(artworks, { ...targetData, visualYn: 'Y' });
                         setTargetID(null);
                         setOpenDialog(null);

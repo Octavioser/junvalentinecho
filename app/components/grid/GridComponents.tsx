@@ -1,48 +1,37 @@
 "use client";
 import React, { useState } from "react";
 import { Artwork } from "@/types";
+import styles from "./GridComponents.module.css";
 
-
-
-const GridComponents = ({ columnList, gridData, selectedArtworkId, setSelectedArtworkId }: { columnList: any[], gridData: any[], selectedArtworkId: String, setSelectedArtworkId: React.Dispatch<React.SetStateAction<String>>; }) => {
+const GridComponents = ({ columnList, gridData, selectedArtworkId, setSelectedArtworkId }: { columnList: { header: string, name: string; type?: string; }[], gridData: Record<string, any>[], selectedArtworkId: string | null, setSelectedArtworkId: React.Dispatch<React.SetStateAction<string | null>>; }) => {
 
     return (
-        <div
-            style={{
-                position: 'relative',
-                backgroundColor: '#FAFAFA',
-                width: '100%',
-                height: '100%',
-                borderRight: '2px solid #E1E1E1',
-                borderLeft: '2px solid #E1E1E1',
-                borderBottom: '2px solid #E1E1E1',
-                borderTop: '2px solid black',
-                fontSize: '0.7rem',
-                overflow: 'auto',
-                boxSizing: 'border-box',
-                borderRadius: '8px'
-            }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead style={{ backgroundColor: '#F4F4F4' }}>
+        <div className={styles.container}>
+            <table className={styles.table}>
+                <thead>
                     <tr>
                         {columnList.map(({ header }, index) =>
-                            <th key={'cth' + (index + 1)} style={{ border: '2px solid #E8E8E8' }}>{header}</th>
+                            <th key={'cth' + (index + 1)} className={styles.th}>{header}</th>
                         )}
                     </tr>
                 </thead>
-                <tbody style={{ backgroundColor: 'white' }}>
-                    {gridData.map((data, index) =>
-                        <tr key={`tbodyTr${index}`} >
-                            {columnList.map(({ name: colName, header, type }, index) =>
-                                <td key={'text' + colName + index}
-                                    style={{ border: '2px solid #E8E8E8', backgroundColor: selectedArtworkId === data.id ? '#adc9e2' : 'white', cursor: 'pointer' }}
-                                    onClick={() => { setSelectedArtworkId(data.id); }}
-                                >
-                                    <>{data[colName]}</>
-                                </td>
-                            )}
-                        </tr>
-                    )}
+                <tbody>
+                    {gridData.map((data, index) => {
+                        const isSelected = selectedArtworkId === data.id;
+                        return (
+                            <tr
+                                key={`tbodyTr${index}`}
+                                className={`${styles.tr} ${isSelected ? styles.selected : ''}`}
+                                onClick={() => { setSelectedArtworkId(data.id); }}
+                            >
+                                {columnList.map(({ name: colName }, index) =>
+                                    <td key={'text' + colName + index} className={styles.td}>
+                                        <>{data[colName]}</>
+                                    </td>
+                                )}
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

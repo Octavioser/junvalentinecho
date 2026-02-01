@@ -9,7 +9,7 @@ import { Artwork } from "@/types";
 import { updateAllArtwork } from '@/common/comon';
 import styles from "../ArtworkPage.module.css";
 
-const ArtworkDisplayPanel = ({ artworks, selectedArtworkId, setIsLoading }: { artworks: Artwork[], selectedArtworkId: String, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
+const ArtworkDisplayPanel = ({ artworks, selectedArtworkId, setIsLoading }: { artworks: Artwork[], selectedArtworkId: string | null, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
 
     const posterFrameRef = useRef<HTMLDivElement>(null);
 
@@ -35,8 +35,8 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId, setIsLoading }: { ar
                             }));
                             alert('저장되었습니다.');
                             router.refresh(); // 페이지 새로고침
-                        } catch (error) {
-                            console.log(error);
+
+                        } catch {
                             alert('저장에 실패했습니다.');
                         } finally {
                             setIsLoading(false);
@@ -48,17 +48,18 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId, setIsLoading }: { ar
             </div >
             <div style={{ display: 'flex', flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <div ref={posterFrameRef} style={{ width: '85%', aspectRatio: 1 / 1 }}>
-                    <MainImagePosterCard>
+                    <MainImagePosterCard isAdmin={true}>
                         {(displayPanelItem || []).map((item, index) =>
                             <ArtworkDisplayImage
-                                key={`displsyImg${index}`}
+                                key={item.id}
                                 posterFrameRef={posterFrameRef}
                                 setTargetItem={(item: Artwork) => setDisplayPanelItem((prev) => prev.map((i) => (i.id === item.id ? item : i)))}
                                 targetArtworks={item}
                                 refreshZindex={(id: string) => {
                                     // 제일 최근에 수정한 이미지을 제일 위로 올리기
                                     const targetItem = displayPanelItem.find((i) => i.id === id);
-                                    const zIndexSortList = displayPanelItem.sort((a, b) => b.zIndex - a.zIndex);
+                                    const zIndexSortList = displayPanelItem.sort((a, b) => (b.zIndex ?? 0) - (a.zIndex ?? 0));
+                                    if (!targetItem) return;
                                     setDisplayPanelItem(
                                         zIndexSortList
                                             .filter((i) => i.id !== id)

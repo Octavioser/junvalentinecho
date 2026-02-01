@@ -20,19 +20,19 @@ export async function middleware(req: NextRequest) {
     if (!pathname.startsWith(PROTECTED)) return NextResponse.next();
     // 로그인페이지 통과
     if (pathname.startsWith(`${PROTECTED}/login`)) return NextResponse.next();
-    const token = req.cookies.get(process.env.ADMIN_SESSION_COOKIE)?.value;
+    const cookieName = process.env.ADMIN_SESSION_COOKIE || 'admin_session';
+    const token = req.cookies.get(cookieName)?.value;
     if (!token) return redirectToLogin(req);
 
     try {
         await jwtVerify(token, SECRET, { algorithms: ["HS256"] });
         return NextResponse.next();
     } catch {
-        console.log('검증실패');
         // 쿠키 삭제후 홈으로 이동
         const url = req.nextUrl.clone();
         url.pathname = "/";
         const res = NextResponse.redirect(url);
-        res.cookies.set(process.env.ADMIN_SESSION_COOKIE, "", {
+        res.cookies.set(cookieName, "", {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production", // 운영인지 개발인지
             sameSite: "strict",

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Artwork } from "@/types";
 import { uploadImage, addArtwork, updateArtwork } from "@/common/comon";
 import { useRouter } from "next/navigation";
-import { f } from "@vercel/blob/dist/create-folder-C02EFEPE.cjs";
+import Image from "next/image";
 
 type FormState = {
     id: string;
@@ -22,9 +22,9 @@ type FormState = {
 const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog, setIsLoading }:
     {
         artworks: Artwork[],
-        selectedArtworkId: string,
-        openDialog: string,
-        setOpenDialog: React.Dispatch<React.SetStateAction<string>>;
+        selectedArtworkId: string | null,
+        openDialog: string | null,
+        setOpenDialog: React.Dispatch<React.SetStateAction<"add" | "mod" | null>>;
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
 
@@ -49,8 +49,11 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
     useEffect(() => {
 
         if (openDialog === 'mod') {
-            const { id, season, year, title, material, location, width, height, overview, poster_path } = artworks.find((artwork: Artwork) => artwork.id === selectedArtworkId) || {};
-            setForm({ id, season, year, title, material, location, width, height, overview, poster_path });
+            const artwork = artworks.find((artwork: Artwork) => artwork.id === selectedArtworkId);
+            if (artwork) {
+                const { id, season, year, title, material, location, width, height, overview, poster_path } = artwork;
+                setForm({ id, season, year, title, material: material || '', location: location || '', width, height, overview, poster_path });
+            }
         }
     }, [openDialog]);
 
@@ -61,6 +64,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        if (!file) return;
         // 1. 확장자 체크 (optional)
         const isWebpExt = /\.webp$/i.test(file.name);
 
@@ -68,7 +72,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
         const isWebpMime = file.type === 'image/webp';
 
         // 최종 결과
-        if (!(file && isWebpExt && isWebpMime)) {
+        if (!file || !(isWebpExt && isWebpMime)) {
             alert('WebP 이미지가 아닙니다!');
             return;
         }
@@ -143,8 +147,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                 return new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().replace('Z', '+09:00');
             })();
 
-            // 새로추가
-            if (openDialog === 'add') {
+            if (openDialog === 'add' && inputFile) {
                 const url = await uploadImage(inputFile, title.trim());
                 await addArtwork(artworks, {
                     id, // 영화 ID
@@ -155,8 +158,8 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     year,
                     material, // 재료
                     location, // 위치
-                    width, // 너비 (CSS 관련 값)
-                    height, // 높이 (CSS 관련 값)
+                    width: Number(width), // 너비 (CSS 관련 값)
+                    height: Number(height), // 높이 (CSS 관련 값)
                     insertDt: kst, // 등록일 
                     updateDt: null, // 수정일
                     top: null, // 상단 위치 (CSS 관련 값)
@@ -170,6 +173,8 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
             else if (openDialog === 'mod') {
                 const url = inputFile ? await uploadImage(inputFile, title.trim()) : poster_path;
                 const orginArtwork = artworks.find((artwork: Artwork) => artwork.id === selectedArtworkId);
+                if (!orginArtwork) throw new Error("Artwork not found");
+
                 await updateArtwork(artworks, {
                     ...orginArtwork,
                     id, // 영화 ID
@@ -177,11 +182,11 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     title, // 영화 제목
                     overview, // 내용   
                     season, // 시즌
-                    year,
+                    year: Number(year),
                     material, // 재료
                     location, // 위치
-                    width, // 너비 (CSS 관련 값)
-                    height, // 높이 (CSS 관련 값)
+                    width: Number(width), // 너비 (CSS 관련 값)
+                    height: Number(height), // 높이 (CSS 관련 값)
                     updateDt: kst,
                 });
             }
@@ -286,12 +291,13 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                         </button>
                     </form>
                 </div>
-                <div style={{ width: '30%', display: 'flex', justifyContent: 'center', alignItems: 'center', borderLeft: '1px solid #ccc' }}>
+                <div style={{ width: '30%', display: 'flex', justifyContent: 'center', alignItems: 'center', borderLeft: '1px solid #ccc', position: 'relative', minHeight: '200px' }}>
                     {formPoster_path && (
-                        <img
+                        <Image
                             src={formPoster_path}
                             alt="미리보기"
-                            style={{ maxWidth: '50%', maxHeight: 'auto', border: '1px solid #ccc' }}
+                            fill
+                            style={{ objectFit: 'contain' }}
                         />
                     )}
                 </div>

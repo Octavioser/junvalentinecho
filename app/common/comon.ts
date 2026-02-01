@@ -71,10 +71,9 @@ export const delImage = async (url: string) => {
     try {
         if (!url) throw new Error("URL is required");
         await del(url);
-    } catch (err) {
-        console.log(err);
+    } catch {
+        // ignore
     }
-
 };
 
 

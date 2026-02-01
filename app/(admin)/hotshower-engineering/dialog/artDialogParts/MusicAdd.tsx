@@ -4,7 +4,7 @@ import { MusicBlob } from "@/types";
 import { upload } from '@vercel/blob/client';
 
 const MusicAdd = ({ musicList, setOpenDialog, setIsLoading }:
-    { musicList: MusicBlob[], setOpenDialog: React.Dispatch<React.SetStateAction<string>>, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
+    { musicList: MusicBlob[], setOpenDialog: React.Dispatch<React.SetStateAction<"add" | "mod" | null>>, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
 
     const [inputFile, setInputFile] = useState<File | null>(null);
 

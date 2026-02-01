@@ -1,94 +1,141 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap");
+
 .pageWrapper {
     width: 100vw;
     height: 100vh;
     display: flex;
-}
-
-.headerPanel {
-    height: 40px;
-    align-content: center;
-    font-size: 16px;
-    font-weight: 500;
-    padding-left: calc(var(--sp) * 2);
+    background-color: #F5F5F7;
+    /* Premium Light Gray */
+    padding: 24px;
     box-sizing: border-box;
-    border-bottom: 1px solid #e0e0e0;
+    gap: 24px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1d1d1f;
 }
 
-.leftPanel {
-    display: flex;
-    flex-direction: column;
-    width: 50%;
-    border-right: 1px solid #000;
-}
-
-.topBar {
-    display: flex;
-    gap: 8px;
-    padding: 0px var(--sp);
-    box-sizing: border-box;
-    justify-content: flex-end;
-    height: 3.5%;
-}
-
-.addButton {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: var(--sp) calc(var(--sp) * 2);
-    font-size: 11px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #e0e0e0;
-    background-color: #fff;
-}
-
-.tabBar {
-    margin: var(--sp) 0px;
-    padding: 0px var(--sp);
-    box-sizing: border-box;
-    display: flex;
-    width: 100%;
-    height: 4%;
-    justify-items: center;
-    align-items: center;
-    background-color: #c6c6c6c2;
-    background-clip: content-box;
-}
-
-.tabButton {
-    width: 33.3%;
-    height: 70%;
-    color: #000;
-    cursor: pointer;
-    display: flex;
-    /* 플렉스 박스 사용 */
-    align-items: center;
-    justify-content: center;
-    /* 수평 중앙 정렬 (이미 있음) */
-}
-
-.active {
-    background-color: #ffffff;
-    color: #000000;
-    border-radius: 10px;
-}
-
+.leftPanel,
 .rightPanel {
     display: flex;
     flex-direction: column;
-    width: 50%;
+    flex: 1;
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    height: 100%;
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
+
+/* Header Sections */
+.headerPanel {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d1d1f;
+    border-bottom: 1px solid #F5F5F7;
+    flex-shrink: 0;
+}
+
+/* Tab Bar - Segmented Control Style */
+.tabBar {
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: transparent;
+    border-bottom: 1px solid #F5F5F7;
+    flex-shrink: 0;
+}
+
+.tabButton {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #86868b;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: transparent;
+}
+
+.active {
+    background-color: #1d1d1f;
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tabButton:hover:not(.active) {
+    background-color: #F5F5F7;
+}
+
+/* Toolbar Area */
+.topBar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 32px;
+    background-color: #fff;
+    flex-shrink: 0;
+}
+
+/* Buttons */
+.addButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #E5E5EA;
+    background-color: #FFFFFF;
+    color: #1d1d1f;
+}
+
+.addButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    background-color: #FAFAFA;
+}
+
+.addButton:active {
+    transform: translateY(0);
+}
+
+.addButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Specific button variants can be added if needed, e.g. .primaryButton */
 
 .imagePreview {
     display: flex;
+    flex: 1;
     width: 100%;
     height: 100%;
     justify-content: center;
     align-items: center;
+    background-color: #FAFAFA;
+    padding: 40px;
+    box-sizing: border-box;
 }
 
 .previewImage {
-    width: 50%;
-    height: auto;
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
 }

@@ -6,9 +6,10 @@ import MainImagePosterCard from "../components/MainImage/MainImagePosterCard";
 import ImageStyle from "../components/MainImage/MainImage.module.css";
 import { Artwork, MusicBlob } from "@/types";
 import Link from "next/link";
+import Image from "next/image";
 import Player from "./(player)/Player";
 import { useArtworks } from "@/providers/ArtworksProvider";
-import MainImageRatio from "@/components/MainImage/MainImageRatio";
+
 import MainImgDialog from "./(mainImgDailog)/MainImgDialog";
 
 const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
@@ -22,7 +23,7 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
     const [groupIdList, setGroupIdList] = useState<Artwork[]>([]);
     const [displayGroupList, setDisplayGroupList] = useState<{ [x: string]: Artwork[]; }>({});
 
-    const [dialogImage, setDialogImage] = useState<Artwork>(null);
+    const [dialogImage, setDialogImage] = useState<Artwork | null>(null);
 
     // 옵저버로 확대 대상 이미지 선정하기
     useEffect(() => {
@@ -45,20 +46,9 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
         const scrollContainer = scrollRef.current;
         if (!scrollContainer) return;
 
-        const changeGalleryRaito = (value) => {
-            if (targetDisplayId.current) {
-                setGroupIdList((prev) => prev.map((art) =>
-                    art.id === targetDisplayId.current ? { ...art, galleryRaito: art.galleryRaito + value } : art
-                ));
-            }
-        };
-
         const handleWheel = (e: WheelEvent) => {
             e.preventDefault(); // 기본 수직 스크롤 방지
-            if (e.ctrlKey) changeGalleryRaito(e.deltaY > 0 ? -1 : 1);
-            else {
-                scrollContainer.scrollLeft += e.deltaY; // 수직 휠 움직임을 가로 스크롤로 변환
-            }
+            scrollContainer.scrollLeft += e.deltaY; // 수직 휠 움직임을 가로 스크롤로 변환
         };
 
         // iOS Safari gesture* 이벤트 막기 
@@ -94,9 +84,9 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
                 velocity = 0;
             }
             if (e.touches.length === 2) {
-                // 핀치 시작
+                // 핀치 시작 - 핀치는 개별 카드에서 처리 (react-zoom-pan-pinch)
                 mode = 'pinch';
-                lastDist = getDistFromTouches(e.touches);
+                // lastDist = getDistFromTouches(e.touches); // 제거
             }
             velocity = 0; // 드래그 관성값은 무효
         };
@@ -120,13 +110,7 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
                 lastTime = now;
             }
             if (mode === 'pinch' && e.touches.length >= 2) {
-                const dist = getDistFromTouches(e.touches);
-                const diff = dist - lastDist;
-
-                if (Math.abs(diff) >= 10) {
-                    changeGalleryRaito(diff > 0 ? 1 : -1);
-                    lastDist = dist;
-                }
+                // 개별 카드에서 처리하므로 글로벌 로직 제거
             }
         };
 
@@ -180,7 +164,7 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
         // 중복된 galleryId를 가진 Artwork 객체를 제거
         setGroupIdList(
             (Array.from(new Map(artworks.filter((item) => item.galleryId).map(item => [item.galleryId, item])).values()) || [])
-                .sort((a, b) => a.galleryId - b.galleryId)
+                .sort((a, b) => (a.galleryId || 0) - (b.galleryId || 0))
         );
 
         setDisplayGroupList(
@@ -211,12 +195,15 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
                     <div key={item.id} className={posterTrack}>
                         <div className={posterCardFrame} ref={(el) => { if (el) cardFrame.current.push(el); }} data-groupid={item.id}>
                             <div style={{ width: '100%', aspectRatio: 1 / 1 }}>
-                                <MainImagePosterCard >
-                                    {(displayGroupList[item.galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season }, index) =>
-                                        <img
+                                <MainImagePosterCard initialScale={1} alwaysShowRatio={true}>
+                                    {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season, galleryRaito }, index) =>
+                                        <Image
+                                            width={0}
+                                            height={0}
+                                            sizes="33vw"
                                             key={`image${id}`}
                                             className={ImageStyle.metalFrame}
-                                            style={{ top: `${top}%`, width: `${width * item.galleryRaito / 100}%`, left: `${left}%`, zIndex, cursor: 'pointer', userSelect: 'none' }}
+                                            style={{ top: `${top}%`, width: `${width * (galleryRaito || 100) / 100}%`, height: 'auto', left: `${left}%`, zIndex: zIndex ?? undefined, cursor: 'pointer', userSelect: 'none' }}
                                             src={poster_path}
                                             alt={title}
                                             draggable={false}
@@ -224,14 +211,12 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
                                             onClick={() => {
                                                 setDialogImage(item);
                                             }}
-                                        >
-                                        </img>
+                                        />
                                     )}
                                 </MainImagePosterCard>
-                                {item.galleryRaito && <MainImageRatio ratio={item.galleryRaito} />}
                             </div>
                             <div className={posterCardExplainContainer}>
-                                {(displayGroupList[item.galleryId] || []).map(({ title, width, height, material }, index) =>
+                                {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, width, height, material }, index) =>
                                     <div key={`explain${index}`} className={posterCardExplain}>
                                         <span style={{ whiteSpace: 'normal' }}>{title}</span>
                                         <span>{`${width} x ${height} cm`}</span>

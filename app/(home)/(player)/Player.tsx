@@ -37,7 +37,6 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
     const analyserRef = useRef<AnalyserNode | null>(null);
     const rafIdRef = useRef<number | null>(null);
     const lastTsRef = useRef<number>(0);
-    const smoothYRef = useRef<Float32Array | null>(null);
 
     useEffect(() => {
         const audioEl = audioRef.current;
@@ -58,7 +57,8 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
 
         // 이 컴포넌트 전용 AnalyserNode는 새로 만들고 연결
         const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
+
+        analyser.fftSize = 2048; // 해상도 높임 (촘촘한 파형)
         source.connect(analyser);
         analyser.connect(audioCtx.destination);
         analyserRef.current = analyser;
@@ -81,15 +81,7 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
         const bufferLength = analyser.frequencyBinCount; // 타임도메인 샘플 개수(보통 FFT/2)
         const dataArray = new Uint8Array(bufferLength);  // 오디오 샘플을 담을 바이트 배열
 
-        // 시각적 완충 버퍼 (지수이동평균용)
-        const ensureSmoothBuf = () => {             // 부드럽게 그리기 위한 y값 버퍼 보장
-            if (!smoothYRef.current || smoothYRef.current.length !== bufferLength) {
-                smoothYRef.current = new Float32Array(bufferLength); // 부동소수 버퍼 생성
-                // 처음엔 가운데 선으로 세팅
-                const h = canvas.getBoundingClientRect().height || canvas.height;
-                smoothYRef.current.fill(h / 2);     // 전 점을 화면 중앙 높이로 초기화
-            }
-        };
+
 
         // DPR 반영 리사이즈
         const resize = () => {                      // 디바이스 픽셀 비율에 맞게 캔버스 리사이즈
@@ -98,66 +90,58 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
             canvas.width = Math.max(1, Math.floor(rect.width * dpr));  // 실제 픽셀 너비
             canvas.height = Math.max(1, Math.floor(rect.height * dpr)); // 실제 픽셀 높이
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 좌표계를 CSS 픽셀 기준으로 변환
-            ensureSmoothBuf();                      // 크기 바뀌면 스무딩 버퍼도 재확인
         };
         resize();                                   // 최초 1회 리사이즈 적용
         window.addEventListener('resize', resize);  // 창 크기 변경 시에도 리사이즈
 
-        // 프레임 제한(ms)과 부드러움 계수
-        const FRAME_MS = 30;    // 최소 프레임 간격(≈ 33fps 근처) — 값 키우면 더 느려짐
-        const ALPHA = 0.4;      // 지수이동평균 계수 — 클수록 반응 빠르고, 작을수록 더 부드러움
+        // 프레임 제한(ms)
+        const FRAME_MS = 15;    // 더 부드럽고 빠른 갱신
 
-        const draw = (ts: number) => {              // 애니메이션 프레임 콜백(ts: 고해상도 타임스탬프)
-            rafIdRef.current = requestAnimationFrame(draw); // 다음 프레임 예약
+        const draw = (ts: number) => {
+            rafIdRef.current = requestAnimationFrame(draw);
 
             // 프레임 스로틀
-            if (ts - lastTsRef.current < FRAME_MS) return; // 이전 호출 후 FRAME_MS 안 지났으면 스킵
-            lastTsRef.current = ts;               // 마지막 그린 시각 갱신
+            if (ts - lastTsRef.current < FRAME_MS) return;
+            lastTsRef.current = ts;
 
             const rect = canvas.getBoundingClientRect();
-            ctx.clearRect(0, 0, rect.width, rect.height); // 화면 지우기
+            ctx.clearRect(0, 0, rect.width, rect.height);
 
-            ctx.lineWidth = 1.5;                    // 선 굵기
-            ctx.lineJoin = 'round';               // 선 꺾임 모양(둥글게)
-            ctx.lineCap = 'round';                // 선 끝 모양(둥글게)
-            ctx.strokeStyle = '#000';             // 선 색상
-
-            if (!isPlaying) {                     // 재생 중이 아니면
+            if (!isPlaying) {
                 ctx.beginPath();
-                ctx.moveTo(0, rect.height / 2);   // 화면 중앙에
-                ctx.lineTo(rect.width, rect.height / 2); // 수평선만 그려주고
+                ctx.strokeStyle = '#000'; // 대기 상태 검정
+                ctx.lineWidth = 1;
+                ctx.moveTo(0, rect.height / 2);
+                ctx.lineTo(rect.width, rect.height / 2);
                 ctx.stroke();
-                return;                           // 종료
+                return;
             }
 
-            analyser.getByteTimeDomainData(dataArray); // 현재 오디오 파형 샘플 읽기(0~255)
+            // 🎵 Time Domain Data (파형) 가져오기
+            analyser.getByteTimeDomainData(dataArray);
 
-            // 부드러움 버퍼 보장
-            ensureSmoothBuf();                    // 스무딩용 버퍼 없거나 길이 다르면 준비
-            const smooth = smoothYRef.current!;   // 스무딩 버퍼 참조
+            const sliceWidth = rect.width / bufferLength;
+            let x = 0;
 
-            ctx.beginPath();
+            ctx.fillStyle = '#000000'; // 빡센 검정
 
-            const sliceWidth = rect.width / bufferLength; // 샘플 하나당 x 간격
-            let x = 0;                           // x 시작 위치
+            const cY = rect.height / 2; // 중앙선
 
-            for (let i = 0; i < bufferLength; i++) {     // 모든 샘플 순회
-                const v = dataArray[i] / 128.0;          // 0~255 → 약 0~2 범위로 정규화
-                const yNow = (v * rect.height) / 2;      // 화면 높이에 맞춘 y 좌표(원시)
+            for (let i = 0; i < bufferLength; i++) {
+                // 128이 0(무음). 0~255 범위.
+                // 128과의 차이(진폭)를 계산
+                const amplitude = Math.abs(dataArray[i] - 128);
 
-                // 지수 이동평균(lerp)로 시각적 완충
-                const yPrev = smooth[i];                 // 이전 프레임 y
-                const ySmoothed = yPrev + (yNow - yPrev) * ALPHA; // y를 부드럽게 업데이트
-                smooth[i] = ySmoothed;                   // 다음 프레임을 위해 저장
+                // 증폭 (강렬하게)
+                const height = (amplitude / 128) * rect.height * 2.0;
 
-                if (i === 0) ctx.moveTo(x, ySmoothed);   // 첫 점은 moveTo
-                else ctx.lineTo(x, ySmoothed);           // 그다음부터는 선 연결
+                // 중앙에서 위아래로 뻗는 선 그리기 (대칭)
+                // x, y, w, h
+                // y는 시작점. 중앙에서 height/2 만큼 올라간 곳
+                ctx.fillRect(x, cY - height / 2, Math.max(1, sliceWidth), height);
 
-                x += sliceWidth;                         // 다음 x 위치로 이동
+                x += sliceWidth;
             }
-
-            ctx.lineTo(rect.width, rect.height / 2);     // 마지막을 중앙선으로 살짝 수렴
-            ctx.stroke();                                 // 실제로 그리기
         };
 
         rafIdRef.current = requestAnimationFrame(draw);   // 애니메이션 루프 시작

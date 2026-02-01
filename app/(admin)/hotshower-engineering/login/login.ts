@@ -25,7 +25,7 @@ export const loginAction = async (formData: FormData) => {
         .sign(new TextEncoder().encode(process.env.ADMIN_SESSION_SECRET!));
 
     // ▶ 쿠키에 저장 (HttpOnly/Strict)
-    (await cookies()).set(process.env.ADMIN_SESSION_COOKIE, jwt, {
+    (await cookies()).set(process.env.ADMIN_SESSION_COOKIE ?? 'admin_session', jwt, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",

@@ -16,7 +16,7 @@ const Season = async ({ params, searchParams }: { params: Promise<{ season: stri
     const { id } = await searchParams;
 
     return (
-        <SeasonDetail param={param} id={id} />
+        <SeasonDetail param={param} id={id ?? null} />
     );
 };
 

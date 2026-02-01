@@ -4,16 +4,19 @@ import ArtworkDisplayPanel from './artwork-display/ArtworkDisplayPanel';
 import ArtworkInfoForm from './artwork-info/ArtworkInfoForm';
 import { Artwork, MusicBlob } from "@/types";
 import ArtAddDialog from "./dialog/ArtAddDialog";
+import Image from "next/image";
 import styles from "./ArtworkPage.module.css";
+import MainImagePosterCard from "@/components/MainImage/MainImagePosterCard";
 import { useRouter } from "next/navigation";
 import { delArtwork, delImage, updateAllArtwork, updateArtwork, delMusic } from "@/common/comon";
 import ShowLoading from "./loading/ShowLoading";
+import ImageStyles from "@/components/MainImage/MainImage.module.css";
 
 const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: MusicBlob[]; }) => {
 
     const [selectedArtworkId, setSelectedArtworkId] = useState<string | null>(null);
     const [tab, setTab] = useState<string>('1');
-    const [openDialog, setOpenDialog] = useState<"add" | "mod">(null);
+    const [openDialog, setOpenDialog] = useState<"add" | "mod" | null>(null);
 
     const [sortMode, setSortMode] = useState<boolean>(false);
     const [sortViewArtWorks, setSortViewArtWorks] = useState<Artwork[]>([]);
@@ -72,7 +75,6 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                             const poster_path = artworks.find((artwork) => artwork.id === selectedArtworkId)?.poster_path;
                                             if (!(poster_path && selectedArtworkId)) {
                                                 alert('삭제실패하였습니다.');
-                                                console.error(`posterPath==> ${poster_path}, || selectedArtworkId==> ${selectedArtworkId}`);
                                                 return;
                                             }
                                             await delImage(poster_path);
@@ -80,8 +82,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                             setSelectedArtworkId(null);
                                             alert('삭제되었습니다.');
                                             router.refresh(); // 페이지 새로고침
-                                        } catch (error) {
-                                            console.log(error);
+                                        } catch {
                                             alert('삭제에 실패했습니다.');
                                         } finally {
                                             setIsLoading(false);
@@ -98,9 +99,12 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                     <>
                                         <button className={addButton} disabled={!selectedArtworkId} onClick={() => {
                                             setSortViewArtWorks((prev) => {
-                                                const targetGroupId = sortViewArtWorks.find(({ id }) => id === selectedArtworkId).galleryId;
+                                                const targetArtwork = prev.find(({ id }) => id === selectedArtworkId);
+                                                if (!targetArtwork) return prev;
 
-                                                const galleryIndexList = [...new Set(sortViewArtWorks.filter((item) => item.galleryId).map(item => item.galleryId))]
+                                                const targetGroupId = targetArtwork.galleryId;
+                                                if (!targetGroupId) return prev;
+                                                const galleryIndexList = [...new Set(prev.map((item) => item.galleryId).filter((id): id is number => !!id))]
                                                     .sort((a, b) => a - b);
                                                 const targetIndex = galleryIndexList.indexOf(targetGroupId);
 
@@ -122,9 +126,13 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                         </button>
                                         <button className={addButton} disabled={!selectedArtworkId} onClick={() => {
                                             setSortViewArtWorks((prev) => {
-                                                const targetGroupId = sortViewArtWorks.find(({ id }) => id === selectedArtworkId).galleryId;
+                                                const targetArtwork = prev.find(({ id }) => id === selectedArtworkId);
+                                                if (!targetArtwork) return prev;
 
-                                                const galleryIndexList = [...new Set(sortViewArtWorks.filter((item) => item.galleryId).map(item => item.galleryId))]
+                                                const targetGroupId = targetArtwork.galleryId;
+                                                if (!targetGroupId) return prev;
+
+                                                const galleryIndexList = [...new Set(prev.map((item) => item.galleryId).filter((id): id is number => !!id))]
                                                     .sort((a, b) => a - b);
                                                 const targetIndex = galleryIndexList.indexOf(targetGroupId);
 
@@ -156,11 +164,8 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                 alert('저장되었습니다.');
                                                 setSortMode(false);
                                                 setSortViewArtWorks([]);
-                                                router.refresh(); // 페이지 새로고침    
-                                            } catch (error) {
-                                                console.log(error);
+                                            } catch {
                                                 alert('저장에 실패했습니다.');
-                                            } finally {
                                                 setIsLoading(false);
                                             }
 
@@ -186,11 +191,8 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                     }));
                                                     setSelectedArtworkId(null);
                                                     alert('그룹이 삭제되었습니다.');
-                                                    router.refresh(); // 페이지 새로고침
-                                                } catch (error) {
-                                                    console.log(error);
+                                                } catch {
                                                     alert('저장에 실패했습니다.');
-                                                } finally {
                                                     setIsLoading(false);
                                                 }
 
@@ -216,14 +218,17 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                         setIsLoading(true);
                                         try {
                                             const targetData = artworks.find((artwork) => artwork.id === selectedArtworkId);
+
+                                            if (!targetData) {
+                                                alert('이미지를 찾을 수 없습니다.');
+                                                return;
+                                            }
+
                                             await updateArtwork(artworks, { ...targetData, visualYn: '' });
                                             setSelectedArtworkId(null);
                                             alert('비쥬얼 표시가 삭제되었습니다.');
-                                            router.refresh(); // 페이지 새로고침
-                                        } catch (error) {
-                                            console.log(error);
+                                        } catch {
                                             alert('저장에 실패했습니다.');
-                                        } finally {
                                             setIsLoading(false);
                                         }
 
@@ -242,6 +247,10 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                         setIsLoading(true);
                                         try {
                                             const targetData = musicList.find((e) => e.id === selectedArtworkId);
+                                            if (!targetData) {
+                                                alert('음악을 찾을 수 없습니다.');
+                                                return;
+                                            }
                                             await delMusic(targetData.pathname);
                                             setSelectedArtworkId(null);
                                             alert('선택한 음악이 삭제되었습니다.');
@@ -269,6 +278,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                     />
                 </div>
 
+
                 <div className={rightPanel}>
                     <div className={headerPanel}>이미지 미리보기</div>
                     {['1', '3'].includes(tab) && selectedArtworkId && (() => {
@@ -276,7 +286,26 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                         const { poster_path, title } = targetData;
                         return (
                             <div className={imagePreview}>
-                                <img className={previewImage} src={poster_path} alt={title} />
+                                <div style={{ width: '80%', height: '80%', position: 'relative' }}>
+                                    <MainImagePosterCard initialScale={1} isAdmin={true}>
+                                        <Image
+                                            width={0}
+                                            height={0}
+                                            sizes="50vw"
+                                            className={ImageStyles.metalFrame}
+                                            src={poster_path}
+                                            alt={title}
+                                            style={{
+                                                top: '50%',
+                                                left: '50%',
+                                                transform: 'translate(-50%, -50%)',
+                                                width: '50%', // Default width for preview
+                                                height: 'auto',
+                                                position: 'absolute'
+                                            }}
+                                        />
+                                    </MainImagePosterCard>
+                                </div>
                             </div>
                         );
                     })()}

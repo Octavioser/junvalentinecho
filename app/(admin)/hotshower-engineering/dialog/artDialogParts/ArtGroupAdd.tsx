@@ -8,28 +8,30 @@ import { updateArtwork, updateAllArtwork } from "@/common/comon";
 const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDialog, setOpenDialog, setIsLoading }
     : {
         artworks: Artwork[],
-        selectedArtworkId: string,
-        setSelectedArtworkId: React.Dispatch<React.SetStateAction<string>>,
+        selectedArtworkId: string | null,
+        setSelectedArtworkId: React.Dispatch<React.SetStateAction<string | null>>,
         openDialog: 'add' | 'mod',
-        setOpenDialog: React.Dispatch<React.SetStateAction<string>>;
+        setOpenDialog: React.Dispatch<React.SetStateAction<"add" | "mod" | null>>;
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
 
-    const [targetID, setTargetID] = useState<string>(null);
+    const [targetID, setTargetID] = useState<string | null>(null);
 
-    const [galleryRaito, setGalleryRaito] = useState<number>(null);
+    const [galleryRaito, setGalleryRaito] = useState<number | null>(null);
 
     // 기존 추가시 배율 가져오기 
     useEffect(() => {
-        if (openDialog === 'mod') {
-            setGalleryRaito(artworks.find(({ id }) => selectedArtworkId === id).galleryRaito);
+        if (openDialog === 'mod' && selectedArtworkId) {
+            setGalleryRaito(artworks.find(({ id }) => selectedArtworkId === id)?.galleryRaito ?? null);
         }
     }, []);
 
     const gridData = (() => {
         const data = artworks.map(e => ({ ...e, size: `${e.width} x ${e.height}` }));
-        if (openDialog === 'mod') {
-            return data.filter(({ galleryId }) => galleryId !== artworks.find(({ id }) => selectedArtworkId === id).galleryId);
+        if (openDialog === 'mod' && selectedArtworkId) {
+            const target = artworks.find(({ id }) => selectedArtworkId === id);
+            if (!target) return data;
+            return data.filter(({ galleryId }) => galleryId !== target.galleryId);
         }
         return data;
     })();
@@ -75,11 +77,16 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                         }
                         setIsLoading(true);
                         try {
-                            const galleryId = (artworks.find((artwork) => artwork.id === selectedArtworkId) || {}).galleryId;
+                            const galleryId = artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
+                            if (galleryId === undefined || galleryId === null) {
+                                alert('갤러리 ID를 찾을 수 없습니다.');
+                                setIsLoading(false);
+                                return;
+                            }
 
                             await updateAllArtwork(artworks.map(e => {
                                 if (e.galleryId === galleryId) {
-                                    return { ...e, galleryRaito };
+                                    return { ...e, galleryRaito: galleryRaito ?? 0 };
                                 }
                                 return e;
                             }));
@@ -112,13 +119,25 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                     try {
                         const targetData = artworks.find((artwork) => artwork.id === targetID);
 
+                        if (!targetData) {
+                            alert('대상을 찾을 수 없습니다.');
+                            setIsLoading(false);
+                            return;
+                        }
+
                         const galleryId = openDialog === 'add' ?
                             // 그룹추가
-                            artworks.reduce((acc, curr) => Math.max(acc, curr.galleryId), 0) + 1
+                            artworks.reduce((acc, curr) => Math.max(acc, curr.galleryId ?? 0), 0) + 1
                             : // 기존그룹에 추가 
-                            (artworks.find((artwork) => artwork.id === selectedArtworkId) || {}).galleryId;
+                            artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
 
-                        await updateArtwork(artworks, { ...targetData, galleryId, galleryRaito });
+                        if (galleryId === undefined || galleryId === null) {
+                            alert('갤러리 ID를 설정할 수 없습니다.');
+                            setIsLoading(false);
+                            return;
+                        }
+
+                        await updateArtwork(artworks, { ...targetData, galleryId, galleryRaito: galleryRaito ?? 0 });
                         setTargetID(null);
                         setOpenDialog(null);
                         setSelectedArtworkId(null);

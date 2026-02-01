@@ -3,7 +3,7 @@ import React from "react";
 import { Artwork, MusicBlob } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 
-const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: String, setSelectedArtworkId: React.Dispatch<React.SetStateAction<String>>; }) => {
+const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: React.Dispatch<React.SetStateAction<string | null>>; }) => {
 
 
     const grid13Data = artworks.map(e => ({ ...e, size: `${e.width} x ${e.height}` }));
@@ -39,7 +39,7 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                             { ...curr, title: `${existingGroup.title} | ${curr.title}` }
                         ];
                         return [...acc, curr];
-                    }, []).sort((a, b) => a.galleryId - b.galleryId)}
+                    }, []).sort((a, b) => (a.galleryId ?? 0) - (b.galleryId ?? 0))}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
                 />
