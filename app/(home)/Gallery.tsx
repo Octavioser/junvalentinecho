@@ -111,24 +111,27 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
                     <div key={item.id} className={posterTrack}>
                         <div className={posterCardFrame} ref={(el) => { if (el) cardFrame.current.push(el); }} data-groupid={item.id}>
                             <div style={{ width: '100%', aspectRatio: 1 / 1 }}>
-                                <MainImagePosterCard ratio={(displayGroupList[item.galleryId!] || [])[0].galleryRaito || 100} alwaysShowRatio={true}>
-                                    {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season, galleryRaito }, index) =>
-                                        <Image
-                                            width={0}
-                                            height={0}
-                                            sizes="33vw"
-                                            key={`image${id}`}
-                                            className={ImageStyle.metalFrame}
-                                            style={{ top: `${top}%`, width: `${width * (galleryRaito || 100) / 100}%`, height: 'auto', left: `${left}%`, zIndex: zIndex ?? undefined, cursor: 'pointer', userSelect: 'none', pointerEvents: 'auto' }}
-                                            src={poster_path}
-                                            alt={title}
-                                            draggable={false}
-                                            onContextMenu={e => e.preventDefault()}
-                                            onClick={() => {
-                                                setDialogImageId(id);
-                                            }}
-                                        />
-                                    )}
+                                <MainImagePosterCard winSize={(displayGroupList[item.galleryId!] || [])[0].groupWinSize || 1000} alwaysShowRatio={true}>
+                                    {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season, groupWinSize }, index) => {
+                                        const winSize = groupWinSize || 1000;
+                                        return (
+                                            <Image
+                                                width={0}
+                                                height={0}
+                                                sizes="33vw"
+                                                key={`image${id}`}
+                                                className={ImageStyle.metalFrame}
+                                                style={{ top: `${top}%`, width: `${(width / winSize) * 100}%`, height: 'auto', left: `${left}%`, zIndex: zIndex ?? undefined, cursor: 'pointer', userSelect: 'none', pointerEvents: 'auto' }}
+                                                src={poster_path}
+                                                alt={title}
+                                                draggable={false}
+                                                onContextMenu={e => e.preventDefault()}
+                                                onClick={() => {
+                                                    setDialogImageId(id);
+                                                }}
+                                            />
+                                        );
+                                    })}
                                 </MainImagePosterCard>
                             </div>
                             <div className={posterCardExplainContainer}>
@@ -158,4 +161,4 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
         </div>
     );
 };
-export default Gallery;
+export default Gallery;;

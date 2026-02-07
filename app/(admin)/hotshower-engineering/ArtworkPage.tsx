@@ -166,9 +166,9 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                 setSortViewArtWorks([]);
                                             } catch {
                                                 alert('저장에 실패했습니다.');
+                                            } finally {
                                                 setIsLoading(false);
                                             }
-
                                         }}>
                                             저장
                                         </button>
@@ -176,7 +176,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                     :
                                     <>
                                         <button className={addButton} onClick={() => { setOpenDialog('add'); }}>그룹새로채번</button>
-                                        <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>기존그룹추가 및 배율저장</button>
+                                        <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>기존그룹추가 및 크기저장</button>
                                         <button className={addButton}
                                             disabled={!selectedArtworkId}
                                             onClick={async () => {
@@ -193,6 +193,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                     alert('그룹이 삭제되었습니다.');
                                                 } catch {
                                                     alert('저장에 실패했습니다.');
+                                                } finally {
                                                     setIsLoading(false);
                                                 }
 
@@ -229,6 +230,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                             alert('비쥬얼 표시가 삭제되었습니다.');
                                         } catch {
                                             alert('저장에 실패했습니다.');
+                                        } finally {
                                             setIsLoading(false);
                                         }
 
@@ -287,7 +289,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                         return (
                             <div className={imagePreview}>
                                 <div style={{ width: '80%', height: '80%', position: 'relative' }}>
-                                    <MainImagePosterCard initialScale={1} isAdmin={true}>
+                                    <MainImagePosterCard isAdmin={true}>
                                         <Image
                                             width={0}
                                             height={0}

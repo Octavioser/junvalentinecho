@@ -166,7 +166,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     left: null,// 왼쪽 위치 (CSS 관련 값)
                     zIndex: null, // z-index (CSS 관련 값)
                     galleryId: null, // 갤러리 ID
-                    galleryRaito: null, // 갤러리 배율
+                    groupWinSize: null, // 전시창 크기
                     visualYn: null, // 비주얼 ID
                 });
             }

@@ -17,14 +17,14 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
 
     const [targetID, setTargetID] = useState<string | null>(null);
 
-    const [galleryRaito, setGalleryRaito] = useState<number | null>(null);
+    const [groupWinSize, setGroupWinSize] = useState<number | null>(1000);
 
-    // 기존 추가시 배율 가져오기 
+    // 기존 추가시 배율/크기 가져오기 
     useEffect(() => {
         if (openDialog === 'mod' && selectedArtworkId) {
-            setGalleryRaito(artworks.find(({ id }) => selectedArtworkId === id)?.galleryRaito ?? null);
+            setGroupWinSize(artworks.find(({ id }) => selectedArtworkId === id)?.groupWinSize ?? 1000);
         }
-    }, []);
+    }, [openDialog, selectedArtworkId, artworks]);
 
     const gridData = (() => {
         const data = artworks.map(e => ({ ...e, size: `${e.width} x ${e.height}` }));
@@ -54,25 +54,25 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
         <div style={{ height: '10%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
             <div style={{ height: '50%', width: '100%' }}>
                 <label>
-                    {'그룹 배율: '}
+                    {'전시창 크기: '}
                     <input
                         style={{ width: '10%' }}
-                        type="text"
-                        name="title"
-                        value={galleryRaito ?? ''}
+                        type="number"
+                        name="groupWinSize"
+                        value={groupWinSize ?? ''}
                         onChange={(e) =>
-                            setGalleryRaito(Number(e.target.value))
+                            setGroupWinSize(Number(e.target.value))
                         }
                         required
                     />
-                    {' %'}
+                    {' cm'}
                 </label>
             </div>
             <div style={{ height: '50%', display: 'flex', justifyContent: 'flex-end' }}>
                 {openDialog === 'mod' &&
                     <button onClick={async () => {
-                        if (!galleryRaito || galleryRaito <= 0) {
-                            alert('그룹 배율을 양수로 입력해주세요');
+                        if (!groupWinSize || groupWinSize <= 0) {
+                            alert('전시창 크기를 양수로 입력해주세요');
                             return;
                         }
                         setIsLoading(true);
@@ -86,7 +86,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
 
                             await updateAllArtwork(artworks.map(e => {
                                 if (e.galleryId === galleryId) {
-                                    return { ...e, galleryRaito: galleryRaito ?? 0 };
+                                    return { ...e, groupWinSize: groupWinSize ?? 1000 };
                                 }
                                 return e;
                             }));
@@ -94,7 +94,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                             setTargetID(null);
                             setOpenDialog(null);
                             setSelectedArtworkId(null);
-                            alert('해당 그룹코드의 배율이 변경되었습니다.');
+                            alert('해당 그룹의 전시창 크기가 변경되었습니다.');
                             router.refresh(); // 페이지 새로고침
                         } catch (error) {
                             console.log(error);
@@ -103,7 +103,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                             setIsLoading(false);
                         }
 
-                    }}>배율 저장</button>
+                    }}>크기 저장</button>
                 }
                 <button onClick={async () => {
                     if (!targetID) {
@@ -111,8 +111,8 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                         return;
                     }
 
-                    if (!galleryRaito || galleryRaito <= 0) {
-                        alert('그룹 배율을 양수로 입력해주세요');
+                    if (!groupWinSize || groupWinSize <= 0) {
+                        alert('전시창 크기를 양수로 입력해주세요');
                         return;
                     }
                     setIsLoading(true);
@@ -137,7 +137,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                             return;
                         }
 
-                        await updateArtwork(artworks, { ...targetData, galleryId, galleryRaito: galleryRaito ?? 0 });
+                        await updateArtwork(artworks, { ...targetData, galleryId, groupWinSize: groupWinSize ?? 1000 });
                         setTargetID(null);
                         setOpenDialog(null);
                         setSelectedArtworkId(null);

@@ -30,7 +30,7 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                         { name: 'id', header: 'ID', type: 'string' },
                         { name: 'galleryId', header: '갤러리그룹', type: 'string' },
                         { name: 'title', header: '제목', type: 'string' },
-                        { name: 'galleryRaito', header: '배율', type: 'string' },
+                        { name: 'groupWinSize', header: '전시창 크기(cm)', type: 'string' },
                     ]}
                     gridData={(artworks.filter(({ galleryId }) => galleryId)).reduce((acc: Artwork[], curr: Artwork) => {
                         const existingGroup = acc.find((item) => item.galleryId === curr.galleryId);

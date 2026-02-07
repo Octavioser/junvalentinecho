@@ -2,12 +2,12 @@
 import styles from "./MainImage.module.css";
 
 
-const MainImageRatio = ({ ratio }: { ratio: number; }) => {
+const MainImageRatio = ({ label }: { label: string; }) => {
 
     const { posterRatio } = styles;
 
     return <div className={posterRatio}>
-        <span>{`${ratio}%`}</span>
+        <span>{label}</span>
         <span
             style={{
                 marginLeft: "3px",

@@ -14,18 +14,18 @@ const RatioUpdater = ({ setRatio, contentRef, baseRatio }: { setRatio: (r: numbe
     return null;
 };
 
-const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, ratio: propRatio = 100, alwaysShowRatio = false, isAdmin = false }: {
+const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, winSize = 1000, alwaysShowRatio = false, isAdmin = false }: {
     children: React.ReactNode;
     onMouseMove?: ((e: React.MouseEvent<HTMLDivElement>) => void) | null | undefined;
     onMouseUp?: (() => void) | null | undefined;
     onMouseLeave?: (() => void) | null | undefined;
     isAdmin?: boolean;
-    ratio?: number;
+    winSize?: number;
     alwaysShowRatio?: boolean;
 }) => {
 
     const { posterCard } = styles;
-    const [ratio, setRatio] = useState(propRatio);
+    const [ratio, setRatio] = useState(100); // Zoom scale, not winSize
     const contentRef = useRef<HTMLDivElement>(null!);
 
     return (
@@ -39,37 +39,39 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, r
             {isAdmin ? (
                 children
             ) : (
-                <TransformWrapper
-                    initialScale={1}
-                    minScale={0.5}
-                    maxScale={5}
-                    wheel={{ step: 0.1 }}
-                    pinch={{ disabled: false }}
-                    doubleClick={{ disabled: true }}
-                >
-                    <>
-                        <RatioUpdater setRatio={setRatio} contentRef={contentRef} baseRatio={propRatio} />
-                        <TransformComponent
-                            wrapperStyle={{ width: '100%', height: '100%' }}
-                            contentStyle={{ width: '100%', height: '100%' }}
-                        >
-                            <div
-                                ref={contentRef}
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    '--inverse-scale': 1
-                                } as React.CSSProperties}
+                <div className="zoom-wrapper" style={{ width: '100%', height: '100%' }}>
+                    <TransformWrapper
+                        initialScale={1}
+                        minScale={0.5}
+                        maxScale={5}
+                        wheel={{ step: 0.1 }}
+                        pinch={{ disabled: false }}
+                        doubleClick={{ disabled: true }}
+                    >
+                        <>
+                            <RatioUpdater setRatio={setRatio} contentRef={contentRef} baseRatio={100} />
+                            <TransformComponent
+                                wrapperStyle={{ width: '100%', height: '100%' }}
+                                contentStyle={{ width: '100%', height: '100%' }}
                             >
-                                {children}
-                            </div>
-                        </TransformComponent>
-                    </>
-                </TransformWrapper>
+                                <div
+                                    ref={contentRef}
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        '--inverse-scale': 1
+                                    } as React.CSSProperties}
+                                >
+                                    {children}
+                                </div>
+                            </TransformComponent>
+                        </>
+                    </TransformWrapper>
+                </div>
             )}
             {alwaysShowRatio && (
                 <div style={{ position: 'absolute', bottom: '-15px', right: '0', zIndex: 10, pointerEvents: 'none' }}>
-                    <MainImageRatio ratio={ratio} />
+                    <MainImageRatio label={`${Math.floor(winSize * 100 / ratio)}cm`} />
                 </div>
             )}
         </div>

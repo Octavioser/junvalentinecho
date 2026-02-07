@@ -70,7 +70,7 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId, setIsLoading }: { ar
                             />
                         )}
                     </MainImagePosterCard>
-                    {displayPanelItem[0]?.galleryRaito && <MainImageRatio ratio={displayPanelItem[0].galleryRaito} />}
+                    {displayPanelItem[0]?.groupWinSize && <MainImageRatio label={`${displayPanelItem[0].groupWinSize}cm`} />}
                 </div>
             </div>
         </div >

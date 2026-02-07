@@ -10,7 +10,7 @@ export interface Artwork {
     insertDt: string; // 등록일
     updateDt: string | null; // 수정일
     galleryId: number | null; // 갤러리 ID
-    galleryRaito: number | null; // 갤러리 비율
+    groupWinSize: number | null; // 전시창 크기 (cm)
     visualYn: string | null; // 비주얼 ID
     width: number; // 실제 길이
     height: number; // 실제높이
