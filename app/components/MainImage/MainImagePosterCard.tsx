@@ -45,6 +45,7 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, r
                     maxScale={5}
                     wheel={{ step: 0.1 }}
                     pinch={{ disabled: false }}
+                    doubleClick={{ disabled: true }}
                 >
                     <>
                         <RatioUpdater setRatio={setRatio} contentRef={contentRef} baseRatio={propRatio} />

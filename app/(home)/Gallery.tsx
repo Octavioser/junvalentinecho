@@ -23,7 +23,7 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
     const [groupIdList, setGroupIdList] = useState<Artwork[]>([]);
     const [displayGroupList, setDisplayGroupList] = useState<{ [x: string]: Artwork[]; }>({});
 
-    const [dialogImage, setDialogImage] = useState<Artwork | null>(null);
+    const [dialogImageId, setDialogImageId] = useState<string | null>(null);
 
     // 옵저버로 확대 대상 이미지 선정하기
     useEffect(() => {
@@ -119,13 +119,13 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
                                             sizes="33vw"
                                             key={`image${id}`}
                                             className={ImageStyle.metalFrame}
-                                            style={{ top: `${top}%`, width: `${width * (galleryRaito || 100) / 100}%`, height: 'auto', left: `${left}%`, zIndex: zIndex ?? undefined, cursor: 'pointer', userSelect: 'none' }}
+                                            style={{ top: `${top}%`, width: `${width * (galleryRaito || 100) / 100}%`, height: 'auto', left: `${left}%`, zIndex: zIndex ?? undefined, cursor: 'pointer', userSelect: 'none', pointerEvents: 'auto' }}
                                             src={poster_path}
                                             alt={title}
                                             draggable={false}
                                             onContextMenu={e => e.preventDefault()}
                                             onClick={() => {
-                                                setDialogImage(item);
+                                                setDialogImageId(id);
                                             }}
                                         />
                                     )}
@@ -148,7 +148,13 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
             <div className={styles.playerContainer}>
                 <Player musicList={musicList} />
             </div>
-            {dialogImage && <MainImgDialog targetImg={dialogImage} dialogClose={() => { setDialogImage(null); }} />}
+            {(() => {
+                if (dialogImageId) {
+                    const target = artworks.find(item => item.id === dialogImageId);
+                    return target ? <MainImgDialog targetImg={target} dialogClose={() => { setDialogImageId(null); }} /> : null;
+                }
+                return null;
+            })()}
         </div>
     );
 };
