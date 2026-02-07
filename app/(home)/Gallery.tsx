@@ -42,120 +42,36 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
 
     // 스크롤 이벤트
     // 
+    // 가로 스크롤만 휠로 지원 (Shift 없이도)
     useEffect(() => {
         const scrollContainer = scrollRef.current;
         if (!scrollContainer) return;
 
-        const handleWheel = (e: WheelEvent) => {
-            e.preventDefault(); // 기본 수직 스크롤 방지
-            scrollContainer.scrollLeft += e.deltaY; // 수직 휠 움직임을 가로 스크롤로 변환
-        };
-
-        // iOS Safari gesture* 이벤트 막기 
-        const onGestureStart = (e: Event) => { e.preventDefault(); };
-        const onGestureChange = (e: Event) => { e.preventDefault(); };
-        const onGestureEnd = (e: Event) => { e.preventDefault(); };
-
-        let lastX = 0;
-        let lastTime = 0;
-        let velocity = 0;
-        let rafId = 0;
-
-        let lastDist = 0;
-
-        let mode: 'none' | 'drag' | 'pinch' = 'none';
-
-        // 두 손가락 사이 거리 계산
-        const getDistFromTouches = (touches: TouchList) => {
-            const t1 = touches[0];
-            const t2 = touches[1];
-            const dx = t2.clientX - t1.clientX;
-            const dy = t2.clientY - t1.clientY;
-            return Math.hypot(dx, dy);
-        };
-
-        const onTouchStart = (e: TouchEvent) => {
-            cancelAnimationFrame(rafId);
-            if (e.touches.length === 1) {
-                // 가로 스크롤 시작
-                mode = 'drag';
-                lastX = e.touches[0].clientX;
-                lastTime = Date.now();
-                velocity = 0;
-            }
-            if (e.touches.length === 2) {
-                // 핀치 시작 - 핀치는 개별 카드에서 처리 (react-zoom-pan-pinch)
-                mode = 'pinch';
-                // lastDist = getDistFromTouches(e.touches); // 제거
-            }
-            velocity = 0; // 드래그 관성값은 무효
-        };
-
-        const onTouchMove = (e: TouchEvent) => {
-            e.preventDefault();
-            if (mode === 'drag' && e.touches.length === 1) {
-                const x = e.touches[0].clientX;
-                const now = Date.now();
-
-                // 이동량
-                const delta = x - lastX;
-
-                // 스크롤 이동
-                scrollContainer.scrollLeft -= delta;
-
-                // 속도 계산 (px/ms)
-                velocity = delta / (now - lastTime);
-
-                lastX = x;
-                lastTime = now;
-            }
-            if (mode === 'pinch' && e.touches.length >= 2) {
-                // 개별 카드에서 처리하므로 글로벌 로직 제거
+        // 1. 브라우저 줌 전역 차단 (Ctrl + Wheel)
+        const preventZoom = (e: WheelEvent) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
             }
         };
 
-        const onTouchEnd = (e: TouchEvent) => {
-            if (mode === 'drag') {
-                // 드래그 제스처가 완전히 끝났을 때만 관성
-                const inertia = () => {
-                    scrollContainer.scrollLeft -= velocity * 20;
-                    velocity *= 0.95;
-                    if (Math.abs(velocity) > 0.01) {
-                        rafId = requestAnimationFrame(inertia);
-                    }
-                };
-                requestAnimationFrame(inertia);
+        // 2. 가로 스크롤 변환 (Ctrl 키 없을 때만) - 캡쳐 단계에서 처리하여 자식 컴포넌트(라이브러리)로 이벤트 전달 방지
+        const handleScroll = (e: WheelEvent) => {
+            if (!e.ctrlKey && e.deltaY !== 0) {
+                // 가로 스크롤 처리
+                if (scrollContainer) scrollContainer.scrollLeft += e.deltaY;
 
+                // 이벤트 전파 중단 (MainImagePosterCard가 이 이벤트를 받지 못하게 함 -> 줌 안됨)
+                e.stopPropagation();
             }
-            if (mode === 'pinch') {
-                lastDist = 0;
-            }
-            mode = 'none';
         };
 
-        // 이벤트 리스너 추가
-        scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
+        window.addEventListener('wheel', preventZoom, { passive: false });
+        // 스크롤 컨테이너에 캡쳐 리스너 등록
+        scrollContainer.addEventListener('wheel', handleScroll, { passive: false, capture: true });
 
-        document.addEventListener('gesturestart', onGestureStart, { passive: false } as AddEventListenerOptions);
-        document.addEventListener('gesturechange', onGestureChange, { passive: false } as AddEventListenerOptions);
-        document.addEventListener('gestureend', onGestureEnd, { passive: false } as AddEventListenerOptions);
-
-        document.addEventListener('touchstart', onTouchStart, { passive: false });
-        document.addEventListener('touchmove', onTouchMove, { passive: false });
-        document.addEventListener('touchend', onTouchEnd);
-
-
-        // 컴포넌트 언마운트 시 이벤트 리스너 제거
         return () => {
-            scrollContainer.removeEventListener('wheel', handleWheel);
-
-            document.removeEventListener('gesturestart', onGestureStart as any);
-            document.removeEventListener('gesturechange', onGestureChange as any);
-            document.removeEventListener('gestureend', onGestureEnd as any);
-
-            document.removeEventListener('touchstart', onTouchStart as any);
-            document.removeEventListener('touchmove', onTouchMove as any);
-            document.removeEventListener('touchend', onTouchEnd as any);
+            window.removeEventListener('wheel', preventZoom);
+            scrollContainer.removeEventListener('wheel', handleScroll, { capture: true } as any);
         };
     }, []);
 
@@ -195,7 +111,7 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
                     <div key={item.id} className={posterTrack}>
                         <div className={posterCardFrame} ref={(el) => { if (el) cardFrame.current.push(el); }} data-groupid={item.id}>
                             <div style={{ width: '100%', aspectRatio: 1 / 1 }}>
-                                <MainImagePosterCard initialScale={1} alwaysShowRatio={true}>
+                                <MainImagePosterCard ratio={(displayGroupList[item.galleryId!] || [])[0].galleryRaito || 100} alwaysShowRatio={true}>
                                     {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season, galleryRaito }, index) =>
                                         <Image
                                             width={0}

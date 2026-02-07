@@ -61,6 +61,19 @@
     transform: scale(1.01);
 }
 
+.navItem {
+    opacity: 0.5;
+    filter: blur(2px);
+    transition: all 0.3s ease;
+    display: block;
+    /* Ensure transform/transition works well */
+}
+
+.navItem.active {
+    opacity: 1;
+    filter: none;
+}
+
 /* 세로가 긴 화면 (높이가 더 클 때) */
 @media (max-aspect-ratio: 1/1) {
     .navContainer {

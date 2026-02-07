@@ -133,7 +133,7 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
                 const amplitude = Math.abs(dataArray[i] - 128);
 
                 // 증폭 (강렬하게)
-                const height = (amplitude / 128) * rect.height * 2.0;
+                const height = (amplitude / 128) * rect.height * 1;
 
                 // 중앙에서 위아래로 뻗는 선 그리기 (대칭)
                 // x, y, w, h
@@ -168,7 +168,7 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
                 <div style={{ position: 'relative' }}>
                     <button className={`${controlButton} ${inventoryButton}`}
                         onClick={() => {
-                            setIsDropDwownOpen(true);
+                            setIsDropDwownOpen((prev) => !prev);
                         }}
                     >
                         <svg

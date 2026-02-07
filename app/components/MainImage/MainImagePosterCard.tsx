@@ -4,9 +4,9 @@ import { TransformWrapper, TransformComponent, useTransformEffect } from "react-
 import { useState, useEffect, useRef, Fragment } from "react";
 import MainImageRatio from "./MainImageRatio";
 
-const RatioUpdater = ({ setRatio, contentRef }: { setRatio: (r: number) => void; contentRef: React.RefObject<HTMLDivElement>; }) => {
+const RatioUpdater = ({ setRatio, contentRef, baseRatio }: { setRatio: (r: number) => void; contentRef: React.RefObject<HTMLDivElement>; baseRatio: number; }) => {
     useTransformEffect(({ state }) => {
-        setRatio(Math.round(state.scale * 100));
+        setRatio(Math.round(state.scale * baseRatio));
         if (contentRef.current) {
             contentRef.current.style.setProperty('--inverse-scale', `${1 / state.scale}`);
         }
@@ -14,23 +14,19 @@ const RatioUpdater = ({ setRatio, contentRef }: { setRatio: (r: number) => void;
     return null;
 };
 
-const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, initialScale = 1, alwaysShowRatio = false, isAdmin = false }: {
+const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, ratio: propRatio = 100, alwaysShowRatio = false, isAdmin = false }: {
     children: React.ReactNode;
     onMouseMove?: ((e: React.MouseEvent<HTMLDivElement>) => void) | null | undefined;
     onMouseUp?: (() => void) | null | undefined;
     onMouseLeave?: (() => void) | null | undefined;
     isAdmin?: boolean;
-    initialScale?: number;
+    ratio?: number;
     alwaysShowRatio?: boolean;
 }) => {
 
     const { posterCard } = styles;
-    const [ratio, setRatio] = useState(Math.round(initialScale * 100));
+    const [ratio, setRatio] = useState(propRatio);
     const contentRef = useRef<HTMLDivElement>(null!);
-
-    useEffect(() => {
-        setRatio(Math.round(initialScale * 100));
-    }, [initialScale]);
 
     return (
         <div
@@ -44,13 +40,14 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, i
                 children
             ) : (
                 <TransformWrapper
-                    initialScale={initialScale}
+                    initialScale={1}
                     minScale={0.5}
                     maxScale={5}
-                    wheel={{ activationKeys: ['Control'] }}
+                    wheel={{ step: 0.1 }}
+                    pinch={{ disabled: false }}
                 >
                     <>
-                        <RatioUpdater setRatio={setRatio} contentRef={contentRef} />
+                        <RatioUpdater setRatio={setRatio} contentRef={contentRef} baseRatio={propRatio} />
                         <TransformComponent
                             wrapperStyle={{ width: '100%', height: '100%' }}
                             contentStyle={{ width: '100%', height: '100%' }}
@@ -60,7 +57,7 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, i
                                 style={{
                                     width: '100%',
                                     height: '100%',
-                                    '--inverse-scale': 1 / (initialScale || 1)
+                                    '--inverse-scale': 1
                                 } as React.CSSProperties}
                             >
                                 {children}
@@ -69,8 +66,8 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, i
                     </>
                 </TransformWrapper>
             )}
-            {(ratio !== 100 || alwaysShowRatio) && (
-                <div style={{ position: 'absolute', bottom: '10px', right: '10px', zIndex: 10, pointerEvents: 'none' }}>
+            {alwaysShowRatio && (
+                <div style={{ position: 'absolute', bottom: '-15px', right: '0', zIndex: 10, pointerEvents: 'none' }}>
                     <MainImageRatio ratio={ratio} />
                 </div>
             )}
