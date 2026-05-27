@@ -136,7 +136,7 @@
  }
 
  .equalizerContainer {
-     height: calc(100% + 30px);
+     height: calc(100% + 160px);
      width: 100%;
      margin-right: 10%;
      box-sizing: border-box;

@@ -123,17 +123,25 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
             const sliceWidth = rect.width / bufferLength;
             let x = 0;
 
-            ctx.fillStyle = '#000000'; // 빡센 검정
-
             const cY = rect.height / 2; // 중앙선
+            const MAX_BAR = 170;        // 파형 최대 높이(px, 고정 — 캔버스 크기와 무관)
+
+            // 세로 그라데이션(파형 높이 기준): 대부분 진한 검정, 위·아래 끝 12%만 페이드
+            // → 색은 최대한 검정, 천장 하드 경계(사각형)만 제거. 캔버스가 커져도 일정.
+            const grad = ctx.createLinearGradient(0, cY - MAX_BAR / 2, 0, cY + MAX_BAR / 2);
+            grad.addColorStop(0.00, 'rgba(0,0,0,0)');   // 위 끝: 투명
+            grad.addColorStop(0.12, 'rgba(0,0,0,1)');   // 금방 진한 검정
+            grad.addColorStop(0.88, 'rgba(0,0,0,1)');   // 중앙~대부분 검정
+            grad.addColorStop(1.00, 'rgba(0,0,0,0)');   // 아래 끝: 투명
+            ctx.fillStyle = grad;
 
             for (let i = 0; i < bufferLength; i++) {
-                // 128이 0(무음). 0~255 범위.
-                // 128과의 차이(진폭)를 계산
+                // 128이 0(무음). 0~255 범위. 128과의 차이(진폭)
                 const amplitude = Math.abs(dataArray[i] - 128);
 
-                // 증폭 (강렬하게)
-                const height = (amplitude / 128) * rect.height * 1;
+                // 고정 px 스케일(퍼센트 X): 캔버스를 키워도 파형 크기는 그대로 → 여백 확보
+                // 선형(압축 X): 큰 소리는 그대로 더 크게 → "최대값에 눌리는" 느낌 제거
+                const height = (amplitude / 128) * MAX_BAR;
 
                 // 중앙에서 위아래로 뻗는 선 그리기 (대칭)
                 // x, y, w, h

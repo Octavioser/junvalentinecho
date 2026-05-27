@@ -47,7 +47,7 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId, setIsLoading }: { ar
                 </button>
             </div >
             <div style={{ display: 'flex', flex: 1, flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                <div ref={posterFrameRef} style={{ width: '85%', aspectRatio: 1 / 1 }}>
+                <div ref={posterFrameRef} style={{ width: '80%', aspectRatio: 1 / 1 }}>
                     <MainImagePosterCard isAdmin={true}>
                         {(displayPanelItem || []).map((item, index) =>
                             <ArtworkDisplayImage

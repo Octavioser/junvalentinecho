@@ -41,11 +41,13 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
     }, [groupIdList.length]);
 
     // 스크롤 이벤트
-    // 
-    // 가로 스크롤만 휠로 지원 (Shift 없이도)
+    //
+    // 가로 스크롤만 휠로 지원 (Shift 없이도) + 부드러운 관성 이징
     useEffect(() => {
         const scrollContainer = scrollRef.current;
         if (!scrollContainer) return;
+
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         // 1. 브라우저 줌 전역 차단 (Ctrl + Wheel)
         const preventZoom = (e: WheelEvent) => {
@@ -54,14 +56,37 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
             }
         };
 
+        // 관성 이징 루프 — 실제 scrollLeft를 target 쪽으로 매 프레임 12%씩 당긴다 (ease-out)
+        let target = scrollContainer.scrollLeft;
+        let raf: number | null = null;
+        const tween = () => {
+            const cur = scrollContainer.scrollLeft;
+            const diff = target - cur;
+            if (Math.abs(diff) < 0.4) { scrollContainer.scrollLeft = target; raf = null; return; }
+            scrollContainer.scrollLeft = cur + diff * 0.12; // 0.12 작을수록 더 미끄러짐
+            raf = requestAnimationFrame(tween);
+        };
+
+        // 스크롤바 드래그/네이티브 스크롤 시 target 동기화 (rAF 미실행 중일 때만)
+        const syncTarget = () => { if (raf == null) target = scrollContainer.scrollLeft; };
+        scrollContainer.addEventListener('scroll', syncTarget, { passive: true });
+
         // 2. 가로 스크롤 변환 (Ctrl 키 없을 때만) - 캡쳐 단계에서 처리하여 자식 컴포넌트(라이브러리)로 이벤트 전달 방지
         const handleScroll = (e: WheelEvent) => {
             if (!e.ctrlKey && e.deltaY !== 0) {
-                // 가로 스크롤 처리
-                if (scrollContainer) scrollContainer.scrollLeft += e.deltaY;
-
+                if (reducedMotion) {
+                    // 동작 줄이기: 기존처럼 즉시 스크롤
+                    scrollContainer.scrollLeft += e.deltaY;
+                } else {
+                    const max = scrollContainer.scrollWidth - scrollContainer.clientWidth;
+                    if (raf == null) target = scrollContainer.scrollLeft;
+                    target = Math.max(0, Math.min(max, target + e.deltaY));
+                    if (raf == null) raf = requestAnimationFrame(tween);
+                }
                 // 이벤트 전파 중단 (MainImagePosterCard가 이 이벤트를 받지 못하게 함 -> 줌 안됨)
                 e.stopPropagation();
+                // 브라우저 기본 가로 스크롤이 동시에 적용돼 이중으로 움직이는 것 방지
+                e.preventDefault();
             }
         };
 
@@ -72,6 +97,8 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
         return () => {
             window.removeEventListener('wheel', preventZoom);
             scrollContainer.removeEventListener('wheel', handleScroll, { capture: true } as any);
+            scrollContainer.removeEventListener('scroll', syncTarget);
+            if (raf) cancelAnimationFrame(raf);
         };
     }, []);
 
