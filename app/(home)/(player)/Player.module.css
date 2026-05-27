@@ -46,10 +46,9 @@
  .nextButton {
      width: 28px;
      height: 28px;
-     background: #fff;
-     border: 1px solid #999;
-     border-radius: 4px;
-     color: #333;
+     background: transparent;
+     border: none;
+     color: #1a1a1a;
  }
 
  .dropDownUp {
@@ -85,15 +84,20 @@
  .playButton {
      width: 40px;
      height: 40px;
-     border-radius: 50%;
-     background: #000;
-     border: 1px solid #555;
-     color: #fff;
+     background: transparent;
+     border: none;
+     color: #1a1a1a;
  }
 
  .buttonIcon {
-     width: 16px;
-     height: 16px;
+     width: 14px;
+     height: 14px;
+ }
+
+ /* 재생 버튼 아이콘은 좀 더 크게(주 컨트롤) */
+ .playButton svg {
+     width: 20px;
+     height: 20px;
  }
 
  /* Rotate next button 180deg */

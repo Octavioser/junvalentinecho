@@ -6,6 +6,11 @@
     box-sizing: border-box;
     padding-top: calc(var(--nav-width) * 1.6);
     width: var(--nav-width);
+    /* flex 흐름에서 빼서 투명 오버레이로 — 갤러리가 전체 폭으로 깔리고 그림이 안 잘림 */
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 5;
 }
 
 .hamburger {
@@ -84,7 +89,7 @@
     }
 
     .navContainer:has(.nav.show) {
-        background-color: white;
+        background-color: #fdfdfd;
     }
 
     .mainTitle {

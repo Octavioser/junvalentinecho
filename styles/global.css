@@ -137,7 +137,14 @@ table {
 
 body {
     font-size: 13px;
-    background-color: white;
+    /* 화이트큐브 배경을 전체 화면에 — 내비(왼쪽)까지 같은 벽/바닥 공유 */
+    background-color: #fdfdfd;
+    background-image:
+        linear-gradient(to right,
+            rgba(0, 0, 0, 0.04) 0%, transparent 7%, transparent 93%, rgba(0, 0, 0, 0.04) 100%),
+        linear-gradient(to bottom,
+            #fdfdfd 0%, #fdfdfd 62%, #f4f5f6 80%, #ebecec 100%);
+    background-attachment: fixed;
     color: black;
 }
 
@@ -217,6 +224,7 @@ li {
 }
 
 .childContainer {
-    width: calc(100% - var(--nav-width));
+    /* 전체 폭 — 내비는 투명 오버레이로 위에 떠서, 가로스크롤 그림이 내비 영역에서 안 잘림 */
+    width: 100%;
     height: 100%;
 }

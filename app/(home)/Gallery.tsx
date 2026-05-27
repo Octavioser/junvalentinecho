@@ -164,7 +164,7 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
                             <div className={posterCardExplainContainer}>
                                 {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, width, height, material }, index) =>
                                     <div key={`explain${index}`} className={posterCardExplain}>
-                                        <span style={{ whiteSpace: 'normal' }}>{title}</span>
+                                        <span style={{ whiteSpace: 'normal', fontWeight: '600', fontStyle: 'italic' }}>{title}</span>
                                         <span>{`${width} x ${height} cm`}</span>
                                         <span>{material}</span>
                                     </div>
