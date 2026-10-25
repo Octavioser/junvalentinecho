@@ -71,7 +71,7 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, w
             )}
             {alwaysShowRatio && (
                 <div style={{ position: 'absolute', bottom: '-15px', right: '0', zIndex: 10, pointerEvents: 'none' }}>
-                    <MainImageRatio label={`${Math.floor(winSize * 100 / ratio)}cm`} />
+                    <MainImageRatio label={`${Math.floor(winSize * ratio / 100)}cm`} />
                 </div>
             )}
         </div>
