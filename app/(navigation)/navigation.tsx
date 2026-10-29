@@ -35,6 +35,7 @@ const Nav = () => {
                             { href: '/', label: 'HOME' },
                             { href: 'https://soundcloud.com/junvalentinecho', label: 'SOUND', target: '_blank', rel: 'noopener noreferrer' },
                             { href: '/visual', label: 'VISUAL' },
+                            { href: '/3d', label: '3D' },
                             { href: '/info', label: 'cv/bio' },
                             { href: 'https://www.xip.red/', label: 'XIP', target: '_blank', rel: 'noopener noreferrer' }
                         ].map((item) => {
