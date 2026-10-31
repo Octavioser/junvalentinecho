@@ -8,6 +8,7 @@ import ArtworkDisplayImage from './ArtworkDisplayImage';
 import { Artwork } from "@/types";
 import { updateAllArtwork } from '@/common/comon';
 import styles from "../ArtworkPage.module.css";
+import { snackbar } from "@/components/Snackbar/Snackbar";
 
 const ArtworkDisplayPanel = ({ artworks, selectedArtworkId, setIsLoading }: { artworks: Artwork[], selectedArtworkId: string | null, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
 
@@ -33,11 +34,11 @@ const ArtworkDisplayPanel = ({ artworks, selectedArtworkId, setIsLoading }: { ar
                                 if (target) return target;
                                 return e;
                             }));
-                            alert('저장되었습니다.');
+                            snackbar.success('저장되었습니다.');
                             router.refresh(); // 페이지 새로고침
 
                         } catch {
-                            alert('저장에 실패했습니다.');
+                            snackbar.error('저장에 실패했습니다.');
                         } finally {
                             setIsLoading(false);
                         }

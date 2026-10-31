@@ -5,6 +5,7 @@ import { Artwork } from "@/types";
 import { uploadImage, addArtwork, updateArtwork } from "@/common/comon";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { snackbar } from "@/components/Snackbar/Snackbar";
 
 type FormState = {
     id: string;
@@ -73,7 +74,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
 
         // 최종 결과
         if (!file || !(isWebpExt && isWebpMime)) {
-            alert('WebP 이미지가 아닙니다!');
+            snackbar.error('WebP 이미지가 아닙니다!');
             return;
         }
 
@@ -81,7 +82,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
         const MAX_SIZE = 1 * 1024 * 1024; // 5 × 1024 × 1024 = 5,242,880 bytes
 
         if (file.size > MAX_SIZE) {
-            alert(`파일 크기는 최대 ${MAX_SIZE / 1024 / 1024}MB까지 허용됩니다.`);
+            snackbar.error(`파일 크기는 최대 ${MAX_SIZE / 1024 / 1024}MB까지 허용됩니다.`);
             // 폼 제출 막거나, state에 에러 표시 등 추가 처리
             return;
         }
@@ -105,37 +106,37 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                 !height ||
                 !overview
             ) {
-                alert('필수값이 입력되지 않았습니다.');
+                snackbar.error('필수값이 입력되지 않았습니다.');
                 return;
             }
 
             // formYear
             if (!/^\d+$/.test(String(year)) || year < 2000 || year > 2100) {
-                alert('년도를 확인해주세요.');
+                snackbar.error('년도를 확인해주세요.');
                 return;
             }
 
             // width
             if (!/^\d+(\.\d+)?$/.test(String(width)) || width < 0) {
-                alert('width는 숫자만 입력 가능하며 0보다 커야 입력 가능합니다.');
+                snackbar.error('width는 숫자만 입력 가능하며 0보다 커야 입력 가능합니다.');
                 return;
             }
 
             // height
             if (!/^\d+(\.\d+)?$/.test(String(height)) || height < 0) {
-                alert('width는 숫자만 입력 가능하며 0보다 커야 입력 가능합니다.');
+                snackbar.error('width는 숫자만 입력 가능하며 0보다 커야 입력 가능합니다.');
                 return;
             }
 
             // ID 중복 검사
             if (openDialog === 'add' && artworks.some((artwork: Artwork) => artwork.id === id)) {
-                alert('중복된 ID입니다.');
+                snackbar.error('중복된 ID입니다.');
                 return;
             }
 
             // 사진검사
             if (openDialog === 'add' && !inputFile) {
-                alert('사진을 넣어주세요.');
+                snackbar.error('사진을 넣어주세요.');
                 return;
             }
             setIsLoading(true);
@@ -192,12 +193,12 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
             }
 
             // 실제 저장 로직
-            alert('저장되었습니다.');
+            snackbar.success('저장되었습니다.');
             setOpenDialog(null);
             router.refresh(); // 페이지 새로고침
         } catch (error) {
             console.log(error);
-            alert('저장에 실패했습니다.');
+            snackbar.error('저장에 실패했습니다.');
         } finally {
             setIsLoading(false);
         }

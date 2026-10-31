@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MusicBlob } from "@/types";
 import { upload } from '@vercel/blob/client';
+import { snackbar } from "@/components/Snackbar/Snackbar";
 
 const MusicAdd = ({ musicList, setOpenDialog, setIsLoading }:
     { musicList: MusicBlob[], setOpenDialog: React.Dispatch<React.SetStateAction<"add" | "mod" | null>>, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
@@ -17,7 +18,7 @@ const MusicAdd = ({ musicList, setOpenDialog, setIsLoading }:
         if (
             musicList.some(({ title }) => title.trim() === file.name.trim())
         ) {
-            alert('동일한 제목의 음악이 존재합니다.');
+            snackbar.error('동일한 제목의 음악이 존재합니다.');
             return;
         }
 
@@ -41,7 +42,7 @@ const MusicAdd = ({ musicList, setOpenDialog, setIsLoading }:
 
 
                         if (!inputFile) {
-                            alert('파일을 먼저 선택하세요.');
+                            snackbar.error('파일을 먼저 선택하세요.');
                             return;
                         }
 
@@ -54,11 +55,11 @@ const MusicAdd = ({ musicList, setOpenDialog, setIsLoading }:
                         if (!blob?.url) throw new Error('Upload succeeded but no URL returned');
 
                         setOpenDialog(null);
-                        alert('음악이 추가되었습니다.');
+                        snackbar.success('음악이 추가되었습니다.');
                         router.refresh(); // 페이지 새로고침
                     } catch (error) {
                         console.log(error);
-                        alert('저장에 실패했습니다.');
+                        snackbar.error('저장에 실패했습니다.');
                     } finally {
                         setIsLoading(false);
                     }

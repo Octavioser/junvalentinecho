@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { delArtwork, delImage, updateAllArtwork, updateArtwork, delMusic } from "@/common/comon";
 import ShowLoading from "./loading/ShowLoading";
 import ImageStyles from "@/components/MainImage/MainImage.module.css";
+import { snackbar, SnackbarHost } from "@/components/Snackbar/Snackbar";
 
 const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: MusicBlob[]; }) => {
 
@@ -74,16 +75,16 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                         try {
                                             const poster_path = artworks.find((artwork) => artwork.id === selectedArtworkId)?.poster_path;
                                             if (!(poster_path && selectedArtworkId)) {
-                                                alert('삭제실패하였습니다.');
+                                                snackbar.error('삭제실패하였습니다.');
                                                 return;
                                             }
                                             await delImage(poster_path);
                                             await delArtwork(artworks, selectedArtworkId);
                                             setSelectedArtworkId(null);
-                                            alert('삭제되었습니다.');
+                                            snackbar.success('삭제되었습니다.');
                                             router.refresh(); // 페이지 새로고침
                                         } catch {
-                                            alert('삭제에 실패했습니다.');
+                                            snackbar.error('삭제에 실패했습니다.');
                                         } finally {
                                             setIsLoading(false);
                                         }
@@ -161,11 +162,11 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                             setIsLoading(true);
                                             try {
                                                 await updateAllArtwork(sortViewArtWorks);
-                                                alert('저장되었습니다.');
+                                                snackbar.success('저장되었습니다.');
                                                 setSortMode(false);
                                                 setSortViewArtWorks([]);
                                             } catch {
-                                                alert('저장에 실패했습니다.');
+                                                snackbar.error('저장에 실패했습니다.');
                                             } finally {
                                                 setIsLoading(false);
                                             }
@@ -190,9 +191,9 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                         return artwork;
                                                     }));
                                                     setSelectedArtworkId(null);
-                                                    alert('그룹이 삭제되었습니다.');
+                                                    snackbar.success('그룹이 삭제되었습니다.');
                                                 } catch {
-                                                    alert('저장에 실패했습니다.');
+                                                    snackbar.error('저장에 실패했습니다.');
                                                 } finally {
                                                     setIsLoading(false);
                                                 }
@@ -221,15 +222,15 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                             const targetData = artworks.find((artwork) => artwork.id === selectedArtworkId);
 
                                             if (!targetData) {
-                                                alert('이미지를 찾을 수 없습니다.');
+                                                snackbar.error('이미지를 찾을 수 없습니다.');
                                                 return;
                                             }
 
                                             await updateArtwork(artworks, { ...targetData, visualYn: '' });
                                             setSelectedArtworkId(null);
-                                            alert('비쥬얼 표시가 삭제되었습니다.');
+                                            snackbar.success('비쥬얼 표시가 삭제되었습니다.');
                                         } catch {
-                                            alert('저장에 실패했습니다.');
+                                            snackbar.error('저장에 실패했습니다.');
                                         } finally {
                                             setIsLoading(false);
                                         }
@@ -250,16 +251,16 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                         try {
                                             const targetData = musicList.find((e) => e.id === selectedArtworkId);
                                             if (!targetData) {
-                                                alert('음악을 찾을 수 없습니다.');
+                                                snackbar.error('음악을 찾을 수 없습니다.');
                                                 return;
                                             }
                                             await delMusic(targetData.pathname);
                                             setSelectedArtworkId(null);
-                                            alert('선택한 음악이 삭제되었습니다.');
+                                            snackbar.success('선택한 음악이 삭제되었습니다.');
                                             router.refresh(); // 페이지 새로고침
                                         } catch (error) {
                                             console.log(error);
-                                            alert('삭제에 실패했습니다.');
+                                            snackbar.error('삭제에 실패했습니다.');
                                         } finally {
                                             setIsLoading(false);
                                         }
@@ -316,6 +317,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
             </div >
             {openDialog && <ArtAddDialog artworks={artworks} musicList={musicList} selectedArtworkId={selectedArtworkId} setSelectedArtworkId={setSelectedArtworkId} openDialog={openDialog} setOpenDialog={setOpenDialog} tab={tab} setIsLoading={setIsLoading} />}
             {isLoading && <ShowLoading ></ShowLoading>}
+            <SnackbarHost />
         </>
     );
 };

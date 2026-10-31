@@ -4,6 +4,7 @@ import { Artwork } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
 import { updateArtwork, updateAllArtwork } from "@/common/comon";
+import { snackbar } from "@/components/Snackbar/Snackbar";
 
 const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDialog, setOpenDialog, setIsLoading }
     : {
@@ -72,14 +73,14 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                 {openDialog === 'mod' &&
                     <button onClick={async () => {
                         if (!groupWinSize || groupWinSize <= 0) {
-                            alert('전시창 크기를 양수로 입력해주세요');
+                            snackbar.error('전시창 크기를 양수로 입력해주세요');
                             return;
                         }
                         setIsLoading(true);
                         try {
                             const galleryId = artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
                             if (galleryId === undefined || galleryId === null) {
-                                alert('갤러리 ID를 찾을 수 없습니다.');
+                                snackbar.error('갤러리 ID를 찾을 수 없습니다.');
                                 setIsLoading(false);
                                 return;
                             }
@@ -94,11 +95,11 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                             setTargetID(null);
                             setOpenDialog(null);
                             setSelectedArtworkId(null);
-                            alert('해당 그룹의 전시창 크기가 변경되었습니다.');
+                            snackbar.success('해당 그룹의 전시창 크기가 변경되었습니다.');
                             router.refresh(); // 페이지 새로고침
                         } catch (error) {
                             console.log(error);
-                            alert('저장에 실패했습니다.');
+                            snackbar.error('저장에 실패했습니다.');
                         } finally {
                             setIsLoading(false);
                         }
@@ -107,12 +108,12 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                 }
                 <button onClick={async () => {
                     if (!targetID) {
-                        alert('그룹을 추가할 대상을 클릭해주세요');
+                        snackbar.error('그룹을 추가할 대상을 클릭해주세요');
                         return;
                     }
 
                     if (!groupWinSize || groupWinSize <= 0) {
-                        alert('전시창 크기를 양수로 입력해주세요');
+                        snackbar.error('전시창 크기를 양수로 입력해주세요');
                         return;
                     }
                     setIsLoading(true);
@@ -120,7 +121,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                         const targetData = artworks.find((artwork) => artwork.id === targetID);
 
                         if (!targetData) {
-                            alert('대상을 찾을 수 없습니다.');
+                            snackbar.error('대상을 찾을 수 없습니다.');
                             setIsLoading(false);
                             return;
                         }
@@ -132,7 +133,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                             artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
 
                         if (galleryId === undefined || galleryId === null) {
-                            alert('갤러리 ID를 설정할 수 없습니다.');
+                            snackbar.error('갤러리 ID를 설정할 수 없습니다.');
                             setIsLoading(false);
                             return;
                         }
@@ -141,11 +142,11 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                         setTargetID(null);
                         setOpenDialog(null);
                         setSelectedArtworkId(null);
-                        alert(openDialog === 'mod' ? '해당 그룹에 추가되었습니다.' : '새로운 그룹코드가 생성되었습니다.');
+                        snackbar.success(openDialog === 'mod' ? '해당 그룹에 추가되었습니다.' : '새로운 그룹코드가 생성되었습니다.');
                         router.refresh(); // 페이지 새로고침
                     } catch (error) {
                         console.log(error);
-                        alert('저장에 실패했습니다.');
+                        snackbar.error('저장에 실패했습니다.');
                     } finally {
                         setIsLoading(false);
                     }

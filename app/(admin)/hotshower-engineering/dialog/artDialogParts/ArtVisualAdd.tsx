@@ -4,6 +4,7 @@ import { Artwork } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
 import { updateArtwork } from "@/common/comon";
+import { snackbar } from "@/components/Snackbar/Snackbar";
 
 const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
     { artworks: Artwork[], setOpenDialog: React.Dispatch<React.SetStateAction<"add" | "mod" | null>>, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
@@ -34,17 +35,17 @@ const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
                     try {
                         const targetData = artworks.find((artwork) => artwork.id === targetID);
                         if (!targetData) {
-                            alert('이미지를 찾을 수 없습니다.');
+                            snackbar.error('이미지를 찾을 수 없습니다.');
                             return;
                         }
                         await updateArtwork(artworks, { ...targetData, visualYn: 'Y' });
                         setTargetID(null);
                         setOpenDialog(null);
-                        alert('비쥬얼 표시가 추가되었습니다.');
+                        snackbar.success('비쥬얼 표시가 추가되었습니다.');
                         router.refresh(); // 페이지 새로고침    
                     } catch (error) {
                         console.log(error);
-                        alert('저장에 실패했습니다.');
+                        snackbar.error('저장에 실패했습니다.');
                     } finally {
                         setIsLoading(false);
                     }
