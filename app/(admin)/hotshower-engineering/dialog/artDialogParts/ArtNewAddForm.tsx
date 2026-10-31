@@ -245,11 +245,11 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                         </Field>
                     </div>
                     <div className={row}>
-                        <Field label="실제 가로 (cm)" required error={errors.width}>
-                            <input className={input} type="number" step="0.01" min="0" name="width" value={formWidth} onChange={handleChange} />
-                        </Field>
                         <Field label="실제 세로 (cm)" required error={errors.height}>
                             <input className={input} type="number" step="0.01" min="0" name="height" value={formHeight} onChange={handleChange} />
+                        </Field>
+                        <Field label="실제 가로 (cm)" required error={errors.width}>
+                            <input className={input} type="number" step="0.01" min="0" name="width" value={formWidth} onChange={handleChange} />
                         </Field>
                     </div>
                     <Field label="설명" required error={errors.overview}>

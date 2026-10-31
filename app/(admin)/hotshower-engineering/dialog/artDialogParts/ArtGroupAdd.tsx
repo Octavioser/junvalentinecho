@@ -30,7 +30,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
     }, [openDialog, selectedArtworkId, artworks]);
 
     const gridData = (() => {
-        const data = artworks.map(e => ({ ...e, size: `${e.width} x ${e.height}` }));
+        const data = artworks.map(e => ({ ...e, size: `${e.height} x ${e.width}` }));
         if (openDialog === 'mod' && selectedArtworkId) {
             const target = artworks.find(({ id }) => selectedArtworkId === id);
             if (!target) return data;
@@ -55,7 +55,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                     columnList={[
                         { name: 'id', header: 'ID', type: 'string' },
                         { name: 'title', header: '제목', type: 'string' },
-                        { name: 'size', header: '사이즈(cm)', type: 'number' },
+                        { name: 'size', header: '세로 x 가로(cm)', type: 'number' },
                         { name: 'overview', header: '설명', type: 'string' }
                     ]}
                     gridData={gridData}

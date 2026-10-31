@@ -6,7 +6,7 @@ import GridComponents from "@/components/grid/GridComponents";
 const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: (id: string | null) => void; }) => {
 
 
-    const grid13Data = artworks.map(e => ({ ...e, size: `${e.width} x ${e.height}` }));
+    const grid13Data = artworks.map(e => ({ ...e, size: `${e.height} x ${e.width}` }));
 
     return (
         <div style={{ boxSizing: 'border-box', width: '100%', flex: 1, padding: 'var(--sp)' }}>
@@ -16,7 +16,7 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                         { name: 'season', header: '시즌', type: 'string' },
                         { name: 'id', header: 'ID', type: 'string' },
                         { name: 'title', header: '제목', type: 'string' },
-                        { name: 'size', header: '사이즈(cm)', type: 'number' },
+                        { name: 'size', header: '세로 x 가로(cm)', type: 'number' },
                         { name: 'overview', header: '설명', type: 'string' }
                     ]}
                     gridData={tab === '1' ? grid13Data : grid13Data.filter(({ visualYn }) => visualYn === 'Y')}

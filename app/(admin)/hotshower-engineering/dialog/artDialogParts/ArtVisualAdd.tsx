@@ -24,10 +24,10 @@ const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
                     columnList={[
                         { name: 'id', header: 'ID', type: 'string' },
                         { name: 'title', header: '제목', type: 'string' },
-                        { name: 'size', header: '사이즈(cm)', type: 'number' },
+                        { name: 'size', header: '세로 x 가로(cm)', type: 'number' },
                         { name: 'overview', header: '설명', type: 'string' }
                     ]}
-                    gridData={artworks.filter(({ visualYn }) => visualYn !== 'Y').map(e => ({ ...e, size: `${e.width} x ${e.height}` }))}
+                    gridData={artworks.filter(({ visualYn }) => visualYn !== 'Y').map(e => ({ ...e, size: `${e.height} x ${e.width}` }))}
                     selectedArtworkId={targetID}
                     setSelectedArtworkId={setTargetID}
                     emptyText="모든 그림이 이미 2D 표시에 들어가 있어요."
