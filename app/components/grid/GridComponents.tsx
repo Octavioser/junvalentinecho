@@ -1,9 +1,8 @@
 "use client";
-import React, { useState } from "react";
-import { Artwork } from "@/types";
+import React from "react";
 import styles from "./GridComponents.module.css";
 
-const GridComponents = ({ columnList, gridData, selectedArtworkId, setSelectedArtworkId }: { columnList: { header: string, name: string; type?: string; }[], gridData: Record<string, any>[], selectedArtworkId: string | null, setSelectedArtworkId: React.Dispatch<React.SetStateAction<string | null>>; }) => {
+const GridComponents = ({ columnList, gridData, selectedArtworkId, setSelectedArtworkId, emptyText = '등록된 항목이 없어요.' }: { columnList: { header: string, name: string; type?: string; }[], gridData: Record<string, any>[], selectedArtworkId: string | null, setSelectedArtworkId: (id: string | null) => void; emptyText?: string; }) => {
 
     return (
         <div className={styles.container}>
@@ -16,6 +15,11 @@ const GridComponents = ({ columnList, gridData, selectedArtworkId, setSelectedAr
                     </tr>
                 </thead>
                 <tbody>
+                    {gridData.length === 0 && (
+                        <tr>
+                            <td className={styles.empty} colSpan={columnList.length}>{emptyText}</td>
+                        </tr>
+                    )}
                     {gridData.map((data, index) => {
                         const isSelected = selectedArtworkId === data.id;
                         return (

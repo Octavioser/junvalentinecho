@@ -1,10 +1,11 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Artwork } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
 import { updateArtwork } from "@/common/comon";
 import { snackbar } from "@/components/Snackbar/Snackbar";
+import styles from "../ArtAddDialog.module.css";
 
 const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
     { artworks: Artwork[], setOpenDialog: React.Dispatch<React.SetStateAction<"add" | "mod" | null>>, setIsLoading: React.Dispatch<React.SetStateAction<boolean>>; }) => {
@@ -13,24 +14,28 @@ const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
 
 
     const router = useRouter();
-
+    const { picker, pickerHint, pickerGrid, footer, primaryButton, secondaryButton } = styles;
 
     return (
-        <div style={{ width: '99.9%', height: '95%' }}>
-            <GridComponents
-                columnList={[
-                    { name: 'id', header: 'ID', type: 'string' },
-                    { name: 'title', header: '제목', type: 'string' },
-                    { name: 'size', header: '사이즈', type: 'number' },
-                    { name: 'overview', header: '내용', type: 'string' }
-                ]}
-                gridData={artworks.filter(({ visualYn }) => visualYn !== 'Y')}
-                selectedArtworkId={targetID}
-                setSelectedArtworkId={setTargetID}
-
-            />
-            <div style={{ height: '5%', display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end' }}>
-                <button onClick={async () => {
+        <div className={picker}>
+            <div className={pickerHint}>2D 페이지에 시즌 대표로 보여줄 그림을 고르세요.</div>
+            <div className={pickerGrid}>
+                <GridComponents
+                    columnList={[
+                        { name: 'id', header: 'ID', type: 'string' },
+                        { name: 'title', header: '제목', type: 'string' },
+                        { name: 'size', header: '사이즈(cm)', type: 'number' },
+                        { name: 'overview', header: '설명', type: 'string' }
+                    ]}
+                    gridData={artworks.filter(({ visualYn }) => visualYn !== 'Y').map(e => ({ ...e, size: `${e.width} x ${e.height}` }))}
+                    selectedArtworkId={targetID}
+                    setSelectedArtworkId={setTargetID}
+                    emptyText="모든 그림이 이미 2D 표시에 들어가 있어요."
+                />
+            </div>
+            <div className={footer}>
+                <button type="button" className={secondaryButton} onClick={() => setOpenDialog(null)}>취소</button>
+                <button type="button" className={primaryButton} disabled={!targetID} onClick={async () => {
                     setIsLoading(true);
                     try {
                         const targetData = artworks.find((artwork) => artwork.id === targetID);
@@ -41,8 +46,8 @@ const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
                         await updateArtwork(artworks, { ...targetData, visualYn: 'Y' });
                         setTargetID(null);
                         setOpenDialog(null);
-                        snackbar.success('비쥬얼 표시가 추가되었습니다.');
-                        router.refresh(); // 페이지 새로고침    
+                        snackbar.success('2D 표시에 추가되었습니다.');
+                        router.refresh(); // 페이지 새로고침
                     } catch (error) {
                         console.log(error);
                         snackbar.error('저장에 실패했습니다.');

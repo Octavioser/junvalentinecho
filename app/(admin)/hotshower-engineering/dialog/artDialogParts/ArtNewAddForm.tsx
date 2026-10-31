@@ -20,6 +20,20 @@ type FormState = {
     poster_path: string;
 };
 
+type Errors = Partial<Record<keyof FormState | 'image', string>>;
+
+// 최대 허용 크기: 1 MB
+const MAX_SIZE = 1 * 1024 * 1024;
+
+// 라벨 + 입력칸 + (오류 또는 안내) 한 칸
+const Field = ({ label, required, hint, error, children }: { label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode; }) => (
+    <label className={`${styles.field} ${error ? styles.fieldError : ''}`}>
+        <div className={styles.labelText}>{label}{required && <b className={styles.requiredMark}>*</b>}</div>
+        {children}
+        {error ? <div className={styles.errorText}>{error}</div> : hint ? <div className={styles.hint}>{hint}</div> : null}
+    </label>
+);
+
 const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog, setIsLoading }:
     {
         artworks: Artwork[],
@@ -32,6 +46,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
     const router = useRouter();
 
     const [inputFile, setInputFile] = useState<File | null>(null);
+    const [errors, setErrors] = useState<Errors>({});
 
     const [form, setForm] = useState<FormState>({
         id: '',
@@ -46,7 +61,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
         poster_path: '',
     });
 
-    // 수정일경우 해당 이미지 정보 넣어주기 
+    // 수정일경우 해당 이미지 정보 넣어주기
     useEffect(() => {
 
         if (openDialog === 'mod') {
@@ -61,84 +76,55 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
+        setErrors(prev => ({ ...prev, [name]: undefined }));
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        e.target.value = ''; // 같은 파일을 다시 골라도 다시 검사
         if (!file) return;
-        // 1. 확장자 체크 (optional)
-        const isWebpExt = /\.webp$/i.test(file.name);
 
-        // 2. MIME 타입 체크
-        const isWebpMime = file.type === 'image/webp';
-
-        // 최종 결과
-        if (!file || !(isWebpExt && isWebpMime)) {
-            snackbar.error('WebP 이미지가 아닙니다!');
+        // 확장자와 MIME 타입 둘 다 WebP
+        if (!(/\.webp$/i.test(file.name) && file.type === 'image/webp')) {
+            setErrors(prev => ({ ...prev, image: 'WebP 파일만 올릴 수 있어요.' }));
             return;
         }
-
-        // 최대 허용 크기: 1 MB
-        const MAX_SIZE = 1 * 1024 * 1024; // 5 × 1024 × 1024 = 5,242,880 bytes
-
         if (file.size > MAX_SIZE) {
-            snackbar.error(`파일 크기는 최대 ${MAX_SIZE / 1024 / 1024}MB까지 허용됩니다.`);
-            // 폼 제출 막거나, state에 에러 표시 등 추가 처리
+            setErrors(prev => ({ ...prev, image: `파일이 ${MAX_SIZE / 1024 / 1024}MB보다 커요. (지금 ${(file.size / 1024 / 1024).toFixed(1)}MB)` }));
             return;
         }
 
+        setErrors(prev => ({ ...prev, image: undefined }));
         setForm(prev => ({ ...prev, poster_path: URL.createObjectURL(file) }));
         setInputFile(file);
+    };
 
+    const validate = (): Errors => {
+        const { id, season, year, title, width, height, overview } = form;
+        const next: Errors = {};
+        if (openDialog === 'add') {
+            if (!id.trim()) next.id = 'ID를 입력해주세요.';
+            else if (artworks.some((artwork: Artwork) => artwork.id === id)) next.id = '이미 있는 ID예요.';
+        }
+        if (!title.trim()) next.title = '제목을 입력해주세요.';
+        if (!season.trim()) next.season = '시즌을 입력해주세요.';
+        if (!/^\d+$/.test(String(year)) || Number(year) < 2000 || Number(year) > 2100) next.year = '2000~2100 사이 연도를 입력해주세요.';
+        if (!/^\d+(\.\d+)?$/.test(String(width)) || !(Number(width) > 0)) next.width = '0보다 큰 숫자를 입력해주세요.';
+        if (!/^\d+(\.\d+)?$/.test(String(height)) || !(Number(height) > 0)) next.height = '0보다 큰 숫자를 입력해주세요.';
+        if (!overview.trim()) next.overview = '설명을 입력해주세요.';
+        if (openDialog === 'add' && !inputFile) next.image = '이미지를 선택해주세요.';
+        return next;
     };
 
     const handleSubmit = async () => {
+        const found = validate();
+        if (Object.values(found).some(Boolean)) {
+            setErrors(found);
+            snackbar.error('입력값을 확인해주세요.');
+            return;
+        }
         try {
             const { id, season, year, title, material, location, width, height, overview, poster_path } = form;
-
-            // 모든 필드가 채워졌는지 검사
-            if (
-                !id ||
-                !season ||
-                !year ||
-                !title ||
-                !width ||
-                !height ||
-                !overview
-            ) {
-                snackbar.error('필수값이 입력되지 않았습니다.');
-                return;
-            }
-
-            // formYear
-            if (!/^\d+$/.test(String(year)) || year < 2000 || year > 2100) {
-                snackbar.error('년도를 확인해주세요.');
-                return;
-            }
-
-            // width
-            if (!/^\d+(\.\d+)?$/.test(String(width)) || width < 0) {
-                snackbar.error('width는 숫자만 입력 가능하며 0보다 커야 입력 가능합니다.');
-                return;
-            }
-
-            // height
-            if (!/^\d+(\.\d+)?$/.test(String(height)) || height < 0) {
-                snackbar.error('width는 숫자만 입력 가능하며 0보다 커야 입력 가능합니다.');
-                return;
-            }
-
-            // ID 중복 검사
-            if (openDialog === 'add' && artworks.some((artwork: Artwork) => artwork.id === id)) {
-                snackbar.error('중복된 ID입니다.');
-                return;
-            }
-
-            // 사진검사
-            if (openDialog === 'add' && !inputFile) {
-                snackbar.error('사진을 넣어주세요.');
-                return;
-            }
             setIsLoading(true);
 
             // 한국시간
@@ -154,14 +140,14 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     id, // 영화 ID
                     poster_path: url, // 이미지 경로
                     title, // 영화 제목
-                    overview, // 내용   
+                    overview, // 내용
                     season, // 시즌
-                    year,
+                    year: Number(year),
                     material, // 재료
                     location, // 위치
                     width: Number(width), // 너비 (CSS 관련 값)
                     height: Number(height), // 높이 (CSS 관련 값)
-                    insertDt: kst, // 등록일 
+                    insertDt: kst, // 등록일
                     updateDt: null, // 수정일
                     top: null, // 상단 위치 (CSS 관련 값)
                     left: null,// 왼쪽 위치 (CSS 관련 값)
@@ -181,7 +167,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     id, // 영화 ID
                     poster_path: url, // 이미지 경로
                     title, // 영화 제목
-                    overview, // 내용   
+                    overview, // 내용
                     season, // 시즌
                     year: Number(year),
                     material, // 재료
@@ -206,9 +192,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
 
     };
 
-    const { topBarWrapper, inputWrapper, formWrapper } = styles;
-
-
+    const { form: formStyle, formColumns, fields, row, input, textarea, readonly, imageColumn, preview, previewEmpty, fileButton, hint, errorText, footer, primaryButton, secondaryButton } = styles;
 
     const {
         id: formId,
@@ -224,86 +208,76 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
     } = form;
 
     return (
-        <>
-            <div className={topBarWrapper}>
-                <p>{openDialog === 'mod' ? '[변경]' : '[추가]'}</p>
-            </div>
-            <div className={inputWrapper}>
-                <div style={{ width: '60%' }}>
-                    <form className={formWrapper}
-                        onSubmit={async (e) => {
-                            e.preventDefault(); // 새로고침 막기
-                            await handleSubmit();
-                        }}
-                    >
-                        {openDialog === 'add' && <label>
-                            ID(고유 식별번호(url에 표시됨)):
-                            <input style={{ width: '50%' }} type="text" name="id" value={formId} onChange={handleChange} required />
-                        </label>
+        <form className={formStyle}
+            noValidate
+            onSubmit={async (e) => {
+                e.preventDefault(); // 새로고침 막기
+                await handleSubmit();
+            }}
+        >
+            <div className={formColumns}>
+                <div className={fields}>
+                    {openDialog === 'add'
+                        ? <Field label="ID" required hint="주소에 쓰여요. 저장한 뒤에는 바꿀 수 없어요." error={errors.id}>
+                            <input className={input} type="text" name="id" value={formId} onChange={handleChange} />
+                        </Field>
+                        : <Field label="ID" hint="ID는 바꿀 수 없어요.">
+                            <div className={readonly}>{formId}</div>
+                        </Field>
+                    }
+                    <Field label="제목" required error={errors.title}>
+                        <input className={input} type="text" name="title" value={formTitle} onChange={handleChange} />
+                    </Field>
+                    <div className={row}>
+                        <Field label="시즌" required error={errors.season}>
+                            <input className={input} type="text" name="season" value={formSeason} onChange={handleChange} />
+                        </Field>
+                        <Field label="연도" required error={errors.year}>
+                            <input className={input} type="number" inputMode="numeric" name="year" value={formYear} onChange={handleChange} placeholder="2026" />
+                        </Field>
+                    </div>
+                    <div className={row}>
+                        <Field label="재료" hint="예: oil on linen">
+                            <input className={input} type="text" name="material" value={fomMaterial} onChange={handleChange} />
+                        </Field>
+                        <Field label="위치">
+                            <input className={input} type="text" name="location" value={fomLocation} onChange={handleChange} />
+                        </Field>
+                    </div>
+                    <div className={row}>
+                        <Field label="실제 가로 (cm)" required error={errors.width}>
+                            <input className={input} type="number" step="0.01" min="0" name="width" value={formWidth} onChange={handleChange} />
+                        </Field>
+                        <Field label="실제 세로 (cm)" required error={errors.height}>
+                            <input className={input} type="number" step="0.01" min="0" name="height" value={formHeight} onChange={handleChange} />
+                        </Field>
+                    </div>
+                    <Field label="설명" required error={errors.overview}>
+                        <textarea className={textarea} name="overview" rows={4} value={formOverview} onChange={handleChange} />
+                    </Field>
+                </div>
+                <div className={imageColumn}>
+                    <div className={preview}>
+                        {formPoster_path
+                            ? <Image src={formPoster_path} alt="미리보기" fill sizes="40vw" style={{ objectFit: 'contain', padding: 16, boxSizing: 'border-box' }} />
+                            : <div className={previewEmpty}>이미지를 선택하면 여기에 보여요</div>
                         }
-                        <label>
-                            제목:
-                            <input style={{ width: '50%' }} type="text" name="title" value={formTitle} onChange={handleChange} required />
-                        </label>
-                        <label>
-                            시즌:
-                            <input style={{ width: '50%' }} type="text" name="season" value={formSeason} onChange={handleChange} required />
-                        </label>
-                        <label>
-                            년도:
-                            <input style={{ width: '50%' }} type="text" name="year" value={formYear} onChange={handleChange} required />
-                        </label>
-                        <label>
-                            재료:
-                            <input style={{ width: '50%' }} type="text" name="material" value={fomMaterial} onChange={handleChange} />
-                        </label>
-                        <label>
-                            위치:
-                            <input style={{ width: '50%' }} type="text" name="location" value={fomLocation} onChange={handleChange} />
-                        </label>
-                        <label>
-                            실제 가로(cm)width:
-                            <input style={{ width: '20%' }} type="number" step="0.01" name="width" value={formWidth} onChange={handleChange} required />
-                        </label>
-
-                        <label>
-                            실제 세로(cm)height:
-                            <input style={{ width: '20%' }} type="number" step="0.01" name="height" value={formHeight} onChange={handleChange} required />
-                        </label>
-
-                        <label>Overview: </label>
-
-                        <label>
-                            <textarea
-                                style={{ width: '60%', fontSize: '0.7rem' }}
-                                name="overview"
-                                rows={4}
-                                value={formOverview}
-                                onChange={handleChange}
-                            />
-                        </label>
-
-                        <label>
-                            이미지 첨부:
-                            <input type="file" accept="image/*" onChange={handleImageChange} />
-                        </label>
-                        <button type="submit" style={{ marginTop: '1rem', width: '50%' }}>
-                            저장
-                        </button>
-                    </form>
-                </div>
-                <div style={{ width: '30%', display: 'flex', justifyContent: 'center', alignItems: 'center', borderLeft: '1px solid #ccc', position: 'relative', minHeight: '200px' }}>
-                    {formPoster_path && (
-                        <Image
-                            src={formPoster_path}
-                            alt="미리보기"
-                            fill
-                            style={{ objectFit: 'contain' }}
-                        />
-                    )}
+                    </div>
+                    <label className={fileButton}>
+                        {formPoster_path ? '이미지 바꾸기' : '이미지 선택'}
+                        <input type="file" accept="image/webp,.webp" onChange={handleImageChange} />
+                    </label>
+                    {errors.image
+                        ? <div className={errorText}>{errors.image}</div>
+                        : <div className={hint}>WebP 파일, 최대 {MAX_SIZE / 1024 / 1024}MB{openDialog === 'add' ? ' (필수)' : ''}</div>
+                    }
                 </div>
             </div>
-        </>
+            <div className={footer}>
+                <button type="button" className={secondaryButton} onClick={() => setOpenDialog(null)}>취소</button>
+                <button type="submit" className={primaryButton}>저장</button>
+            </div>
+        </form>
     );
 };
 export default ArtNewAddForm;

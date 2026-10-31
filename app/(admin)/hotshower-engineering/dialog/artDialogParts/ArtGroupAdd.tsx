@@ -1,10 +1,11 @@
 "use client";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Artwork } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
 import { updateArtwork, updateAllArtwork } from "@/common/comon";
 import { snackbar } from "@/components/Snackbar/Snackbar";
+import styles from "../ArtAddDialog.module.css";
 
 const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDialog, setOpenDialog, setIsLoading }
     : {
@@ -19,8 +20,9 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
     const [targetID, setTargetID] = useState<string | null>(null);
 
     const [groupWinSize, setGroupWinSize] = useState<number | null>(1000);
+    const [error, setError] = useState<string | null>(null);
 
-    // 기존 추가시 배율/크기 가져오기 
+    // 기존 추가시 배율/크기 가져오기
     useEffect(() => {
         if (openDialog === 'mod' && selectedArtworkId) {
             setGroupWinSize(artworks.find(({ id }) => selectedArtworkId === id)?.groupWinSize ?? 1000);
@@ -37,43 +39,50 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
         return data;
     })();
 
+    const validSize = !!groupWinSize && groupWinSize > 0;
+
     const router = useRouter();
-    return <Fragment>
-        <div style={{ width: '100%', height: '90%' }}>
-            <GridComponents
-                columnList={[
-                    { name: 'id', header: 'ID', type: 'string' },
-                    { name: 'title', header: '제목', type: 'string' },
-                    { name: 'size', header: '사이즈', type: 'number' },
-                    { name: 'overview', header: '내용', type: 'string' }
-                ]}
-                gridData={gridData}
-                selectedArtworkId={targetID}
-                setSelectedArtworkId={setTargetID}
-            />
-        </div>
-        <div style={{ height: '10%', display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-            <div style={{ height: '50%', width: '100%' }}>
-                <label>
-                    {'전시창 크기: '}
+    const { picker, pickerHint, pickerGrid, footer, inlineField, input, errorText, primaryButton, secondaryButton } = styles;
+    return (
+        <div className={picker}>
+            <div className={pickerHint}>
+                {openDialog === 'add'
+                    ? '새 그룹에 넣을 그림을 고르고 전시창 크기를 정하세요.'
+                    : '이 그룹에 넣을 그림을 고르거나, 전시창 크기만 바꿀 수 있어요.'}
+            </div>
+            <div className={pickerGrid}>
+                <GridComponents
+                    columnList={[
+                        { name: 'id', header: 'ID', type: 'string' },
+                        { name: 'title', header: '제목', type: 'string' },
+                        { name: 'size', header: '사이즈(cm)', type: 'number' },
+                        { name: 'overview', header: '설명', type: 'string' }
+                    ]}
+                    gridData={gridData}
+                    selectedArtworkId={targetID}
+                    setSelectedArtworkId={(id) => { setTargetID(id); setError(null); }}
+                    emptyText="넣을 수 있는 그림이 없어요."
+                />
+            </div>
+            <div className={footer}>
+                <label className={inlineField}>
+                    전시창 크기
                     <input
-                        style={{ width: '10%' }}
+                        className={input}
                         type="number"
+                        min="1"
                         name="groupWinSize"
                         value={groupWinSize ?? ''}
-                        onChange={(e) =>
-                            setGroupWinSize(Number(e.target.value))
-                        }
-                        required
+                        onChange={(e) => { setGroupWinSize(Number(e.target.value)); setError(null); }}
                     />
-                    {' cm'}
+                    cm
                 </label>
-            </div>
-            <div style={{ height: '50%', display: 'flex', justifyContent: 'flex-end' }}>
+                {error && <div className={errorText}>{error}</div>}
+                <button type="button" className={secondaryButton} onClick={() => setOpenDialog(null)}>취소</button>
                 {openDialog === 'mod' &&
-                    <button onClick={async () => {
-                        if (!groupWinSize || groupWinSize <= 0) {
-                            snackbar.error('전시창 크기를 양수로 입력해주세요');
+                    <button type="button" className={secondaryButton} onClick={async () => {
+                        if (!validSize) {
+                            setError('전시창 크기를 0보다 큰 숫자로 입력해주세요.');
                             return;
                         }
                         setIsLoading(true);
@@ -104,16 +113,16 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                             setIsLoading(false);
                         }
 
-                    }}>크기 저장</button>
+                    }}>크기만 저장</button>
                 }
-                <button onClick={async () => {
+                <button type="button" className={primaryButton} onClick={async () => {
                     if (!targetID) {
-                        snackbar.error('그룹을 추가할 대상을 클릭해주세요');
+                        setError('그룹에 넣을 그림을 목록에서 골라주세요.');
                         return;
                     }
 
-                    if (!groupWinSize || groupWinSize <= 0) {
-                        snackbar.error('전시창 크기를 양수로 입력해주세요');
+                    if (!validSize) {
+                        setError('전시창 크기를 0보다 큰 숫자로 입력해주세요.');
                         return;
                     }
                     setIsLoading(true);
@@ -129,7 +138,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                         const galleryId = openDialog === 'add' ?
                             // 그룹추가
                             artworks.reduce((acc, curr) => Math.max(acc, curr.galleryId ?? 0), 0) + 1
-                            : // 기존그룹에 추가 
+                            : // 기존그룹에 추가
                             artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
 
                         if (galleryId === undefined || galleryId === null) {
@@ -142,7 +151,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                         setTargetID(null);
                         setOpenDialog(null);
                         setSelectedArtworkId(null);
-                        snackbar.success(openDialog === 'mod' ? '해당 그룹에 추가되었습니다.' : '새로운 그룹코드가 생성되었습니다.');
+                        snackbar.success(openDialog === 'mod' ? '해당 그룹에 추가되었습니다.' : '새로운 그룹이 만들어졌습니다.');
                         router.refresh(); // 페이지 새로고침
                     } catch (error) {
                         console.log(error);
@@ -150,10 +159,10 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                     } finally {
                         setIsLoading(false);
                     }
-                }}>추가</button>
+                }}>{openDialog === 'mod' ? '그룹에 추가' : '그룹 만들기'}</button>
             </div>
         </div>
-    </Fragment>;
+    );
 
 };
 export default ArtGroupAdd;

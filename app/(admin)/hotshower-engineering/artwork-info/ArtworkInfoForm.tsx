@@ -3,7 +3,7 @@ import React from "react";
 import { Artwork, MusicBlob } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 
-const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: React.Dispatch<React.SetStateAction<string | null>>; }) => {
+const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: (id: string | null) => void; }) => {
 
 
     const grid13Data = artworks.map(e => ({ ...e, size: `${e.width} x ${e.height}` }));
@@ -16,19 +16,20 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                         { name: 'season', header: '시즌', type: 'string' },
                         { name: 'id', header: 'ID', type: 'string' },
                         { name: 'title', header: '제목', type: 'string' },
-                        { name: 'size', header: '사이즈', type: 'number' },
-                        { name: 'overview', header: '내용', type: 'string' }
+                        { name: 'size', header: '사이즈(cm)', type: 'number' },
+                        { name: 'overview', header: '설명', type: 'string' }
                     ]}
                     gridData={tab === '1' ? grid13Data : grid13Data.filter(({ visualYn }) => visualYn === 'Y')}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
+                    emptyText={tab === '1' ? '등록된 그림이 없어요. 추가 버튼으로 올려주세요.' : '2D 표시에 넣은 그림이 없어요.'}
                 />
             }
             {tab === '2' &&
                 <GridComponents
                     columnList={[
                         { name: 'id', header: 'ID', type: 'string' },
-                        { name: 'galleryId', header: '갤러리그룹', type: 'string' },
+                        { name: 'galleryId', header: '그룹', type: 'string' },
                         { name: 'title', header: '제목', type: 'string' },
                         { name: 'groupWinSize', header: '전시창 크기(cm)', type: 'string' },
                     ]}
@@ -42,17 +43,19 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                     }, []).sort((a, b) => (a.galleryId ?? 0) - (b.galleryId ?? 0))}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
+                    emptyText="메인 전시장에 올린 그룹이 없어요."
                 />
             }
             {tab === '4' &&
                 <GridComponents
                     columnList={[
                         { name: 'title', header: '제목', type: 'string' },
-                        { name: 'uploadedAt', header: '파일업로드', type: 'string' },
+                        { name: 'uploadedAt', header: '올린 날짜', type: 'string' },
                     ]}
                     gridData={musicList}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
+                    emptyText="등록된 음악이 없어요."
                 />
             }
         </div>

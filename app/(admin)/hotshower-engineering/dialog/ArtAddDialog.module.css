@@ -1,58 +1,321 @@
+/* 관리자 추가·수정 창 (페이지와 같은 Inter·라운드·그림자 스타일) */
+.overlayStyle {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.35);
+    z-index: 999;
+}
+
 .dialogStyle {
-    /* 팝업으로 많이 이용 */
-    position: absolute;
-    width: 80%;
-    height: 60%;
+    position: fixed;
     left: 50%;
-    /* 왼쪽에서 중앙 */
     top: 50%;
-    /* 위에서 중앙*/
     transform: translate(-50%, -50%);
-    /*(left, top) 요소사이즈만큼 반대로 이동 */
-
-    background-color: white;
-    overflow-y: auto;
-
+    width: min(960px, 92vw);
+    height: min(720px, 88vh);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    border-radius: 20px;
+    background-color: #ffffff;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.18);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1d1d1f;
+    overflow: hidden;
     z-index: 1000;
 }
 
-.topBarWrapper {
-    width: 100%;
-    height: 6%;
-    font-weight: 600;
+/* 전역 input:invalid(분홍 배경) 대신 아래 오류 표시를 씀 */
+.dialogStyle input:invalid {
+    background-color: #ffffff;
+}
+
+.header {
     display: flex;
-    justify-content: center;
     align-items: center;
-    border-bottom: 1px solid #ccc;
+    justify-content: space-between;
+    height: 60px;
+    padding: 0 20px 0 32px;
+    border-bottom: 1px solid #F5F5F7;
+    flex-shrink: 0;
 }
 
-.inputWrapper {
-    width: 100%;
-    height: 90%;
-    display: flex;
+.title {
+    font-size: 17px;
+    font-weight: 600;
 }
 
-.formWrapper {
-    width: 100%;
-    padding: var(--sp);
+.closeButton {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #86868b;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.closeButton:hover {
+    background-color: #F5F5F7;
+    color: #1d1d1f;
+}
+
+.body {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    box-sizing: border-box;
-    justify-content: center;
+    flex: 1;
+    min-height: 0;
 }
 
-.formWrapper>label {
+/* 그림 추가·수정 폼 */
+.form {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
 }
 
-.overlayStyle {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.4);
-    z-index: 999
+.formColumns {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    gap: 32px;
+    padding: 24px 32px;
+    overflow-y: auto;
+}
+
+.fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1.4;
+    min-width: 0;
+}
+
+.row {
+    display: flex;
+    gap: 16px;
+}
+
+.row>* {
+    flex: 1;
+    min-width: 0;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.labelText {
+    font-size: 12px;
+    font-weight: 600;
+    color: #6e6e73;
+}
+
+.requiredMark {
+    margin-left: 3px;
+    color: #ff3b30;
+    font-weight: 600;
+}
+
+.input,
+.textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #E5E5EA;
+    border-radius: 10px;
+    background-color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    color: #1d1d1f;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 96px;
+    line-height: 1.5;
+}
+
+.input:focus,
+.textarea:focus {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+}
+
+.fieldError .input,
+.fieldError .textarea {
+    border-color: #ff3b30;
+}
+
+.readonly {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background-color: #F5F5F7;
+    font-size: 14px;
+    color: #6e6e73;
+}
+
+.errorText {
+    font-size: 12px;
+    color: #ff3b30;
+}
+
+.hint {
+    font-size: 12px;
+    color: #86868b;
+}
+
+/* 이미지 미리보기·선택 */
+.imageColumn {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.preview {
+    position: relative;
+    flex: 1;
+    min-height: 240px;
+    border-radius: 14px;
+    background-color: #FAFAFA;
+    border: 1px dashed #E5E5EA;
+    overflow: hidden;
+}
+
+.previewEmpty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #86868b;
+    font-size: 13px;
+}
+
+.fileButton {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    padding: 8px 16px;
+    border: 1px solid #E5E5EA;
+    border-radius: 12px;
+    background-color: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.fileButton:hover {
+    background-color: #FAFAFA;
+}
+
+.fileButton input {
+    display: none;
+}
+
+/* 목록에서 고르는 창 (그룹·2D 표시) */
+.picker {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.pickerHint {
+    padding: 16px 32px 0;
+    font-size: 13px;
+    color: #6e6e73;
+}
+
+.pickerGrid {
+    flex: 1;
+    min-height: 0;
+    padding: 8px 16px;
+}
+
+.inlineField {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-right: auto;
+}
+
+.inlineField .input {
+    width: 110px;
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 32px;
+    border-top: 1px solid #F5F5F7;
+    flex-shrink: 0;
+}
+
+.footer .errorText {
+    margin-right: auto;
+}
+
+.primaryButton,
+.secondaryButton {
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+
+.primaryButton {
+    border: none;
+    background-color: #1d1d1f;
+    color: #ffffff;
+}
+
+.secondaryButton {
+    border: 1px solid #E5E5EA;
+    background-color: #ffffff;
+    color: #1d1d1f;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.closeButton:focus-visible {
+    outline: 2px solid #0071e3;
+    outline-offset: 2px;
+}
+
+/* 음악 추가 */
+.musicPicker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex: 1;
+    padding: 32px;
+    text-align: center;
+}
+
+.musicFileName {
+    font-size: 14px;
+    font-weight: 500;
 }

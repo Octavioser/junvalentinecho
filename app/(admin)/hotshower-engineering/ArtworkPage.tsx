@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ArtworkDisplayPanel from './artwork-display/ArtworkDisplayPanel';
 import ArtworkInfoForm from './artwork-info/ArtworkInfoForm';
 import { Artwork, MusicBlob } from "@/types";
@@ -12,6 +12,16 @@ import { delArtwork, delImage, updateAllArtwork, updateArtwork, delMusic } from 
 import ShowLoading from "./loading/ShowLoading";
 import ImageStyles from "@/components/MainImage/MainImage.module.css";
 import { snackbar, SnackbarHost } from "@/components/Snackbar/Snackbar";
+import { confirmDialog, ConfirmHost } from "@/components/Confirm/ConfirmDialog";
+
+const TABS = [
+    { header: '이미지 전체', value: '1' },
+    { header: '메인 전시장', value: '2' },
+    { header: '2D 표시 (시즌별 대표)', value: '3' },
+    { header: '음악', value: '4' }
+];
+
+const PANEL_TITLE: Record<string, string> = { '1': '이미지 미리보기', '2': '전시창 배치', '3': '이미지 미리보기', '4': '음악 듣기' };
 
 const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: MusicBlob[]; }) => {
 
@@ -24,7 +34,42 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    const [preview, setPreview] = useState<{ src: string; ratio: number } | null>(null); // 미리보기 그림의 가로/세로 비율 (어느 그림 것인지 같이 기억)
+
+    // 메인 전시장 탭에서 그림 위치를 옮기고 아직 저장하지 않은 상태
+    const unsavedPositions = useRef(false);
+
     const router = useRouter();
+
+    // 위치를 저장하지 않고 새로고침·창 닫기를 하면 브라우저가 한 번 물어봄
+    useEffect(() => {
+        const warn = (e: BeforeUnloadEvent) => {
+            if (!unsavedPositions.current) return;
+            e.preventDefault();
+            e.returnValue = '';
+        };
+        window.addEventListener('beforeunload', warn);
+        return () => window.removeEventListener('beforeunload', warn);
+    }, []);
+
+    // 저장하지 않은 위치 변경이 있으면 버리고 넘어갈지 먼저 물어봄
+    const leaveUnsavedPositions = async () => {
+        if (!unsavedPositions.current) return true;
+        const ok = await confirmDialog('저장하지 않은 이미지 위치 변경이 있어요.\n저장하지 않고 넘어갈까요?', { confirmLabel: '저장 안 하고 넘어가기' });
+        if (ok) unsavedPositions.current = false;
+        return ok;
+    };
+
+    const selectArtwork = async (id: string | null) => {
+        if (id === selectedArtworkId || !(await leaveUnsavedPositions())) return;
+        setSelectedArtworkId(id);
+    };
+
+    const selectedArtwork = artworks.find((artwork) => artwork.id === selectedArtworkId);
+    // 비율은 그림을 다 받아야 알 수 있음. 그 전에는 이전 그림 비율로 크기가 잡혀 크게 보였다가 줄어드므로 비율을 알 때까지 숨김
+    const previewRatio = preview && preview.src === selectedArtwork?.poster_path ? preview.ratio : null;
+    const selectedMusic = musicList.find((music) => music.id === selectedArtworkId);
+
     const {
         pageWrapper,
         leftPanel,
@@ -35,8 +80,8 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
         active,
         rightPanel,
         imagePreview,
-        previewImage,
-        headerPanel
+        headerPanel,
+        emptyHint
     } = styles;
     return (
         <>
@@ -44,16 +89,12 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                 <div className={leftPanel}>
                     <div className={headerPanel}>이미지 관리</div>
                     <div className={tabBar}>
-                        {[
-                            { header: '이미지전체', value: '1' },
-                            { header: '메인전시장표시', value: '2' },
-                            { header: '비쥬얼표시(시즌별 대표)', value: '3' },
-                            { header: '음악', value: '4' }
-                        ].map(({ header, value }, index) => (
+                        {TABS.map(({ header, value }, index) => (
                             <div
                                 key={`artworkBtn${index}`}
                                 className={`${tabButton} ${tab === value ? active : ''}`}
-                                onClick={() => {
+                                onClick={async () => {
+                                    if (value === tab || !(await leaveUnsavedPositions())) return;
                                     setTab(value);
                                     setSelectedArtworkId(null);
                                 }}
@@ -71,15 +112,13 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                 <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>수정</button>
                                 <button className={addButton} disabled={!selectedArtworkId}
                                     onClick={async () => {
+                                        if (!selectedArtwork) return;
+                                        const ok = await confirmDialog(`'${selectedArtwork.title}' 그림을 삭제할까요?\n이미지 파일도 함께 지워지고 되돌릴 수 없어요.`, { confirmLabel: '삭제', danger: true });
+                                        if (!ok) return;
                                         setIsLoading(true);
                                         try {
-                                            const poster_path = artworks.find((artwork) => artwork.id === selectedArtworkId)?.poster_path;
-                                            if (!(poster_path && selectedArtworkId)) {
-                                                snackbar.error('삭제실패하였습니다.');
-                                                return;
-                                            }
-                                            await delImage(poster_path);
-                                            await delArtwork(artworks, selectedArtworkId);
+                                            await delImage(selectedArtwork.poster_path);
+                                            await delArtwork(artworks, selectedArtwork.id);
                                             setSelectedArtworkId(null);
                                             snackbar.success('삭제되었습니다.');
                                             router.refresh(); // 페이지 새로고침
@@ -165,6 +204,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                 snackbar.success('저장되었습니다.');
                                                 setSortMode(false);
                                                 setSortViewArtWorks([]);
+                                                router.refresh(); // 페이지 새로고침
                                             } catch {
                                                 snackbar.error('저장에 실패했습니다.');
                                             } finally {
@@ -176,22 +216,26 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                     </>
                                     :
                                     <>
-                                        <button className={addButton} onClick={() => { setOpenDialog('add'); }}>그룹새로채번</button>
-                                        <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>기존그룹추가 및 크기저장</button>
+                                        <button className={addButton} onClick={() => { setOpenDialog('add'); }}>새 그룹 만들기</button>
+                                        <button className={addButton} disabled={!selectedArtworkId} onClick={() => { setOpenDialog('mod'); }}>그룹에 추가 · 크기 변경</button>
                                         <button className={addButton}
                                             disabled={!selectedArtworkId}
                                             onClick={async () => {
+                                                const ok = await confirmDialog('선택한 그룹을 메인 전시장에서 뺄까요?\n그림 자체는 지워지지 않아요.', { confirmLabel: '그룹 삭제', danger: true });
+                                                if (!ok) return;
                                                 setIsLoading(true);
                                                 try {
-                                                    const targetgalleryId = artworks.find((artwork) => artwork.id === selectedArtworkId)?.galleryId;
+                                                    const targetgalleryId = selectedArtwork?.galleryId;
                                                     await updateAllArtwork(artworks.map((artwork) => {
                                                         if (artwork.galleryId === targetgalleryId) {
                                                             return { ...artwork, galleryId: null };
                                                         }
                                                         return artwork;
                                                     }));
+                                                    unsavedPositions.current = false;
                                                     setSelectedArtworkId(null);
                                                     snackbar.success('그룹이 삭제되었습니다.');
+                                                    router.refresh(); // 페이지 새로고침
                                                 } catch {
                                                     snackbar.error('저장에 실패했습니다.');
                                                 } finally {
@@ -199,13 +243,14 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                 }
 
                                             }}>
-                                            그룹삭제
+                                            그룹 삭제
                                         </button>
-                                        <button className={addButton} onClick={() => {
+                                        <button className={addButton} onClick={async () => {
+                                            if (!(await leaveUnsavedPositions())) return;
                                             setSortMode(true);
                                             setSortViewArtWorks(artworks);
                                         }}>
-                                            그룹순서
+                                            그룹 순서 변경
                                         </button>
                                     </>
                                 }
@@ -217,18 +262,18 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                 <button className={addButton}
                                     disabled={!selectedArtworkId}
                                     onClick={async () => {
+                                        if (!selectedArtwork) {
+                                            snackbar.error('이미지를 찾을 수 없습니다.');
+                                            return;
+                                        }
+                                        const ok = await confirmDialog(`'${selectedArtwork.title}'을(를) 2D 표시에서 뺄까요?\n그림 자체는 지워지지 않아요.`, { confirmLabel: '빼기', danger: true });
+                                        if (!ok) return;
                                         setIsLoading(true);
                                         try {
-                                            const targetData = artworks.find((artwork) => artwork.id === selectedArtworkId);
-
-                                            if (!targetData) {
-                                                snackbar.error('이미지를 찾을 수 없습니다.');
-                                                return;
-                                            }
-
-                                            await updateArtwork(artworks, { ...targetData, visualYn: '' });
+                                            await updateArtwork(artworks, { ...selectedArtwork, visualYn: '' });
                                             setSelectedArtworkId(null);
-                                            snackbar.success('비쥬얼 표시가 삭제되었습니다.');
+                                            snackbar.success('2D 표시에서 삭제되었습니다.');
+                                            router.refresh(); // 페이지 새로고침
                                         } catch {
                                             snackbar.error('저장에 실패했습니다.');
                                         } finally {
@@ -247,14 +292,15 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                 <button className={addButton}
                                     disabled={!selectedArtworkId}
                                     onClick={async () => {
+                                        if (!selectedMusic) {
+                                            snackbar.error('음악을 찾을 수 없습니다.');
+                                            return;
+                                        }
+                                        const ok = await confirmDialog(`'${selectedMusic.title}' 음악을 삭제할까요?\n되돌릴 수 없어요.`, { confirmLabel: '삭제', danger: true });
+                                        if (!ok) return;
                                         setIsLoading(true);
                                         try {
-                                            const targetData = musicList.find((e) => e.id === selectedArtworkId);
-                                            if (!targetData) {
-                                                snackbar.error('음악을 찾을 수 없습니다.');
-                                                return;
-                                            }
-                                            await delMusic(targetData.pathname);
+                                            await delMusic(selectedMusic.pathname);
                                             setSelectedArtworkId(null);
                                             snackbar.success('선택한 음악이 삭제되었습니다.');
                                             router.refresh(); // 페이지 새로고침
@@ -277,46 +323,68 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                         artworks={sortMode ? sortViewArtWorks : artworks}
                         musicList={musicList}
                         selectedArtworkId={selectedArtworkId}
-                        setSelectedArtworkId={setSelectedArtworkId}
+                        setSelectedArtworkId={selectArtwork}
                     />
                 </div>
 
 
                 <div className={rightPanel}>
-                    <div className={headerPanel}>이미지 미리보기</div>
-                    {['1', '3'].includes(tab) && selectedArtworkId && (() => {
-                        const targetData = artworks.find((artwork) => artwork.id === selectedArtworkId) || { poster_path: '', title: '' };
-                        const { poster_path, title } = targetData;
-                        return (
-                            <div className={imagePreview}>
-                                <div style={{ width: '80%', height: '80%', position: 'relative' }}>
-                                    <MainImagePosterCard isAdmin={true}>
+                    <div className={headerPanel}>{PANEL_TITLE[tab]}</div>
+                    {['1', '3'].includes(tab) && (selectedArtwork ? (
+                        <div className={imagePreview}>
+                            <div style={{ width: '80%', height: '80%', position: 'relative' }}>
+                                <MainImagePosterCard isAdmin={true}>
+                                    {/* 카드 크기 기준으로 맞춰서 세로로 긴 그림도 카드 밖으로 나가지 않게 (너비 50%, 높이 80% 안) */}
+                                    <div style={{ position: 'absolute', inset: 0, containerType: 'size', '--ratio': previewRatio ?? 1 } as React.CSSProperties}>
                                         <Image
+                                            key={selectedArtwork.poster_path}
                                             width={0}
                                             height={0}
                                             sizes="50vw"
                                             className={ImageStyles.metalFrame}
-                                            src={poster_path}
-                                            alt={title}
+                                            src={selectedArtwork.poster_path}
+                                            alt={selectedArtwork.title}
+                                            onLoad={(e) => setPreview({ src: selectedArtwork.poster_path, ratio: e.currentTarget.naturalWidth / e.currentTarget.naturalHeight })}
                                             style={{
                                                 top: '50%',
                                                 left: '50%',
                                                 transform: 'translate(-50%, -50%)',
-                                                width: '50%', // Default width for preview
+                                                width: 'min(50cqw, calc(80cqh * var(--ratio)))',
                                                 height: 'auto',
-                                                position: 'absolute'
+                                                position: 'absolute',
+                                                visibility: previewRatio ? 'visible' : 'hidden'
                                             }}
                                         />
-                                    </MainImagePosterCard>
-                                </div>
+                                    </div>
+                                </MainImagePosterCard>
                             </div>
-                        );
-                    })()}
-                    {tab === '2' && <ArtworkDisplayPanel artworks={artworks} selectedArtworkId={selectedArtworkId} setIsLoading={setIsLoading} />}
+                        </div>
+                    ) : (
+                        <div className={emptyHint}>왼쪽 목록에서 그림을 선택하면 미리보기가 나와요.</div>
+                    ))}
+                    {tab === '2' && (selectedArtworkId ? (
+                        <ArtworkDisplayPanel
+                            artworks={artworks}
+                            selectedArtworkId={selectedArtworkId}
+                            setIsLoading={setIsLoading}
+                            onDirtyChange={(dirty) => { unsavedPositions.current = dirty; }}
+                        />
+                    ) : (
+                        <div className={emptyHint}>왼쪽 목록에서 그룹을 선택하면 전시창 배치를 보고 그림 위치를 옮길 수 있어요.</div>
+                    ))}
+                    {tab === '4' && (selectedMusic ? (
+                        <div className={emptyHint}>
+                            <div className={styles.musicTitle}>{selectedMusic.title}</div>
+                            <audio key={selectedMusic.url} src={selectedMusic.url} controls />
+                        </div>
+                    ) : (
+                        <div className={emptyHint}>{musicList.length ? '왼쪽 목록에서 음악을 선택하면 들어볼 수 있어요.' : '등록된 음악이 없어요. 추가 버튼으로 올려주세요.'}</div>
+                    ))}
                 </div>
             </div >
             {openDialog && <ArtAddDialog artworks={artworks} musicList={musicList} selectedArtworkId={selectedArtworkId} setSelectedArtworkId={setSelectedArtworkId} openDialog={openDialog} setOpenDialog={setOpenDialog} tab={tab} setIsLoading={setIsLoading} />}
             {isLoading && <ShowLoading ></ShowLoading>}
+            <ConfirmHost />
             <SnackbarHost />
         </>
     );

@@ -132,6 +132,49 @@
     box-sizing: border-box;
 }
 
+.unsavedNote {
+    margin-right: auto;
+    color: #ff9500;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* 전시창보다 큰 그림 경고 */
+.warning {
+    margin: 0 32px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background-color: #fff4e5;
+    color: #8a5300;
+    font-size: 12px;
+    line-height: 1.5;
+    word-break: keep-all;
+}
+
+/* 선택 전·빈 목록일 때 오른쪽 패널 안내 */
+.emptyHint {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    box-sizing: border-box;
+    background-color: #FAFAFA;
+    color: #86868b;
+    font-size: 14px;
+    line-height: 1.6;
+    text-align: center;
+    word-break: keep-all;
+}
+
+.musicTitle {
+    color: #1d1d1f;
+    font-size: 15px;
+    font-weight: 600;
+}
+
 .previewImage {
     max-width: 80%;
     max-height: 80%;
