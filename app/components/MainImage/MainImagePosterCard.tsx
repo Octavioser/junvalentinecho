@@ -71,7 +71,8 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, w
             )}
             {alwaysShowRatio && (
                 <div style={{ position: 'absolute', bottom: '-15px', right: '0', zIndex: 10, pointerEvents: 'none' }}>
-                    <MainImageRatio label={`${Math.floor(winSize * ratio / 100)}cm`} />
+                    {/* 확대하면 카드가 보여주는 실제 길이는 줄어듦 (전시창 크기 ÷ 배율) */}
+                    <MainImageRatio label={`${Math.floor(winSize * 100 / ratio)}cm`} />
                 </div>
             )}
         </div>

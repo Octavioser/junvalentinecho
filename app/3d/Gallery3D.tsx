@@ -7,10 +7,8 @@ import styles from "./gallery3d.module.css";
 import { wallLayout } from "./wallLayout";
 import { createMoveInput } from "./scene/input";
 
-const Loading = () => <div className={styles.message}><span>...Loading</span></div>;
-
-// three.js는 /3d에서만 불러옴
-const Scene = dynamic(() => import("./scene/Scene"), { ssr: false, loading: Loading });
+// three.js는 /3d에서만 불러옴. 로딩 표시는 아래 오버레이가 첫 화면이 그려질 때까지 계속 보여줌
+const Scene = dynamic(() => import("./scene/Scene"), { ssr: false });
 
 // WebGL을 못 쓰는 기기 등에서 페이지 전체가 깨지지 않게
 class SceneBoundary extends Component<{ children: ReactNode; }, { failed: boolean; }> {
@@ -31,6 +29,8 @@ const Gallery3D = () => {
     const { artworks } = useArtworks();
     const { items, farZ } = useMemo(() => wallLayout(artworks), [artworks]);
     const [dialogImageId, setDialogImageId] = useState<string | null>(null);
+    const [ready, setReady] = useState(false);
+    const onReady = useCallback(() => setReady(true), []);
     const input = useRef(createMoveInput());
     const dialogOpen = useRef(false);
 
@@ -81,7 +81,8 @@ const Gallery3D = () => {
     return (
         <div className={styles.container} onContextMenu={e => e.preventDefault()}>
             <SceneBoundary>
-                <Scene items={items} farZ={farZ} input={input} onSelect={onSelect} />
+                <Scene items={items} farZ={farZ} input={input} onSelect={onSelect} onReady={onReady} />
+                {!ready && <div className={styles.loading}><span>...Loading</span></div>}
             </SceneBoundary>
             <div className={styles.vignette} />
             {target && <MainImgDialog targetImg={target} dialogClose={() => { setDialogImageId(null); }} />}

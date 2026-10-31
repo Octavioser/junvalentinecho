@@ -1,7 +1,7 @@
 import styles from "./visual.module.css";
 import VisualDetail from "./visualDetail";
 
-export const metadata = { title: 'Visual' };
+export const metadata = { title: '2D' };
 
 const Visual = async () => {
 

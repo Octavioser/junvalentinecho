@@ -88,8 +88,10 @@
         padding-top: 20%;
     }
 
-    .navContainer:has(.nav.show) {
+    /* 메뉴가 열리면 화면 전체를 덮고 터치도 받음 → 빈 곳을 눌러도 아래 페이지가 눌리지 않음 */
+    .navContainer.open {
         background-color: #fdfdfd;
+        pointer-events: auto;
     }
 
     .mainTitle {
@@ -114,11 +116,17 @@
         opacity: 1;
     }
 
-    .navContainer:has(.nav.show) .mainTitle {
+    .navContainer.open .mainTitle {
         display: none;
     }
 
+    /* 손가락으로 누르기 쉽게 항목 높이를 키우고, 그만큼 간격을 줄여 보이는 간격은 그대로 */
     .nav ul {
         text-align: center;
+        gap: 26px;
+    }
+
+    .navItem {
+        padding: 12px 0;
     }
 }

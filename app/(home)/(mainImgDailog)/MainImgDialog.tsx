@@ -1,6 +1,7 @@
 import styles from './MainImgDialog.module.css';
 import { Fragment, useState, useEffect, useRef } from "react";
 import { Artwork } from "@/types";
+import { formatSize } from "@/common/format";
 
 const MainImgDialog = ({ targetImg: { poster_path, title, width, height, material, year, overview }, dialogClose }:
     { targetImg: Artwork, dialogClose: () => void; }) => {
@@ -21,7 +22,7 @@ const MainImgDialog = ({ targetImg: { poster_path, title, width, height, materia
             <div className={dialogInfo}>
                 <span className={dialogInfoTitle}>{title}</span>
                 <span>{year}</span>
-                <span>{`${width} x ${height} cm`}</span>
+                <span>{formatSize(width, height)}</span>
                 <span>{material}</span>
                 <span className={dialogInfoOverView}>{overview}</span>
             </div>

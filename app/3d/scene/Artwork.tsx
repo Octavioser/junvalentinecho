@@ -6,6 +6,7 @@ import { captionTexture, lightPoolTexture, shadowTexture } from "./canvasTexture
 import { useImageTexture } from "./useImageTexture";
 
 const FRAME = 0.004;         // 메탈 프레임 테두리
+const FRAME_COLOR = '#b9bdc4';
 const DEPTH = 0.025;         // 벽에서 튀어나온 두께
 const ARTWORK_TINT = '#dfe1e6'; // 사진 속 흰 벽 밝기에 맞춘 노출 (그림 속 흰색이 벽보다 살짝만 밝게)
 const POOL_OPACITY = 0.035;  // 그림을 비추는 천장 조명의 빛 웅덩이 세기 (티 나지 않을 정도로만)
@@ -76,9 +77,10 @@ export default function ArtworkPiece({ item, onSelect }: { item: WallItem; onSel
                     <meshBasicMaterial map={shadow.texture} opacity={0.22} {...decal} />
                 </mesh>
             )}
+            {/* 4mm 테두리라 조명 계산 없이 밝은 금속색만 칠함 (조명 재질은 셰이더 컴파일이 무거워 첫 화면이 멈춤) */}
             <mesh position={[0, 0, DEPTH / 2]}>
                 <boxGeometry args={[width + FRAME * 2, height + FRAME * 2, DEPTH]} />
-                <meshStandardMaterial color="#c8ccd2" metalness={0.4} roughness={0.35} />
+                <meshBasicMaterial color={FRAME_COLOR} />
             </mesh>
             <mesh
                 position={[0, 0, DEPTH + 0.002]}

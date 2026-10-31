@@ -3,7 +3,7 @@ import { Artwork } from "@/types";
 // 첨부 사진에서 역산한 전시장 치수 (1 = 1m). 사진을 찍은 위치가 원점, 안쪽 방향이 -Z
 export const ROOM = {
     artWallX: -6.045,  // 그림을 거는 왼쪽 벽
-    railX: -3.045,     // 관람 레일: 그림 벽에서 3m (사진은 6m 지점에서 찍음)
+    railX: -2.045,     // 관람 레일: 그림 벽에서 4m (사진은 6m 지점에서 찍음)
     rightWallX: 4,
     ceiling: 6.15,
     eye: 1.5,          // 사진 카메라 높이 = 관람 눈높이
@@ -16,8 +16,8 @@ export const HANG = {
     gap: 1.8,          // 같은 그룹 안 그림 사이
     groupGap: 3,       // 홈 화면 그룹이 바뀌는 곳
     endPad: 6,         // 마지막 그림 뒤로 남기는 벽
-    centerY: 1.5,      // 그림 중심 높이
-    minBottom: 0.4,    // 큰 그림도 바닥에서 이만큼은 띄움
+    centerY: 1.5,      // 전시장 관례: 바닥에서 150cm가 그림 중심
+    minBottom: 0.05,   // 세로 3m 가까운 아주 큰 그림만 바닥에 닿지 않게 올림
 };
 
 export type WallItem = {

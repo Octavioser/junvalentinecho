@@ -9,6 +9,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Player from "./(player)/Player";
 import { useArtworks } from "@/providers/ArtworksProvider";
+import { formatSize } from "@/common/format";
 
 import MainImgDialog from "./(mainImgDailog)/MainImgDialog";
 
@@ -165,7 +166,7 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
                                 {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, width, height, material }, index) =>
                                     <div key={`explain${index}`} className={posterCardExplain}>
                                         <span style={{ whiteSpace: 'normal', fontWeight: '600', fontStyle: 'italic' }}>{title}</span>
-                                        <span>{`${width} x ${height} cm`}</span>
+                                        <span>{formatSize(width, height)}</span>
                                         <span>{material}</span>
                                     </div>
                                 )}

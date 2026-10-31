@@ -27,25 +27,6 @@ export const LEFT_WALL: ColorGrid = {
 };
 
 // cols = x(m), rows = 앞쪽 거리 s(m)
-export const FLOOR: ColorGrid = {
-    cols: [-5.9, -5.2, -4.4, -3.6, -2.8, -2, -1.2, -0.4, 0.4],
-    rows: [26, 23, 20, 17, 14, 11, 9, 7, 5.5, 4.5, 3.6],
-    colors: [
-        ["#adaeb3", "#a2a4ae", "#a4a8b2", "#a7abb6", "#a7abb7", "#a6aab6", "#a4a9b7", "#9fa5b5", "#a7abb7"],
-        ["#abacb1", "#a8aaaf", "#a7aab2", "#a8acb5", "#aaadb8", "#a9aeba", "#a5abbb", "#9da4b6", "#a8aebc"],
-        ["#bfbfc4", "#a6a8ad", "#a7aab2", "#a7abb4", "#aaaeb8", "#aaaeba", "#a5acbc", "#9ca3b6", "#a9b0bd"],
-        ["#abacb1", "#a6a9af", "#a4a7af", "#a9acb6", "#aaaeb9", "#a8acb8", "#a5abbb", "#9ca3b5", "#a9aeba"],
-        ["#adadb2", "#a9aaaf", "#a6a9b2", "#a8abb4", "#a9adb6", "#a9adb9", "#a4abbc", "#9da4b6", "#a8afbc"],
-        ["#aeafb4", "#a3a4ac", "#a3a5ae", "#abaeb8", "#aaacb9", "#aaaeba", "#a5aab8", "#9da3b4", "#9da3b4"],
-        ["#a8a9ae", "#a9aaaf", "#a6a9b2", "#a7abb4", "#a9adb7", "#aaaeba", "#a4adbd", "#9da4b7", "#9da4b7"],
-        ["#afaeb3", "#a8a9ae", "#a4a7b0", "#a6a9b2", "#a9adb6", "#aaafba", "#a5acbc", "#99a0b7", "#99a0b7"],
-        ["#b1b2b7", "#9fa1aa", "#a4a5ad", "#aaaeb7", "#b0b4bf", "#aaaeba", "#a6acba", "#99a0b1", "#99a0b1"],
-        ["#b5b6bb", "#a2a5ad", "#999da6", "#a6a8b5", "#adafbc", "#a8acb7", "#a3aaba", "#9ba3b4", "#9ba3b4"],
-        ["#b4b3b9", "#a9acb5", "#9fa0aa", "#a3a7b3", "#a9abb8", "#a7abb7", "#a0a7b6", "#a0a7b6", "#a0a7b6"],
-    ],
-};
-
-// cols = x(m), rows = 앞쪽 거리 s(m)
 export const CEILING: ColorGrid = {
     cols: [-5.8, -4.8, -3.8, -2.8, -1.8, -0.8, 0.2, 1.2],
     rows: [26, 22, 18, 15, 12],

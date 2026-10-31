@@ -1,5 +1,6 @@
 import { CanvasTexture, LinearFilter, RepeatWrapping, SRGBColorSpace } from "three";
 import { Artwork } from "@/types";
+import { formatSize } from "@/common/format";
 import { ColorGrid } from "./photoSamples";
 
 const makeCanvas = (width: number, height: number) => {
@@ -26,36 +27,46 @@ const locate = (axis: number[], value: number): [number, number, number] => {
     return [axis.length - 1, axis.length - 1, 0];
 };
 
-const srgbToLinear = (v: number) => {
+// sRGB ↔ 선형 변환표 (픽셀마다 pow를 부르면 3D 페이지 열 때 화면이 멈춤)
+const SRGB_TO_LINEAR = Float32Array.from({ length: 256 }, (_, v) => {
     const c = v / 255;
     return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-};
-const linearToSrgb = (c: number) => 255 * (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
+});
+const LINEAR_STEPS = 4095;
+const LINEAR_TO_SRGB = Uint8ClampedArray.from({ length: LINEAR_STEPS + 1 }, (_, i) => {
+    const c = i / LINEAR_STEPS;
+    return Math.round(255 * (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055));
+});
+const linearToSrgb = (c: number) => LINEAR_TO_SRGB[Math.round(Math.min(1, Math.max(0, c)) * LINEAR_STEPS)];
+
+// 모서리 그늘처럼 가로·세로로 나눠지는 밝기 배율 (캔버스 위치 0~1 → 배율)
+export type Shade = { x?: (fx: number) => number; y?: (fy: number) => number; };
 
 // 사진에서 뽑은 색 격자를 면 하나 크기의 부드러운 텍스처로 펼침.
-// u = 캔버스 왼쪽→오른쪽의 cols 축 값, v = 위→아래의 rows 축 값.
-// shade(fx, fy)는 캔버스 위치(0~1)별 밝기 배율 — 모서리 그늘 같은 빛 차이를 구워 넣음
-export function gridTexture(
-    grid: ColorGrid, u: [number, number], v: [number, number], width = 128, height = 32,
-    shade?: (fx: number, fy: number) => number,
-) {
+// u = 캔버스 왼쪽→오른쪽의 cols 축 값, v = 위→아래의 rows 축 값
+export function gridTexture(grid: ColorGrid, u: [number, number], v: [number, number], width = 128, height = 32, shade: Shade = {}) {
     const { canvas, ctx } = makeCanvas(width, height);
     const image = ctx.createImageData(width, height);
     const rgb = grid.colors.map(row => row.map(hexRgb));
+    // 열·행마다 한 번씩만 계산
+    const columns = Array.from({ length: width }, (_, x) => {
+        const fx = (x + 0.5) / width;
+        return { at: locate(grid.cols, u[0] + (u[1] - u[0]) * fx), light: shade.x ? shade.x(fx) : 1 };
+    });
 
     for (let y = 0; y < height; y++) {
         const fy = (y + 0.5) / height;
         const [r0, r1, rt] = locate(grid.rows, v[0] + (v[1] - v[0]) * fy);
+        const rowLight = shade.y ? shade.y(fy) : 1;
         for (let x = 0; x < width; x++) {
-            const fx = (x + 0.5) / width;
-            const [c0, c1, ct] = locate(grid.cols, u[0] + (u[1] - u[0]) * fx);
-            const light = shade ? shade(fx, fy) : 1;
+            const { at: [c0, c1, ct], light: columnLight } = columns[x];
+            const light = rowLight * columnLight;
             const i = (y * width + x) * 4;
             for (let k = 0; k < 3; k++) {
                 const upper = rgb[r0][c0][k] * (1 - ct) + rgb[r0][c1][k] * ct;
                 const lower = rgb[r1][c0][k] * (1 - ct) + rgb[r1][c1][k] * ct;
                 const value = upper * (1 - rt) + lower * rt;
-                image.data[i + k] = light === 1 ? value : linearToSrgb(srgbToLinear(value) * light);
+                image.data[i + k] = light === 1 ? value : linearToSrgb(SRGB_TO_LINEAR[Math.round(value)] * light);
             }
             image.data[i + 3] = 255;
         }
@@ -69,76 +80,11 @@ export function gridTexture(
     return texture;
 }
 
-// 화이트워시 헤링본 바닥 무늬 (사진 색에 곱해지는 밝기 디테일).
-// 판 폭 W, 길이 L = n·W 일 때 무늬는 2L x 2L 정사각형마다 반복됨
-export const HERRINGBONE_TILE = 0.09 * 7 * 2;
-
-// mean = 무늬의 평균 밝기(선형). 바닥 색에 곱할 때 이 값으로 나눠서 사진 밝기를 유지
-export function herringboneTexture() {
-    const plankW = 0.09, n = 7, plankL = plankW * n, tile = 2 * plankL;
-    const px = 1024, s = px / tile;
-    const { canvas, ctx } = makeCanvas(px, px);
-    let seed = 11;
-    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-
-    ctx.fillStyle = '#dcdee1'; // 판 사이 이음매
-    ctx.fillRect(0, 0, px, px);
-
-    const plank = (x: number, y: number, w: number, h: number) => {
-        const tone = Math.round(247 + rand() * 8);
-        const seam = 1.2;
-        ctx.fillStyle = `rgb(${tone}, ${tone}, ${Math.min(255, tone + 1)})`;
-        ctx.fillRect(x * s + seam / 2, y * s + seam / 2, w * s - seam, h * s - seam);
-        // 판 결
-        const along = w > h;
-        ctx.strokeStyle = 'rgba(150, 155, 165, 0.06)';
-        ctx.lineWidth = 1;
-        for (let g = 0; g < 4; g++) {
-            const offset = (0.15 + rand() * 0.7) * (along ? h : w) * s;
-            ctx.beginPath();
-            if (along) {
-                ctx.moveTo(x * s + 2, y * s + offset);
-                ctx.lineTo((x + w) * s - 2, y * s + offset + (rand() - 0.5) * 3);
-            } else {
-                ctx.moveTo(x * s + offset, y * s + 2);
-                ctx.lineTo(x * s + offset + (rand() - 0.5) * 3, (y + h) * s - 2);
-            }
-            ctx.stroke();
-        }
-        // 사진처럼 군데군데 진한 틈
-        if (rand() < 0.1) {
-            ctx.fillStyle = 'rgba(70, 75, 85, 0.25)';
-            if (along) ctx.fillRect(x * s, (y + h) * s - 1.5, w * s * (0.3 + rand() * 0.5), 1.5);
-            else ctx.fillRect((x + w) * s - 1.5, y * s, 1.5, h * s * (0.3 + rand() * 0.5));
-        }
-    };
-
-    // 계단식 배치: H_k = [kW, kW+L] x [kW, kW+W], V_k = [kW+L, kW+L+W] x [kW+W-L, kW+W]
-    for (let k = 0; k < 2 * n; k++) {
-        for (const dx of [-tile, 0, tile]) {
-            for (const dy of [-tile, 0, tile]) {
-                plank(k * plankW + dx, k * plankW + dy, plankL, plankW);
-                plank(k * plankW + plankL + dx, k * plankW + plankW - plankL + dy, plankW, plankL);
-            }
-        }
-    }
-
-    const pixels = ctx.getImageData(0, 0, px, px).data;
-    let sum = 0;
-    for (let i = 0; i < pixels.length; i += 4 * 7) sum += srgbToLinear(pixels[i]);
-    const mean = sum / (pixels.length / (4 * 7));
-
-    const texture = new CanvasTexture(canvas);
-    texture.colorSpace = SRGBColorSpace;
-    texture.wrapS = texture.wrapT = RepeatWrapping;
-    return { texture, mean };
-}
-
 // 페인트 벽의 아주 옅은 얼룩 (완전히 평평한 CG 벽처럼 보이지 않게). 한 칸 PAINT_TILE m, 이음매 없이 반복
 export const PAINT_TILE = 2.4;
 
 export function paintTexture() {
-    const px = 256;
+    const px = 128; // 아주 옅은 얼룩이라 이 정도면 충분 (크면 3D 페이지 열 때 계산이 길어짐)
     const { canvas, ctx } = makeCanvas(px, px);
     let seed = 5;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -156,7 +102,7 @@ export function paintTexture() {
             return top * (1 - sy) + bottom * sy;
         };
     };
-    const layers = [{ noise: octave(3), amp: 0.012 }, { noise: octave(9), amp: 0.007 }, { noise: octave(48), amp: 0.004 }];
+    const layers = [{ noise: octave(3), amp: 0.012 }, { noise: octave(9), amp: 0.007 }, { noise: octave(32), amp: 0.004 }];
     const image = ctx.createImageData(px, px);
     let sum = 0;
     for (let y = 0; y < px; y++) {
@@ -234,7 +180,7 @@ export async function captionTexture({ title, width, height, material }: Artwork
         if (last && measure.measureText(`${last} ${word}`).width <= maxWidth) titleLines[titleLines.length - 1] = `${last} ${word}`;
         else titleLines.push(word);
     }
-    const bodyLines = [`${width} x ${height} cm`, material].filter((line): line is string => !!line);
+    const bodyLines = [formatSize(width, height), material].filter((line): line is string => !!line);
 
     const lineGap = 1.45;
     const cw = Math.ceil(maxWidth);
