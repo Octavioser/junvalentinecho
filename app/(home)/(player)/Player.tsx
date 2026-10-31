@@ -169,6 +169,13 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
         audioRef.current && audioRef.current.play();
     }, [playUrl]);
 
+    // 이전/다음 곡 (끝에서는 처음으로). 음악이 하나도 없으면 아무것도 안 함
+    const step = (delta: number) => {
+        if (!musicList.length) return;
+        const current = Math.max(0, musicList.findIndex(({ url }) => url === playUrl));
+        setPlayUrl(musicList[(current + delta + musicList.length) % musicList.length].url);
+    };
+
     return <Fragment>
 
         <div className={mediaPlayerConTainer} >
@@ -206,10 +213,7 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
                 </div>
 
                 <button className={`${controlButton} ${prevButton}`}
-                    onClick={() => {
-                        const targetIndex = musicList.findIndex(({ url }) => url === playUrl);
-                        setPlayUrl(targetIndex === 0 ? musicList[musicList.length - 1].url : musicList[targetIndex - 1].url);
-                    }}
+                    onClick={() => step(-1)}
                 >
                     <svg viewBox="0 0 24 24" fill="currentColor" className={buttonIcon}>
                         <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
@@ -218,6 +222,7 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
 
                 <button className={`${controlButton} ${playButton}`}
                     onClick={async () => {
+                        if (!playUrl) return; // 재생할 음악이 없음
                         if (!audioCtxRef.current) {
                             audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
                         }
@@ -246,10 +251,7 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
                 </button>
 
                 <button className={`${controlButton} ${nextButton}`}
-                    onClick={() => {
-                        const targetIndex = musicList.findIndex(({ url }) => url === playUrl);
-                        setPlayUrl(targetIndex === musicList.length - 1 ? musicList[0].url : musicList[targetIndex + 1].url);
-                    }}
+                    onClick={() => step(1)}
                 >
                     <svg viewBox="0 0 24 24" fill="currentColor" className={`${buttonIcon} ${nextIcon}`}>
                         <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
@@ -271,14 +273,11 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
         </div>
         <audio
             ref={audioRef}
-            src={playUrl}
+            src={playUrl || undefined} // 음악이 없을 때 빈 문자열을 넣으면 브라우저가 페이지를 다시 요청함
             style={{ width: 0, height: 0, opacity: 0, position: 'absolute' }}
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
-            onEnded={() => {
-                const targetIndex = musicList.findIndex(({ url }) => url === playUrl);
-                setPlayUrl(targetIndex === musicList.length - 1 ? musicList[0].url : musicList[targetIndex + 1].url);
-            }}
+            onEnded={() => step(1)}
             crossOrigin='anonymous'
         />
     </Fragment>;
