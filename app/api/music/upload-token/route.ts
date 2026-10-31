@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client';
+import { isAdmin } from '@/common/adminAuth';
 
 export const runtime = 'nodejs'; // 안전빵
 
@@ -18,6 +19,8 @@ export async function POST(request: Request) {
             body,
 
             onBeforeGenerateToken: async (pathname, clientPayload, multipart) => {
+                // 관리자만 업로드 토큰 발급 (업로드 완료 알림은 Vercel 서버가 보내서 쿠키가 없으므로 여기서만 확인)
+                if (!(await isAdmin())) throw new Error('Unauthorized');
                 // 업로드 제한/검증
                 return {
                     allowedContentTypes: ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav'],

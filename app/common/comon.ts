@@ -2,6 +2,7 @@
 import { Artwork, MusicBlob } from "@/types";
 import { put, del, head, list } from '@vercel/blob';
 import { unstable_noStore } from 'next/cache';
+import { assertAdmin } from './adminAuth';
 // export const api = async (apiUrl: string) => {
 //     try {
 //         const fetchdata = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/${apiUrl}`, {
@@ -40,7 +41,9 @@ const slug = (s: string) =>
         .replace(/^-|-$|^\.+/g, "");     // 5) 선두 하이픈, 끝 하이픈, 선두의 점(숨김파일 방지) 제거
 
 
+// 아래 저장·삭제 함수는 모두 관리자 로그인을 먼저 확인 (읽기 함수는 공개 페이지에서도 씀)
 export const uploadImage = async (file: File, title: string, url?: string | null) => {
+    await assertAdmin();
     // 1) 기존 파일 URL이 있으면 Blob에서 삭제
     url && await delImage(url);
 
@@ -68,6 +71,7 @@ export const uploadImage = async (file: File, title: string, url?: string | null
 
 // 이미지 삭제 
 export const delImage = async (url: string) => {
+    await assertAdmin();
     try {
         if (!url) throw new Error("URL is required");
         await del(url);
@@ -110,6 +114,7 @@ export const readList = async (): Promise<Artwork[]> => {
 };
 
 export const writeList = async (artworkList: Artwork[]) => {
+    await assertAdmin();
     // 1) 새 버전 업로드 (URL 바뀌므로 즉시 최신 보장)
     const ver = Date.now();
     const targetPath = `${JSON_PREFIX}${JSON_BASENAME}-${ver}.json`;
@@ -134,21 +139,25 @@ export const getArtworks = async (): Promise<Artwork[]> => {
 
 // 이미지 정보 추가하기
 export const addArtwork = async (artwork: Artwork[], targetArtWork: Artwork): Promise<void> => {
+    await assertAdmin();
     await writeList([...artwork, targetArtWork]);
 };
 
 // 이미지 정보 수정하기
 export const updateArtwork = async (artwork: Artwork[], targetArtWork: Artwork): Promise<void> => {
+    await assertAdmin();
     await writeList(artwork.map((item) => (item.id === targetArtWork.id ? targetArtWork : item)));
 };
 
 // 이미지 전체 정보 수정하기
 export const updateAllArtwork = async (artwork: Artwork[]): Promise<void> => {
+    await assertAdmin();
     await writeList([...artwork]);
 };
 
 // 이미지 정보 삭제하기
 export const delArtwork = async (artwork: Artwork[], id: string): Promise<void> => {
+    await assertAdmin();
     await writeList(artwork.filter((item) => item.id !== id));
 };
 
@@ -177,5 +186,6 @@ export const getMusicList = async (): Promise<MusicBlob[]> => {
 // };
 
 export const delMusic = async (pathname: string) => {
+    await assertAdmin();
     await del(pathname);
 };
