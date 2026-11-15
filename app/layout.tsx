@@ -1,7 +1,8 @@
 import "../styles/global.css";
 import { Inter } from "next/font/google";
 import Nav from "./(navigation)/navigation";
-import { getArtworks } from "@/common/comon";
+import GlobalPlayer from "./components/Player/GlobalPlayer";
+import { getArtworks, getMusicList } from "@/common/comon";
 import { ArtworksProvider } from './providers/ArtworksProvider';
 
 const inter = Inter({
@@ -21,7 +22,11 @@ export const metadata: Metadata = {
 import { Metadata } from "next";
 export default async function RootLayout({ children }: { children: React.ReactNode; }) {
 
-  const artworks = await getArtworks();
+  // 음악 목록을 못 받아와도 화면은 떠야 하므로, 그때는 빈 목록으로 플레이어만 비움
+  const [artworks, musicList] = await Promise.all([
+    getArtworks(),
+    getMusicList().catch((e) => { console.error(e); return []; }),
+  ]);
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body>
@@ -30,6 +35,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ArtworksProvider initialArtworks={artworks}>
             <div className="childContainer">{children}</div>
           </ArtworksProvider>
+          {/* 플레이어는 페이지 밖(레이아웃)에 둬야 다른 화면으로 옮겨도 노래가 이어짐 */}
+          <GlobalPlayer musicList={musicList} />
         </div>
       </body>
     </html>

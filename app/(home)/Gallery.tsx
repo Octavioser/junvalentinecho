@@ -4,16 +4,15 @@ import styles from "./home.module.css";
 import { use, useEffect, useRef, useState, RefObject } from "react";
 import MainImagePosterCard from "../components/MainImage/MainImagePosterCard";
 import ImageStyle from "../components/MainImage/MainImage.module.css";
-import { Artwork, MusicBlob } from "@/types";
+import { Artwork } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
-import Player from "./(player)/Player";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { formatSize } from "@/common/format";
 
 import MainImgDialog from "./(mainImgDailog)/MainImgDialog";
 
-const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
+const Gallery = () => {
     const { artworks } = useArtworks();
 
     const scrollRef = useRef<HTMLDivElement>(null); // Ref 생성
@@ -175,9 +174,6 @@ const Gallery = ({ musicList }: { musicList: MusicBlob[]; }) => {
 
                     </div>
                 )}
-            </div>
-            <div className={styles.playerContainer}>
-                <Player musicList={musicList} />
             </div>
             {(() => {
                 if (dialogImageId) {

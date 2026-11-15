@@ -1,4 +1,4 @@
-import { Fragment, useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MusicBlob } from '@/types';
 import styles from './Player.module.css';
 
@@ -6,6 +6,7 @@ import styles from './Player.module.css';
 const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
 
     const {
+        playerContainer,
         mediaPlayerConTainer,
         playerButtonGroup,
         controlButton,
@@ -176,7 +177,7 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
         setPlayUrl(musicList[(current + delta + musicList.length) % musicList.length].url);
     };
 
-    return <Fragment>
+    return <div className={playerContainer}>
 
         <div className={mediaPlayerConTainer} >
             <div className={playerButtonGroup}>
@@ -280,6 +281,6 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
             onEnded={() => step(1)}
             crossOrigin='anonymous'
         />
-    </Fragment>;
+    </div>;
 };
 export default Player;

@@ -208,6 +208,8 @@ li {
     --nav-width: 60px;
     --sp: 8px;
     /* 기본 간격 */
+    --player-height: 15dvh;
+    /* 화면 하단 플레이어가 차지하는 높이 (내용이 가려지지 않게 페이지 아래를 이만큼 비움) */
 }
 
 @media (max-aspect-ratio: 1/1) {

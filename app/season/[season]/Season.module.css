@@ -4,6 +4,8 @@
     height: 100%;
     /* 내비가 전체 화면 투명 오버레이라, 예전처럼 내비 폭만큼 밀어 겹침 방지 */
     padding-left: var(--nav-width);
+    /* 하단 플레이어에 가려지지 않게 */
+    padding-bottom: var(--player-height);
     box-sizing: border-box;
 }
 
