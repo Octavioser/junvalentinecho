@@ -3,7 +3,7 @@ import { Fragment, useEffect, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./navigation.module.css";
 
-const INTERNAL_PAGES = ['/', '/visual', '/3d'];
+const INTERNAL_PAGES = ['/', '/visual', '/3d', '/info'];
 
 // 3D 메뉴에 마우스를 올리거나 누르는 순간 3D 모듈(three.js)을 미리 받기 시작
 const preload3d = () => { import("@/3d/scene/Scene"); };
