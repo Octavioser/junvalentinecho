@@ -132,8 +132,15 @@
     box-sizing: border-box;
 }
 
+/* 제목 줄 오른쪽 끝의 버튼 영역 */
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
 .unsavedNote {
-    margin-right: auto;
     color: #ff9500;
     font-size: 12px;
     font-weight: 500;
@@ -141,7 +148,7 @@
 
 /* 전시창보다 큰 그림 경고 */
 .warning {
-    margin: 0 32px;
+    margin: 16px 32px 0;
     padding: 10px 14px;
     border-radius: 10px;
     background-color: #fff4e5;
@@ -149,6 +156,47 @@
     font-size: 12px;
     line-height: 1.5;
     word-break: keep-all;
+}
+
+/* 전시창 배치: 카드 가로·세로 길이 표시 (양 끝 눈금 + 선 가운데 글자) */
+.cardDimension {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 9px;
+    box-sizing: border-box;
+    border-left: 1px solid #c7c7cc;
+    border-right: 1px solid #c7c7cc;
+    color: #86868b;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.cardDimension::before,
+.cardDimension::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: #c7c7cc;
+}
+
+/* 카드 위쪽 */
+.cardWidth {
+    left: 0;
+    bottom: calc(100% + 12px);
+}
+
+/* 카드 왼쪽: 카드 아래 모서리에서 시작해 위로 세움 */
+.cardHeight {
+    top: 100%;
+    left: -21px;
+    transform-origin: 0 0;
+    transform: rotate(-90deg);
 }
 
 /* 선택 전·빈 목록일 때 오른쪽 패널 안내 */

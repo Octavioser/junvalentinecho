@@ -329,7 +329,8 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
 
 
                 <div className={rightPanel}>
-                    <div className={headerPanel}>{PANEL_TITLE[tab]}</div>
+                    {/* 메인 전시장 탭에서 그룹을 고르면 제목 줄을 ArtworkDisplayPanel이 그림 (저장 버튼이 같은 줄에 들어감) */}
+                    {!(tab === '2' && selectedArtworkId) && <div className={headerPanel}>{PANEL_TITLE[tab]}</div>}
                     {['1', '3'].includes(tab) && (selectedArtwork ? (
                         <div className={imagePreview}>
                             <div style={{ width: '80%', height: '80%', position: 'relative' }}>
@@ -364,6 +365,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                     ))}
                     {tab === '2' && (selectedArtworkId ? (
                         <ArtworkDisplayPanel
+                            title={PANEL_TITLE[tab]}
                             artworks={artworks}
                             selectedArtworkId={selectedArtworkId}
                             setIsLoading={setIsLoading}

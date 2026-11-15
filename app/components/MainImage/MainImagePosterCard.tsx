@@ -72,9 +72,9 @@ const usePinchZoom = (wrapperRef: React.RefObject<HTMLDivElement | null>, zoomRe
     }, [wrapperRef, zoomRef, enabled]);
 };
 
-const RatioUpdater = ({ setRatio, contentRef, baseRatio }: { setRatio: (r: number) => void; contentRef: React.RefObject<HTMLDivElement>; baseRatio: number; }) => {
+const RatioUpdater = ({ setScale, contentRef }: { setScale: (scale: number) => void; contentRef: React.RefObject<HTMLDivElement>; }) => {
     useTransformEffect(({ state }) => {
-        setRatio(Math.round(state.scale * baseRatio));
+        setScale(state.scale);
         if (contentRef.current) {
             contentRef.current.style.setProperty('--inverse-scale', `${1 / state.scale}`);
         }
@@ -93,7 +93,7 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, w
 }) => {
 
     const { posterCard } = styles;
-    const [ratio, setRatio] = useState(100); // Zoom scale, not winSize
+    const [scale, setScale] = useState(1); // 확대 배율
     const contentRef = useRef<HTMLDivElement>(null!);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const zoomRef = useRef<ReactZoomPanPinchContentRef>(null);
@@ -121,7 +121,7 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, w
                         doubleClick={{ disabled: true }}
                     >
                         <>
-                            <RatioUpdater setRatio={setRatio} contentRef={contentRef} baseRatio={100} />
+                            <RatioUpdater setScale={setScale} contentRef={contentRef} />
                             <TransformComponent
                                 wrapperStyle={{ width: '100%', height: '100%' }}
                                 contentStyle={{ width: '100%', height: '100%' }}
@@ -142,9 +142,9 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, w
                 </div>
             )}
             {alwaysShowRatio && (
-                <div style={{ position: 'absolute', bottom: '-15px', right: '0', zIndex: 10, pointerEvents: 'none' }}>
-                    {/* 확대하면 카드가 보여주는 실제 길이는 줄어듦 (전시창 크기 ÷ 배율) */}
-                    <MainImageRatio label={`${Math.floor(winSize * 100 / ratio)}cm`} />
+                <div style={{ position: 'absolute', bottom: '-15px', left: '0', right: '0', zIndex: 10, pointerEvents: 'none' }}>
+                    {/* 지도 축척처럼 옆 숫자 = 막대만큼의 실제 길이. 카드 한 변이 전시창 크기(cm)이고, 확대하면 같은 카드가 더 짧은 길이를 보여줌 */}
+                    <MainImageRatio cardCm={winSize / scale} />
                 </div>
             )}
         </div>
