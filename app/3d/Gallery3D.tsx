@@ -2,7 +2,6 @@
 import dynamic from "next/dynamic";
 import { Component, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useArtworks } from "@/providers/ArtworksProvider";
-import MainImgDialog from "@/(home)/(mainImgDailog)/MainImgDialog";
 import styles from "./gallery3d.module.css";
 import { wallLayout } from "./wallLayout";
 import { createMoveInput } from "./scene/input";
@@ -23,36 +22,28 @@ class SceneBoundary extends Component<{ children: ReactNode; }, { failed: boolea
 
 const KEY_DIRECTION: Record<string, 1 | -1> = { KeyW: 1, ArrowUp: 1, KeyS: -1, ArrowDown: -1 };
 
-// 이동은 휠(PC)·세로 스와이프(모바일)로, CameraRig에서 처리. 여기서는 키보드와 상세창만 다룸
+// 이동은 휠(PC)·세로 스와이프(모바일), 그림을 누르면 그 앞으로 다가가기. 모두 CameraRig에서 처리하고 여기서는 키보드만 다룸
 const Gallery3D = () => {
 
     const { artworks } = useArtworks();
     const { items, farZ } = useMemo(() => wallLayout(artworks), [artworks]);
-    const [dialogImageId, setDialogImageId] = useState<string | null>(null);
     const [ready, setReady] = useState(false);
     const onReady = useCallback(() => setReady(true), []);
     const input = useRef(createMoveInput());
-    const dialogOpen = useRef(false);
 
     const press = useCallback((id: string, dir: 1 | -1) => {
-        if (dialogOpen.current) return;
         input.current.held.set(id, dir);
         input.current.wake();
     }, []);
     const release = useCallback((id: string) => { input.current.held.delete(id); }, []);
 
-    // 상세창이 열리면 이동 멈춤
-    useEffect(() => {
-        dialogOpen.current = !!dialogImageId;
-        if (dialogImageId) input.current.held.clear();
-    }, [dialogImageId]);
-
     // 키보드: e.code 기준이라 한글 입력 상태(ㅈ/ㄴ)에서도 W/S가 동작
     useEffect(() => {
         const keyDown = (e: KeyboardEvent) => {
-            if (e.code === 'Escape') { setDialogImageId(null); return; }
+            // Esc: 다가가 있던 그림 앞에서 물러남
+            if (e.code === 'Escape') { input.current.focus = null; input.current.wake(); return; }
             const dir = KEY_DIRECTION[e.code];
-            if (!dir || e.ctrlKey || e.metaKey || e.altKey || dialogOpen.current) return;
+            if (!dir || e.ctrlKey || e.metaKey || e.altKey) return;
             e.preventDefault();
             if (!e.repeat) press(e.code, dir);
         };
@@ -75,17 +66,13 @@ const Gallery3D = () => {
         };
     }, [press, release]);
 
-    const onSelect = useCallback((id: string) => setDialogImageId(id), []);
-    const target = dialogImageId ? artworks.find(item => item.id === dialogImageId) : undefined;
-
     return (
         <div className={styles.container} onContextMenu={e => e.preventDefault()}>
             <SceneBoundary>
-                <Scene items={items} farZ={farZ} input={input} onSelect={onSelect} onReady={onReady} />
+                <Scene items={items} farZ={farZ} input={input} onReady={onReady} />
                 {!ready && <div className={styles.loading}><span>...Loading</span></div>}
             </SceneBoundary>
             <div className={styles.vignette} />
-            {target && <MainImgDialog targetImg={target} dialogClose={() => { setDialogImageId(null); }} />}
         </div>
     );
 };

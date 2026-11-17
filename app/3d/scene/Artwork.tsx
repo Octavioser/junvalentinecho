@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { MutableRefObject, useEffect, useMemo, useState } from "react";
 import { ThreeEvent, useThree } from "@react-three/fiber";
 import { AdditiveBlending, Texture } from "three";
 import { HANG, ROOM, WallItem } from "../wallLayout";
 import { captionTexture, lightPoolTexture, shadowTexture } from "./canvasTextures";
+import { MoveInput } from "./input";
 import { useImageTexture } from "./useImageTexture";
 
 const FRAME = 0.004;         // 메탈 프레임 테두리
@@ -12,9 +13,9 @@ const ARTWORK_TINT = '#dfe1e6'; // 사진 속 흰 벽 밝기에 맞춘 노출 (�
 const POOL_OPACITY = 0.035;  // 그림을 비추는 천장 조명의 빛 웅덩이 세기 (티 나지 않을 정도로만)
 const CAPTION_GAP = 0.2;
 const CAPTION_Y = 1.32;
-const CLICK_SLOP = 8;        // 이보다 많이 움직였으면 드래그로 봄 (px)
+const CLICK_SLOP = 8;        // 이보다 많이 움직였으면 누른 게 아니라 끌어서 시선을 돌린 것 (px)
 
-// 같은 출처의 Next 이미지 최적화를 거쳐 큰 원본을 줄여서 받음 (홈 <Image>와 같은 주소라 캐시 공유)
+// 같은 출처의 Next 이미지 최적화를 거쳐 큰 원본을 줄여서 받음 (품질 75는 next.config.js의 images.qualities에 있어야 함)
 const textureUrl = ({ poster_path }: WallItem['artwork'], width: number) =>
     `/_next/image?url=${encodeURIComponent(poster_path)}&w=${width > 2 ? 1920 : 1080}&q=75`;
 
@@ -23,7 +24,7 @@ const decal = { transparent: true, depthWrite: false, polygonOffset: true, polyg
 let poolTexture: Texture | null = null; // 모든 그림이 같이 쓰는 빛 웅덩이 무늬
 const getPoolTexture = () => poolTexture ??= lightPoolTexture();
 
-export default function ArtworkPiece({ item, onSelect }: { item: WallItem; onSelect: (id: string) => void; }) {
+export default function ArtworkPiece({ item, input }: { item: WallItem; input: MutableRefObject<MoveInput>; }) {
     const { artwork, width, z } = item;
     const gl = useThree(state => state.gl);
     const invalidate = useThree(state => state.invalidate);
@@ -56,10 +57,12 @@ export default function ArtworkPiece({ item, onSelect }: { item: WallItem; onSel
 
     if (!texture) return null;
 
-    const select = (e: ThreeEvent<MouseEvent>) => {
+    // 그림을 누르면 그 앞으로 다가감 (CameraRig가 이동). 다가가 있는 그림을 다시 누르면 보던 방향 그대로 뒤로 물러남
+    const pick = (e: ThreeEvent<MouseEvent>) => {
         e.stopPropagation();
         if (e.delta > CLICK_SLOP) return;
-        onSelect(artwork.id);
+        input.current.focus = input.current.focus?.id === artwork.id ? null : { id: artwork.id, z, y, width, height };
+        input.current.wake();
     };
     const setCursor = (cursor: string) => { gl.domElement.style.cursor = cursor; };
 
@@ -84,7 +87,7 @@ export default function ArtworkPiece({ item, onSelect }: { item: WallItem; onSel
             </mesh>
             <mesh
                 position={[0, 0, DEPTH + 0.002]}
-                onClick={select}
+                onClick={pick}
                 onPointerOver={() => setCursor('pointer')}
                 onPointerOut={() => setCursor('')}
             >

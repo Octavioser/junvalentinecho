@@ -12,7 +12,6 @@ export type SceneProps = {
     items: WallItem[];
     farZ: number;
     input: MutableRefObject<MoveInput>;
-    onSelect: (id: string) => void;
     onReady: () => void;   // 첫 화면이 실제로 그려진 뒤
 };
 
@@ -59,7 +58,7 @@ const FirstFrame = ({ onReady }: { onReady: () => void; }) => {
     return null;
 };
 
-export default function Scene({ items, farZ, input, onSelect, onReady }: SceneProps) {
+export default function Scene({ items, farZ, input, onReady }: SceneProps) {
     const [compiled, setCompiled] = useState(false);
     const onCompiled = useCallback(() => setCompiled(true), []);
 
@@ -72,10 +71,12 @@ export default function Scene({ items, farZ, input, onSelect, onReady }: ScenePr
             camera={{ position: [ROOM.railX, ROOM.eye, 0], fov: photoFov(1290 / 848), near: 0.1, far: 50 }}
             style={{ touchAction: 'none' }}
             onCreated={({ invalidate }) => { input.current.wake = () => invalidate(); }}
+            // 그림에 다가가 있을 때 그림이 아닌 곳을 누르면 뒤로 물러남
+            onPointerMissed={() => { if (input.current.focus) { input.current.focus = null; input.current.wake(); } }}
         >
             {/* 조명 없는 재질만 씀: 벽·바닥·천장은 사진 색을, 그림은 원본 색을 그대로 칠함 */}
             <Room farZ={farZ} />
-            {items.map(item => <ArtworkPiece key={item.artwork.id} item={item} onSelect={onSelect} />)}
+            {items.map(item => <ArtworkPiece key={item.artwork.id} item={item} input={input} />)}
             <CameraRig input={input} farZ={farZ} />
             {compiled ? <FirstFrame onReady={onReady} /> : <ShaderWarmup onDone={onCompiled} />}
         </Canvas>

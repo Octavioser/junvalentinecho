@@ -2,7 +2,7 @@ import { MutableRefObject, useEffect, useLayoutEffect, useMemo, useRef } from "r
 import { useFrame, useThree } from "@react-three/fiber";
 import { MathUtils, PerspectiveCamera } from "three";
 import { ROOM } from "../wallLayout";
-import { MoveInput, moveDirection } from "./input";
+import { Focus, MoveInput, moveDirection } from "./input";
 
 // 사진 카메라: 1290x848, 초점거리 940px → 가로 68.9°, 세로 48.6°, 복도 방향에서 왼쪽으로 32.6°
 const PHOTO_ASPECT = 1290 / 848;
@@ -21,6 +21,15 @@ const MAX_FLING = 8;       // 관성 최대 속도(m/s). 세게 튕겨도 2.8m �
 const AXIS_LOCK = 8;       // 터치가 이만큼(px) 움직이면 세로=이동 / 가로=회전으로 결정
 const END_STOP = 2;        // 앞뒤 벽에서 멈추는 거리
 
+// 그림을 눌러서 다가가기
+const APPROACH_TIME = 1 / 3;      // 그림 앞으로 걸어가거나 돌아올 때 따라가는 시간 (클수록 천천히). 거의 다 도착하는 데 이 값의 약 3배(1초)
+const VIEW_MARGIN = 1.5;          // 다가갔을 때 그림이 화면에 꽉 차지 않게 두는 여유 (하단 플레이어에 가리지 않게)
+const MIN_VIEW = 0.8;             // 작은 그림도 이보다 가까이 가지는 않음 (m)
+const WALL_YAW = Math.PI / 2;     // 그림 벽을 정면으로 보는 방향
+
+// from에서 가장 가까운 쪽으로 도는 목표 각도 (시선을 여러 바퀴 돌린 뒤에도 반 바퀴 넘게 돌지 않게)
+const nearestAngle = (goal: number, from: number) => from + MathUtils.euclideanModulo(goal - from + Math.PI, Math.PI * 2) - Math.PI;
+
 export const photoFov = (aspect: number) => MathUtils.radToDeg(aspect >= PHOTO_ASPECT
     ? PHOTO_VFOV
     : Math.min(MAX_VFOV, 2 * Math.atan(Math.tan(PHOTO_HFOV / 2) / aspect)));
@@ -34,6 +43,8 @@ export default function CameraRig({ input, farZ }: { input: MutableRefObject<Mov
     const look = useRef({ yaw: START_YAW, pitch: 0 });
     const target = useRef(camera.position.z);  // 스크롤·스와이프·키가 옮기는 목표 위치
     const fling = useRef(0);                   // 스와이프를 놓은 뒤 남은 속도 (m/s)
+    const focused = useRef<Focus | null>(null);                             // 지금 다가가 있는 그림
+    const lookGoal = useRef<{ yaw: number; pitch: number; } | null>(null);  // 시선을 자동으로 돌리는 중이면 그 목표
     const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
 
     const minZ = farZ + END_STOP, maxZ = ROOM.entranceZ - END_STOP;
@@ -54,6 +65,7 @@ export default function CameraRig({ input, farZ }: { input: MutableRefObject<Mov
     useEffect(() => {
         const el = gl.domElement;
         const moveTarget = (dz: number) => {
+            input.current.focus = null; // 걷기 시작하면 보던 그림 앞에서 물러남
             target.current = MathUtils.clamp(target.current + dz, limits.current.minZ, limits.current.maxZ);
             invalidate();
         };
@@ -92,6 +104,7 @@ export default function CameraRig({ input, farZ }: { input: MutableRefObject<Mov
             if (drag.mode === 'look') {
                 // 스트리트뷰처럼 화면을 잡아 끄는 방향
                 const perPixel = MathUtils.degToRad(camera.fov) / el.clientHeight;
+                lookGoal.current = null; // 직접 돌리기 시작하면 자동 회전은 멈춤
                 look.current.yaw += dx * perPixel;
                 if (!drag.touch) look.current.pitch = MathUtils.clamp(look.current.pitch + dy * perPixel, -MAX_PITCH, MAX_PITCH);
                 invalidate();
@@ -128,7 +141,15 @@ export default function CameraRig({ input, farZ }: { input: MutableRefObject<Mov
             el.removeEventListener('pointercancel', up);
             el.removeEventListener('lostpointercapture', up);
         };
-    }, [gl, camera, invalidate, reducedMotion]);
+    }, [gl, camera, input, invalidate, reducedMotion]);
+
+    // 그림 전체가 여유 있게 보이는 거리 (벽에서 떨어진 정도). 아주 큰 그림은 관람 레일까지만 물러남
+    const viewDistance = ({ width, height }: Focus) => {
+        const vHalf = MathUtils.degToRad(camera.fov) / 2;
+        const hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
+        const fit = Math.max(height / 2 / Math.tan(vHalf), width / 2 / Math.tan(hHalf));
+        return MathUtils.clamp(fit * VIEW_MARGIN, MIN_VIEW, ROOM.railX - ROOM.artWallX);
+    };
 
     useFrame((_, delta) => {
         // 렌더를 쉬었다가 다시 시작하면 delta가 쉰 시간 전체라서 잘라냄
@@ -137,6 +158,27 @@ export default function CameraRig({ input, farZ }: { input: MutableRefObject<Mov
 
         // 키보드: 누르고 있는 동안 목표를 계속 밀어 줌 (W·↑ = 안쪽)
         const dir = moveDirection(input.current);
+        if (dir !== 0) input.current.focus = null; // 걷기 시작하면 보던 그림 앞에서 물러남
+
+        // 그림을 새로 눌렀거나 그림 앞을 떠났을 때: 갈 곳과 볼 방향을 정함
+        const focus = input.current.focus;
+        if (focus !== focused.current) {
+            if (focus) {
+                target.current = focus.z;
+                fling.current = 0;
+                // 그림 정면에 서서 그림 가운데를 봄
+                lookGoal.current = {
+                    yaw: nearestAngle(WALL_YAW, look.current.yaw),
+                    pitch: MathUtils.clamp(Math.atan2(focus.y - ROOM.eye, viewDistance(focus)), -MAX_PITCH, MAX_PITCH),
+                };
+            } else {
+                // 물러날 때는 보던 방향 그대로 뒤로만 감 (시선을 되돌리지 않음)
+                lookGoal.current = null;
+            }
+            focused.current = focus;
+        }
+        const xGoal = focus ? ROOM.artWallX + viewDistance(focus) : ROOM.railX;
+
         let next = target.current - dir * KEY_SPEED * dt;
         if (fling.current) {
             next += fling.current * dt;
@@ -146,12 +188,22 @@ export default function CameraRig({ input, farZ }: { input: MutableRefObject<Mov
         target.current = MathUtils.clamp(next, minZ, maxZ);
         if (target.current === minZ || target.current === maxZ) fling.current = 0;
 
-        const z = camera.position.z, goal = target.current;
-        camera.position.z = reducedMotion || Math.abs(goal - z) < 0.001 ? goal : z + (goal - z) * (1 - Math.exp(-dt / FOLLOW_TIME));
+        // 그림 쪽으로 다가가거나 돌아오는 동안은 앞뒤·좌우를 같은 속도로 따라가서 곧게 걸어감
+        const goal = target.current;
+        const sideways = camera.position.x !== xGoal;
+        const k = 1 - Math.exp(-dt / (sideways ? APPROACH_TIME : FOLLOW_TIME));
+        const follow = (from: number, to: number) => reducedMotion || Math.abs(to - from) < 0.001 ? to : from + (to - from) * k;
+        camera.position.z = follow(camera.position.z, goal);
+        camera.position.x = follow(camera.position.x, xGoal);
+        if (lookGoal.current) {
+            look.current.yaw = follow(look.current.yaw, lookGoal.current.yaw);
+            look.current.pitch = follow(look.current.pitch, lookGoal.current.pitch);
+            if (look.current.yaw === lookGoal.current.yaw && look.current.pitch === lookGoal.current.pitch) lookGoal.current = null;
+        }
         camera.rotation.set(look.current.pitch, look.current.yaw, 0);
 
         const pushing = dir !== 0 && !((dir > 0 && goal === minZ) || (dir < 0 && goal === maxZ));
-        if (pushing || fling.current !== 0 || camera.position.z !== goal) invalidate();
+        if (pushing || fling.current !== 0 || camera.position.z !== goal || camera.position.x !== xGoal || lookGoal.current) invalidate();
     });
 
     return null;
