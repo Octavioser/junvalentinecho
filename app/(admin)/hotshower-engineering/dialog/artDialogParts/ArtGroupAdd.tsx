@@ -5,6 +5,7 @@ import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
 import { updateArtwork, updateAllArtwork } from "@/common/comon";
 import { snackbar } from "@/components/Snackbar/Snackbar";
+import { formatSizeNumbers } from "@/common/format";
 import styles from "../ArtAddDialog.module.css";
 
 const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDialog, setOpenDialog, setIsLoading }
@@ -30,7 +31,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
     }, [openDialog, selectedArtworkId, artworks]);
 
     const gridData = (() => {
-        const data = artworks.map(e => ({ ...e, size: `${e.height} x ${e.width}` }));
+        const data = artworks.map(e => ({ ...e, size: formatSizeNumbers(e.width, e.height) }));
         if (openDialog === 'mod' && selectedArtworkId) {
             const target = artworks.find(({ id }) => selectedArtworkId === id);
             if (!target) return data;

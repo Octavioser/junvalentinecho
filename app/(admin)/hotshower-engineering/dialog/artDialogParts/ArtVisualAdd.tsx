@@ -5,6 +5,7 @@ import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
 import { updateArtwork } from "@/common/comon";
 import { snackbar } from "@/components/Snackbar/Snackbar";
+import { formatSizeNumbers } from "@/common/format";
 import styles from "../ArtAddDialog.module.css";
 
 const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
@@ -27,7 +28,7 @@ const ArtVisualAdd = ({ artworks, setOpenDialog, setIsLoading }:
                         { name: 'size', header: '세로 x 가로(cm)', type: 'number' },
                         { name: 'overview', header: '설명', type: 'string' }
                     ]}
-                    gridData={artworks.filter(({ visualYn }) => visualYn !== 'Y').map(e => ({ ...e, size: `${e.height} x ${e.width}` }))}
+                    gridData={artworks.filter(({ visualYn }) => visualYn !== 'Y').map(e => ({ ...e, size: formatSizeNumbers(e.width, e.height) }))}
                     selectedArtworkId={targetID}
                     setSelectedArtworkId={setTargetID}
                     emptyText="모든 그림이 이미 2D 표시에 들어가 있어요."

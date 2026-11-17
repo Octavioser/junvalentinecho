@@ -2,11 +2,12 @@
 import React from "react";
 import { Artwork, MusicBlob } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
+import { formatSizeNumbers } from "@/common/format";
 
 const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: (id: string | null) => void; }) => {
 
 
-    const grid13Data = artworks.map(e => ({ ...e, size: `${e.height} x ${e.width}` }));
+    const grid13Data = artworks.map(e => ({ ...e, size: formatSizeNumbers(e.width, e.height) }));
 
     return (
         <div style={{ boxSizing: 'border-box', width: '100%', flex: 1, padding: 'var(--sp)' }}>
