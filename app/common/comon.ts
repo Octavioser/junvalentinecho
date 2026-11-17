@@ -32,44 +32,10 @@ import { assertAdmin } from './adminAuth';
 //     }
 // };
 
-const slug = (s: string) =>
-    s
-        .trim()                          // 1) 앞뒤 공백 제거
-        .toLowerCase()                   // 2) 소문자화
-        .replace(/[^\w.-]+/g, "-")       // 3) 영숫자/밑줄(_)/점(.)/하이픈(-) 외 문자를 하이픈으로 치환
-        .replace(/-+/g, "-")             // 4) 연속 하이픈을 하나로 축약
-        .replace(/^-|-$|^\.+/g, "");     // 5) 선두 하이픈, 끝 하이픈, 선두의 점(숨김파일 방지) 제거
-
-
 // 아래 저장·삭제 함수는 모두 관리자 로그인을 먼저 확인 (읽기 함수는 공개 페이지에서도 씀)
-export const uploadImage = async (file: File, title: string, url?: string | null) => {
-    await assertAdmin();
-    // 1) 기존 파일 URL이 있으면 Blob에서 삭제
-    url && await delImage(url);
+// 그림 파일 올리기는 브라우저에서 저장소로 바로 올림 (app/api/image/upload-token, 서버를 거치면 큰 파일을 못 받음)
 
-    // 2) 확장자 결정: 파일명 → MIME 타입 → 기본값("bin") 순
-    const { name, type } = file;
-    const fromName = name.includes(".") ? name.split(".")[name.split(".").length - 1] : "";
-    const fromMime = type.includes("/") ? type.split("/")[type.split("/").length - 1] : "";
-    const ext = (fromName || fromMime || "bin").toLowerCase();
-
-    // 3) title에 확장자가 붙어있다면 제거 후 slug 처리
-    const baseTitle = title.replace(/\.[^.]+$/, "");
-    const targetPath = `images/${slug(baseTitle)}.${ext}`;
-
-    // 4) 업로드: 공개 접근, 1년 캐시, 캐시 무효화를 위한 랜덤 접미사, 덮어쓰기 허용
-    const { url: newUrl } = await put(targetPath, file, {
-        access: "public",
-        contentType: file.type || undefined,
-        cacheControlMaxAge: 60 * 60 * 24 * 365, // 1년(초)
-        addRandomSuffix: true,                   // URL 변경(캐시 무효화/이름 충돌 방지)
-    });
-
-    // 5) 퍼블릭 URL 반환
-    return newUrl;
-};
-
-// 이미지 삭제 
+// 이미지 삭제
 export const delImage = async (url: string) => {
     await assertAdmin();
     try {

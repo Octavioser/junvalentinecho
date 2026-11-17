@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, Fragment } from "react";
 import MainImageRatio from "./MainImageRatio";
 
 const MIN_SCALE = 0.5;
-const MAX_SCALE = 5;
+export const MAX_SCALE = 5;
 const PINCH_SPEED = 0.012;   // 휠 값 1당 확대 배율(지수). 트랙패드 핀치는 작은 값이 여러 번 옴
 const MAX_WHEEL_STEP = 25;   // 마우스 휠 한 칸(100)이 한 번에 너무 크게 확대되지 않게
 
@@ -82,11 +82,12 @@ const RatioUpdater = ({ setScale, contentRef }: { setScale: (scale: number) => v
     return null;
 };
 
-const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, winSize = 1000, alwaysShowRatio = false, isAdmin = false }: {
+const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, onScaleChange, winSize = 1000, alwaysShowRatio = false, isAdmin = false }: {
     children: React.ReactNode;
     onMouseMove?: ((e: React.MouseEvent<HTMLDivElement>) => void) | null | undefined;
     onMouseUp?: (() => void) | null | undefined;
     onMouseLeave?: (() => void) | null | undefined;
+    onScaleChange?: (scale: number) => void; // 확대 배율이 바뀔 때 (확대하면 더 큰 그림을 받게 하는 용도)
     isAdmin?: boolean;
     winSize?: number;
     alwaysShowRatio?: boolean;
@@ -121,7 +122,7 @@ const MainImagePosterCard = ({ children, onMouseMove, onMouseUp, onMouseLeave, w
                         doubleClick={{ disabled: true }}
                     >
                         <>
-                            <RatioUpdater setScale={setScale} contentRef={contentRef} />
+                            <RatioUpdater setScale={(next) => { setScale(next); onScaleChange?.(next); }} contentRef={contentRef} />
                             <TransformComponent
                                 wrapperStyle={{ width: '100%', height: '100%' }}
                                 contentStyle={{ width: '100%', height: '100%' }}

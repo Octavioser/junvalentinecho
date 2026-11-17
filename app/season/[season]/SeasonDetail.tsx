@@ -1,7 +1,9 @@
 "use client";
 import React, { useState, useEffect, Fragment } from 'react';
 import styles from "./Season.module.css";
+import Image from "next/image";
 import { useArtworks } from "@/providers/ArtworksProvider";
+import { ARTWORK_QUALITY } from "@/common/image";
 
 
 const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
@@ -50,17 +52,21 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
                     {id === showId &&
                         <>
                             <div className={rightDetail} >
-                                <img
-
+                                {/* 원본 대신 화면 크기에 맞춘 사본을 받음. 칸(너비 100%, 높이 80%) 안에서 비율을 지키며 아래쪽에 맞춤 */}
+                                <Image
                                     style={{
-                                        display: 'flex',
-                                        maxWidth: '100%', /* 부모 너비를 초과하지 않도록 */
-                                        maxHeight: '80%', /* 부모 높이를 초과하지 않도록 */
-                                        objectFit: 'contain', /* 비율을 유지하면서 부모 안에 맞춤 */
+                                        width: '100%',
+                                        height: '80%',
+                                        objectFit: 'contain',
+                                        objectPosition: 'bottom',
                                         userSelect: 'none'
                                     }}
                                     src={poster_path}
                                     alt={title}
+                                    width={0}
+                                    height={0}
+                                    sizes="56vw"
+                                    quality={ARTWORK_QUALITY}
                                     draggable={false}
                                     onContextMenu={e => e.preventDefault()}
                                 />

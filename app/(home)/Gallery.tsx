@@ -2,15 +2,21 @@
 
 import styles from "./home.module.css";
 import { use, useEffect, useRef, useState, RefObject } from "react";
-import MainImagePosterCard from "../components/MainImage/MainImagePosterCard";
+import MainImagePosterCard, { MAX_SCALE } from "../components/MainImage/MainImagePosterCard";
 import ImageStyle from "../components/MainImage/MainImage.module.css";
 import { Artwork } from "@/types";
 import Link from "next/link";
 import Image from "next/image";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { formatSize } from "@/common/format";
+import { ARTWORK_QUALITY } from "@/common/image";
 
 import MainImgDialog from "./(mainImgDailog)/MainImgDialog";
+
+const CARD_VMIN = 80 / 1.3; // 카드 한 변의 화면 길이(vmin). home.module.css의 posterCardFrame(너비 80vmin, 1.3:1)에서 나옴
+
+// 확대 배율에 필요한 그림 크기 단계 (1 → 2 → 4 → 최대 배율). 조금이라도 확대하면 다음 단계의 큰 그림을 받음
+const zoomLevel = (scale: number) => scale <= 1 ? 1 : Math.min(MAX_SCALE, Math.pow(2, Math.ceil(Math.log2(scale))));
 
 const Gallery = () => {
     const { artworks } = useArtworks();
@@ -24,6 +30,9 @@ const Gallery = () => {
     const [displayGroupList, setDisplayGroupList] = useState<{ [x: string]: Artwork[]; }>({});
 
     const [dialogImageId, setDialogImageId] = useState<string | null>(null);
+
+    // 카드별로 지금까지 확대해 본 최대 단계. 확대하면 그 크기에 맞는 더 큰 그림을 받아서 선명하게 보임 (다시 줄여도 큰 그림 유지)
+    const [zoomLevels, setZoomLevels] = useState<{ [groupId: string]: number; }>({});
 
     // 옵저버로 확대 대상 이미지 선정하기
     useEffect(() => {
@@ -138,14 +147,21 @@ const Gallery = () => {
                     <div key={item.id} className={posterTrack}>
                         <div className={posterCardFrame} ref={(el) => { if (el) cardFrame.current.push(el); }} data-groupid={item.id}>
                             <div style={{ width: '100%', aspectRatio: 1 / 1 }}>
-                                <MainImagePosterCard winSize={(displayGroupList[item.galleryId!] || [])[0].groupWinSize || 1000} alwaysShowRatio={true}>
+                                <MainImagePosterCard winSize={(displayGroupList[item.galleryId!] || [])[0].groupWinSize || 1000} alwaysShowRatio={true}
+                                    onScaleChange={(scale) => {
+                                        const level = zoomLevel(scale);
+                                        setZoomLevels(prev => (prev[item.id] ?? 1) >= level ? prev : { ...prev, [item.id]: level });
+                                    }}
+                                >
                                     {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season, groupWinSize }, index) => {
                                         const winSize = groupWinSize || 1000;
                                         return (
                                             <Image
                                                 width={0}
                                                 height={0}
-                                                sizes="33vw"
+                                                // 그림이 화면에서 실제로 차지하는 너비 (카드 대비 비율 x 카드 크기 x 확대 단계)에 맞는 사본을 받음
+                                                sizes={`${((width / winSize) * CARD_VMIN * (zoomLevels[item.id] ?? 1)).toFixed(1)}vmin`}
+                                                quality={ARTWORK_QUALITY}
                                                 key={`image${id}`}
                                                 className={ImageStyle.metalFrame}
                                                 style={{ top: `${top}%`, width: `${(width / winSize) * 100}%`, height: 'auto', left: `${left}%`, zIndex: zIndex ?? undefined, cursor: 'pointer', userSelect: 'none', pointerEvents: 'auto' }}

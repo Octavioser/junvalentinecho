@@ -2,7 +2,9 @@
 import styles from "../ArtAddDialog.module.css";
 import React, { useEffect, useState } from "react";
 import { Artwork } from "@/types";
-import { uploadImage, addArtwork, updateArtwork } from "@/common/comon";
+import { addArtwork, updateArtwork, delImage } from "@/common/comon";
+import { IMAGE_TYPES, IMAGE_MAX_BYTES, IMAGE_MAX_PIXELS, imagePath } from "@/common/image";
+import { upload } from '@vercel/blob/client';
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { snackbar } from "@/components/Snackbar/Snackbar";
@@ -22,8 +24,26 @@ type FormState = {
 
 type Errors = Partial<Record<keyof FormState | 'image', string>>;
 
-// 최대 허용 크기: 1 MB
-const MAX_SIZE = 1 * 1024 * 1024;
+const MAX_MB = IMAGE_MAX_BYTES / 1024 / 1024;
+
+// 그림의 가로·세로 픽셀 수 (열 수 없는 파일이면 null)
+const readImageSize = (url: string) => new Promise<{ width: number; height: number; } | null>((resolve) => {
+    const img = document.createElement('img');
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => resolve(null);
+    img.src = url;
+});
+
+// 브라우저에서 저장소로 바로 올림 (서버를 거치지 않아 요청 크기 제한에 걸리지 않음). 올라간 파일의 주소를 돌려줌
+const uploadImage = async (file: File, title: string) => {
+    const { url } = await upload(imagePath(title, file.type), file, {
+        access: 'public',
+        contentType: file.type,
+        handleUploadUrl: '/api/image/upload-token',
+        multipart: true,
+    });
+    return url;
+};
 
 // 라벨 + 입력칸 + (오류 또는 안내) 한 칸
 const Field = ({ label, required, hint, error, children }: { label: string; required?: boolean; hint?: string; error?: string; children: React.ReactNode; }) => (
@@ -79,23 +99,27 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
         setErrors(prev => ({ ...prev, [name]: undefined }));
     };
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         e.target.value = ''; // 같은 파일을 다시 골라도 다시 검사
         if (!file) return;
+        const reject = (image: string) => setErrors(prev => ({ ...prev, image }));
 
-        // 확장자와 MIME 타입 둘 다 WebP
-        if (!(/\.webp$/i.test(file.name) && file.type === 'image/webp')) {
-            setErrors(prev => ({ ...prev, image: 'WebP 파일만 올릴 수 있어요.' }));
-            return;
-        }
-        if (file.size > MAX_SIZE) {
-            setErrors(prev => ({ ...prev, image: `파일이 ${MAX_SIZE / 1024 / 1024}MB보다 커요. (지금 ${(file.size / 1024 / 1024).toFixed(1)}MB)` }));
-            return;
+        if (!IMAGE_TYPES[file.type]) return reject('JPEG, PNG, WebP, AVIF 파일만 올릴 수 있어요.');
+        if (file.size > IMAGE_MAX_BYTES) return reject(`파일이 ${MAX_MB}MB보다 커요. (지금 ${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+
+        // 가로·세로가 너무 크면 화면용으로 줄인 사본을 만들 수 없어서 그림이 안 보임
+        const url = URL.createObjectURL(file);
+        const size = await readImageSize(url);
+        if (!size || Math.max(size.width, size.height) > IMAGE_MAX_PIXELS) {
+            URL.revokeObjectURL(url);
+            return reject(size
+                ? `가로·세로가 ${IMAGE_MAX_PIXELS}px 이하여야 해요. (지금 ${size.width} x ${size.height}px)`
+                : '이미지를 열 수 없어요. 파일을 확인해주세요.');
         }
 
         setErrors(prev => ({ ...prev, image: undefined }));
-        setForm(prev => ({ ...prev, poster_path: URL.createObjectURL(file) }));
+        setForm(prev => ({ ...prev, poster_path: url }));
         setInputFile(file);
     };
 
@@ -123,6 +147,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
             snackbar.error('입력값을 확인해주세요.');
             return;
         }
+        let uploadedUrl: string | null = null; // 이번에 새로 올린 그림 (정보 저장이 실패하면 다시 지움)
         try {
             const { id, season, year, title, material, location, width, height, overview, poster_path } = form;
             setIsLoading(true);
@@ -135,7 +160,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
             })();
 
             if (openDialog === 'add' && inputFile) {
-                const url = await uploadImage(inputFile, title.trim());
+                const url = uploadedUrl = await uploadImage(inputFile, title.trim());
                 await addArtwork(artworks, {
                     id, // 영화 ID
                     poster_path: url, // 이미지 경로
@@ -158,9 +183,9 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                 });
             }
             else if (openDialog === 'mod') {
-                const url = inputFile ? await uploadImage(inputFile, title.trim()) : poster_path;
                 const orginArtwork = artworks.find((artwork: Artwork) => artwork.id === selectedArtworkId);
                 if (!orginArtwork) throw new Error("Artwork not found");
+                const url = inputFile ? (uploadedUrl = await uploadImage(inputFile, title.trim())) : poster_path;
 
                 await updateArtwork(artworks, {
                     ...orginArtwork,
@@ -176,7 +201,14 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     height: Number(height), // 높이 (CSS 관련 값)
                     updateDt: kst,
                 });
+
+                // 그림 파일을 바꿨으면 이전 파일은 지움 (그냥 두면 큰 원본이 저장 공간만 차지). 못 지워도 저장은 된 것
+                if (uploadedUrl) {
+                    uploadedUrl = null;
+                    await delImage(orginArtwork.poster_path).catch(() => { });
+                }
             }
+            uploadedUrl = null; // 저장까지 끝났으니 올린 그림은 그대로 둠
 
             // 실제 저장 로직
             snackbar.success('저장되었습니다.');
@@ -184,6 +216,8 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
             router.refresh(); // 페이지 새로고침
         } catch (error) {
             console.log(error);
+            // 그림만 올라가고 정보 저장이 실패했으면 올린 파일은 다시 지움
+            if (uploadedUrl) await delImage(uploadedUrl).catch(() => { });
             snackbar.error('저장에 실패했습니다.');
         } finally {
             setIsLoading(false);
@@ -265,11 +299,11 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     </div>
                     <label className={fileButton}>
                         {formPoster_path ? '이미지 바꾸기' : '이미지 선택'}
-                        <input type="file" accept="image/webp,.webp" onChange={handleImageChange} />
+                        <input type="file" accept={Object.keys(IMAGE_TYPES).join(',')} onChange={handleImageChange} />
                     </label>
                     {errors.image
                         ? <div className={errorText}>{errors.image}</div>
-                        : <div className={hint}>WebP 파일, 최대 {MAX_SIZE / 1024 / 1024}MB{openDialog === 'add' ? ' (필수)' : ''}</div>
+                        : <div className={hint}>JPEG·PNG·WebP·AVIF, 최대 {MAX_MB}MB, 가로·세로 {IMAGE_MAX_PIXELS}px 이하{openDialog === 'add' ? ' (필수)' : ''}</div>
                     }
                 </div>
             </div>
