@@ -3,27 +3,44 @@ import React from "react";
 import { Artwork, MusicBlob } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { formatSizeNumbers } from "@/common/format";
+import { visualList } from "@/common/order";
 
-const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId }: { tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: (id: string | null) => void; }) => {
+const ARTWORK_COLUMNS = [
+    { name: 'season', header: '시즌', type: 'string' },
+    { name: 'id', header: 'ID', type: 'string' },
+    { name: 'title', header: '제목', type: 'string' },
+    { name: 'size', header: '세로 x 가로(cm)', type: 'number' },
+    { name: 'overview', header: '설명', type: 'string' }
+];
 
+// onReorderGroups·onReorderVisual: 표에서 줄을 끌어 순서를 바꿨을 때 (from 자리의 줄을 to 자리로)
+const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId, onReorderGroups, onReorderVisual }: {
+    tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: (id: string | null) => void;
+    onReorderGroups: (from: number, to: number) => void; onReorderVisual: (from: number, to: number) => void;
+}) => {
 
-    const grid13Data = artworks.map(e => ({ ...e, size: formatSizeNumbers(e.width, e.height) }));
+    const withSize = (list: Artwork[]) => list.map(e => ({ ...e, size: formatSizeNumbers(e.width, e.height) }));
 
     return (
         <div style={{ boxSizing: 'border-box', width: '100%', flex: 1, padding: 'var(--sp)' }}>
-            {['1', '3'].includes(tab) &&
+            {tab === '1' &&
                 <GridComponents
-                    columnList={[
-                        { name: 'season', header: '시즌', type: 'string' },
-                        { name: 'id', header: 'ID', type: 'string' },
-                        { name: 'title', header: '제목', type: 'string' },
-                        { name: 'size', header: '세로 x 가로(cm)', type: 'number' },
-                        { name: 'overview', header: '설명', type: 'string' }
-                    ]}
-                    gridData={tab === '1' ? grid13Data : grid13Data.filter(({ visualYn }) => visualYn === 'Y')}
+                    columnList={ARTWORK_COLUMNS}
+                    gridData={withSize(artworks)}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
-                    emptyText={tab === '1' ? '등록된 그림이 없어요. 추가 버튼으로 올려주세요.' : '2D 표시에 넣은 그림이 없어요.'}
+                    emptyText="등록된 그림이 없어요. 추가 버튼으로 올려주세요."
+                />
+            }
+            {tab === '3' &&
+                <GridComponents
+                    columnList={ARTWORK_COLUMNS}
+                    // 2D 화면에 보이는 순서 그대로 (끌어서 바꿀 수 있음)
+                    gridData={withSize(visualList(artworks))}
+                    selectedArtworkId={selectedArtworkId}
+                    setSelectedArtworkId={setSelectedArtworkId}
+                    emptyText="2D 표시에 넣은 그림이 없어요."
+                    onReorder={onReorderVisual}
                 />
             }
             {tab === '2' &&
@@ -34,6 +51,7 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                         { name: 'title', header: '제목', type: 'string' },
                         { name: 'groupWinSize', header: '전시창 크기(cm)', type: 'string' },
                     ]}
+                    // 그룹마다 한 줄, 홈 화면에 나오는 순서(그룹 번호 순)대로 (끌어서 바꿀 수 있음)
                     gridData={(artworks.filter(({ galleryId }) => galleryId)).reduce((acc: Artwork[], curr: Artwork) => {
                         const existingGroup = acc.find((item) => item.galleryId === curr.galleryId);
                         if (existingGroup) return [
@@ -45,6 +63,7 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
                     emptyText="메인 전시장에 올린 그룹이 없어요."
+                    onReorder={onReorderGroups}
                 />
             }
             {tab === '4' &&

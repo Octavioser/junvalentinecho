@@ -12,6 +12,7 @@ export interface Artwork {
     galleryId: number | null; // 갤러리 ID
     groupWinSize: number | null; // 전시창 크기 (cm)
     visualYn: string | null; // 비주얼 ID
+    visualOrder?: number | null; // 2D 표시 순서 (없으면 등록한 순서대로 뒤에)
     width: number; // 실제 길이
     height: number; // 실제높이
 

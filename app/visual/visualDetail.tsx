@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { ARTWORK_QUALITY } from "@/common/image";
+import { visualList } from "@/common/order";
 
 
 const VisualDetail = () => {
     const router = useRouter();
 
-    const Artwork = (useArtworks().artworks || []).filter(({ visualYn }) => visualYn === 'Y');
+    // 2D 표시에 넣은 그림을 관리자에서 정한 순서대로
+    const Artwork = visualList(useArtworks().artworks || []);
 
     const [showId, setShowId] = useState<String | null>(null);
 
