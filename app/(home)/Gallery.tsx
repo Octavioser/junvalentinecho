@@ -14,6 +14,7 @@ import { ARTWORK_QUALITY } from "@/common/image";
 import MainImgDialog from "./(mainImgDailog)/MainImgDialog";
 
 const CARD_VMIN = 80 / 1.3; // 카드 한 변의 화면 길이(vmin). home.module.css의 posterCardFrame(너비 80vmin, 1.3:1)에서 나옴
+const CLICK_SLOP = 8;       // 누른 뒤 이보다 많이 움직였으면 클릭이 아니라 끌기로 봄 (px)
 
 // 확대 배율에 필요한 그림 크기 단계 (1 → 2 → 4 → 최대 배율). 조금이라도 확대하면 다음 단계의 큰 그림을 받음
 const zoomLevel = (scale: number) => scale <= 1 ? 1 : Math.min(MAX_SCALE, Math.pow(2, Math.ceil(Math.log2(scale))));
@@ -30,6 +31,7 @@ const Gallery = () => {
     const [displayGroupList, setDisplayGroupList] = useState<{ [x: string]: Artwork[]; }>({});
 
     const [dialogImageId, setDialogImageId] = useState<string | null>(null);
+    const pressStart = useRef<{ x: number; y: number; } | null>(null); // 그림을 누르기 시작한 자리 (끌기와 클릭 구분용)
 
     // 카드별로 지금까지 확대해 본 최대 단계. 확대하면 그 크기에 맞는 더 큰 그림을 받아서 선명하게 보임 (다시 줄여도 큰 그림 유지)
     const [zoomLevels, setZoomLevels] = useState<{ [groupId: string]: number; }>({});
@@ -169,7 +171,11 @@ const Gallery = () => {
                                                 alt={title}
                                                 draggable={false}
                                                 onContextMenu={e => e.preventDefault()}
-                                                onClick={() => {
+                                                onPointerDown={(e) => { pressStart.current = { x: e.clientX, y: e.clientY }; }}
+                                                onClick={(e) => {
+                                                    // 그림 위에서 끌어서 옮긴 뒤 손을 떼도 클릭이 생기므로, 누른 자리에서 거의 안 움직였을 때만 상세창을 엶
+                                                    const start = pressStart.current;
+                                                    if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > CLICK_SLOP) return;
                                                     setDialogImageId(id);
                                                 }}
                                             />
