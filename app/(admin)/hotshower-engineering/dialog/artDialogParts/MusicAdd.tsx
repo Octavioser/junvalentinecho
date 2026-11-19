@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MusicBlob } from "@/types";
 import { upload } from '@vercel/blob/client';
+import { refreshMusicList } from "@/common/comon";
 import { snackbar } from "@/components/Snackbar/Snackbar";
 import styles from "../ArtAddDialog.module.css";
 
@@ -67,6 +68,7 @@ const MusicAdd = ({ musicList, setOpenDialog, setIsLoading }:
                                 clientPayload: JSON.stringify({ kind: 'music' }),
                             });
                             if (!blob?.url) throw new Error('Upload succeeded but no URL returned');
+                            await refreshMusicList(); // 공개 화면의 음악 목록 캐시를 비움
 
                             setOpenDialog(null);
                             snackbar.success('음악이 추가되었습니다.');
