@@ -178,13 +178,16 @@ const Gallery = () => {
                                 </MainImagePosterCard>
                             </div>
                             <div className={posterCardExplainContainer}>
-                                {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, width, height, material }, index) =>
-                                    <div key={`explain${index}`} className={posterCardExplain}>
-                                        <span style={{ whiteSpace: 'normal', fontWeight: '600', fontStyle: 'italic' }}>{title}</span>
-                                        <span>{formatSize(width, height)}</span>
-                                        <span>{material}</span>
-                                    </div>
-                                )}
+                                {/* 설명은 카드에서 위에 걸린 그림부터 (높이가 같으면 왼쪽 그림부터). 그림 목록 자체의 순서는 겹침 순서라 그대로 둠 */}
+                                {[...(item.galleryId && displayGroupList[item.galleryId] || [])]
+                                    .sort((a, b) => ((a.top ?? 0) - (b.top ?? 0)) || ((a.left ?? 0) - (b.left ?? 0)))
+                                    .map(({ title, width, height, material }, index) =>
+                                        <div key={`explain${index}`} className={posterCardExplain}>
+                                            <span style={{ whiteSpace: 'normal', fontWeight: '600', fontStyle: 'italic' }}>{title}</span>
+                                            <span>{formatSize(width, height)}</span>
+                                            <span>{material}</span>
+                                        </div>
+                                    )}
                             </div>
                         </div>
 
