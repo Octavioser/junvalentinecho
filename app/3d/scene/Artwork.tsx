@@ -5,6 +5,7 @@ import { HANG, ROOM, WallItem } from "../wallLayout";
 import { captionTexture, lightPoolTexture, shadowTexture } from "./canvasTextures";
 import { MoveInput } from "./input";
 import { useImageTexture } from "./useImageTexture";
+import { hasTransparency } from "@/common/image";
 
 const FRAME = 0.004;         // 메탈 프레임 테두리
 const FRAME_COLOR = '#b9bdc4';
@@ -35,7 +36,13 @@ export default function ArtworkPiece({ item, input }: { item: WallItem; input: M
     const height = image ? width * image.naturalHeight / image.naturalWidth : 0;
     const y = Math.max(HANG.centerY, height / 2 + HANG.minBottom);
 
-    const shadow = useMemo(() => height ? shadowTexture(width + FRAME * 2, height + FRAME * 2, 0.025) : null, [width, height]);
+    // 배경을 잘라낸 그림(투명한 곳이 있는 그림)은 네모난 액자 없이 그림 모양대로 걸고, 그림자도 그 모양을 따름
+    const cutout = useMemo(() => !!image && hasTransparency(image), [image]);
+
+    const shadow = useMemo(() => {
+        if (!height) return null;
+        return cutout ? shadowTexture(width, height, 0.025, image) : shadowTexture(width + FRAME * 2, height + FRAME * 2, 0.025);
+    }, [width, height, cutout, image]);
     useEffect(() => () => shadow?.texture.dispose(), [shadow]);
 
     const [caption, setCaption] = useState<{ texture: Texture; width: number; height: number; } | null>(null);
@@ -81,18 +88,22 @@ export default function ArtworkPiece({ item, input }: { item: WallItem; input: M
                 </mesh>
             )}
             {/* 4mm 테두리라 조명 계산 없이 밝은 금속색만 칠함 (조명 재질은 셰이더 컴파일이 무거워 첫 화면이 멈춤) */}
-            <mesh position={[0, 0, DEPTH / 2]}>
-                <boxGeometry args={[width + FRAME * 2, height + FRAME * 2, DEPTH]} />
-                <meshBasicMaterial color={FRAME_COLOR} />
-            </mesh>
+            {!cutout && (
+                <mesh position={[0, 0, DEPTH / 2]}>
+                    <boxGeometry args={[width + FRAME * 2, height + FRAME * 2, DEPTH]} />
+                    <meshBasicMaterial color={FRAME_COLOR} />
+                </mesh>
+            )}
+            {/* 잘라낸 그림은 투명한 곳으로 벽과 그림자가 비쳐야 하므로 빛 웅덩이·그림자·캡션(1~3)보다 나중에 그림 */}
             <mesh
                 position={[0, 0, DEPTH + 0.002]}
+                renderOrder={cutout ? 4 : 0}
                 onClick={pick}
                 onPointerOver={() => setCursor('pointer')}
                 onPointerOut={() => setCursor('')}
             >
                 <planeGeometry args={[width, height]} />
-                <meshBasicMaterial map={texture} color={ARTWORK_TINT} />
+                <meshBasicMaterial map={texture} color={ARTWORK_TINT} transparent={cutout} />
             </mesh>
             {caption && (
                 <mesh position={[width / 2 + FRAME + CAPTION_GAP + caption.width / 2, CAPTION_Y - y, 0.003]} renderOrder={3}>

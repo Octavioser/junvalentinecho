@@ -139,18 +139,20 @@ export function lightPoolTexture() {
     return texture;
 }
 
-// 그림 뒤 벽에 떨어지는 부드러운 그림자. 반환 크기(m)만큼의 판에 붙임
-export function shadowTexture(width: number, height: number, blur: number) {
+// 그림 뒤 벽에 떨어지는 부드러운 그림자. 반환 크기(m)만큼의 판에 붙임.
+// shape(배경을 잘라낸 그림)을 주면 네모 대신 그 그림 모양대로 그림자가 짐
+export function shadowTexture(width: number, height: number, blur: number, shape?: CanvasImageSource) {
     const pad = blur * 2;
     const planeW = width + pad * 2, planeH = height + pad * 2;
     const pxPerM = Math.min(600, 512 / Math.max(planeW, planeH));
     const cw = Math.ceil(planeW * pxPerM), ch = Math.ceil(planeH * pxPerM);
     const { canvas, ctx } = makeCanvas(cw, ch);
-    // 사각형은 캔버스 밖에 그리고 그림자만 안으로 들여옴
+    // 모양은 캔버스 밖에 그리고 그림자만 안으로 들여옴
     ctx.shadowColor = 'rgba(40, 48, 60, 1)';
     ctx.shadowBlur = blur * pxPerM;
     ctx.shadowOffsetX = cw * 2;
-    ctx.fillRect(pad * pxPerM - cw * 2, pad * pxPerM, width * pxPerM, height * pxPerM);
+    if (shape) ctx.drawImage(shape, pad * pxPerM - cw * 2, pad * pxPerM, width * pxPerM, height * pxPerM);
+    else ctx.fillRect(pad * pxPerM - cw * 2, pad * pxPerM, width * pxPerM, height * pxPerM);
 
     const texture = new CanvasTexture(canvas);
     texture.colorSpace = SRGBColorSpace;

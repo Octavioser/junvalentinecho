@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import ImageStyle from "../../../components/MainImage/MainImage.module.css";
-import Image from "next/image";
+import FramedImage from "../../../components/MainImage/FramedImage";
 import { Artwork } from "@/types";
 
 
@@ -83,11 +82,10 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
     };
 
     return (
-        <Image
+        <FramedImage
             width={0}
             height={0}
             sizes="33vw"
-            className={ImageStyle.metalFrame}
             ref={imgRef}
             style={{ top: `${top ?? 0}%`, width: `${(width / (groupWinSize || 1000)) * 100}%`, height: 'auto', left: `${left ?? 0}%`, zIndex: zIndex ?? undefined }}
             src={poster_path}

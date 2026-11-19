@@ -3,10 +3,9 @@
 import styles from "./home.module.css";
 import { use, useEffect, useRef, useState, RefObject } from "react";
 import MainImagePosterCard, { MAX_SCALE } from "../components/MainImage/MainImagePosterCard";
-import ImageStyle from "../components/MainImage/MainImage.module.css";
+import FramedImage from "../components/MainImage/FramedImage";
 import { Artwork } from "@/types";
 import Link from "next/link";
-import Image from "next/image";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { formatSize } from "@/common/format";
 import { ARTWORK_QUALITY } from "@/common/image";
@@ -158,14 +157,13 @@ const Gallery = () => {
                                     {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season, groupWinSize }, index) => {
                                         const winSize = groupWinSize || 1000;
                                         return (
-                                            <Image
+                                            <FramedImage
                                                 width={0}
                                                 height={0}
                                                 // 그림이 화면에서 실제로 차지하는 너비 (카드 대비 비율 x 카드 크기 x 확대 단계)에 맞는 사본을 받음
                                                 sizes={`${((width / winSize) * CARD_VMIN * (zoomLevels[item.id] ?? 1)).toFixed(1)}vmin`}
                                                 quality={ARTWORK_QUALITY}
                                                 key={`image${id}`}
-                                                className={ImageStyle.metalFrame}
                                                 style={{ top: `${top}%`, width: `${(width / winSize) * 100}%`, height: 'auto', left: `${left}%`, zIndex: zIndex ?? undefined, cursor: 'pointer', userSelect: 'none', pointerEvents: 'auto' }}
                                                 src={poster_path}
                                                 alt={title}

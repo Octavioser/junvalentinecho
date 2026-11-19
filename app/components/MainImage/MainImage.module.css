@@ -53,3 +53,14 @@
     object-position: center;
     box-sizing: border-box;
 }
+
+/* 배경을 잘라낸 그림 (투명한 곳이 있는 그림): 네모난 액자를 빼고, 그림 모양을 따라 같은 방향·세기의 그림자만 줌 */
+.metalFrame.cutout {
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    filter:
+        drop-shadow(calc(1.5px * var(--inverse-scale, 1)) calc(1.5px * var(--inverse-scale, 1)) calc(1.5px * var(--inverse-scale, 1)) rgba(40, 48, 60, 0.18))
+        drop-shadow(calc(-0.5px * var(--inverse-scale, 1)) calc(-0.5px * var(--inverse-scale, 1)) calc(0.5px * var(--inverse-scale, 1)) rgba(40, 48, 60, 0.05));
+}

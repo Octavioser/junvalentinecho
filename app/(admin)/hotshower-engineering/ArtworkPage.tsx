@@ -4,13 +4,12 @@ import ArtworkDisplayPanel from './artwork-display/ArtworkDisplayPanel';
 import ArtworkInfoForm from './artwork-info/ArtworkInfoForm';
 import { Artwork, MusicBlob } from "@/types";
 import ArtAddDialog from "./dialog/ArtAddDialog";
-import Image from "next/image";
 import styles from "./ArtworkPage.module.css";
 import MainImagePosterCard from "@/components/MainImage/MainImagePosterCard";
 import { useRouter } from "next/navigation";
 import { delArtwork, delImage, updateAllArtwork, updateArtwork, delMusic } from "@/common/comon";
 import ShowLoading from "./loading/ShowLoading";
-import ImageStyles from "@/components/MainImage/MainImage.module.css";
+import FramedImage from "@/components/MainImage/FramedImage";
 import { snackbar, SnackbarHost } from "@/components/Snackbar/Snackbar";
 import { confirmDialog, ConfirmHost } from "@/components/Confirm/ConfirmDialog";
 import { applyGroupOrder, applyVisualOrder, groupIds, moveItem, visualList } from "@/common/order";
@@ -313,12 +312,11 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                 <MainImagePosterCard isAdmin={true}>
                                     {/* 카드 크기 기준으로 맞춰서 세로로 긴 그림도 카드 밖으로 나가지 않게 (너비 50%, 높이 80% 안) */}
                                     <div style={{ position: 'absolute', inset: 0, containerType: 'size', '--ratio': previewRatio ?? 1 } as React.CSSProperties}>
-                                        <Image
+                                        <FramedImage
                                             key={selectedArtwork.poster_path}
                                             width={0}
                                             height={0}
                                             sizes="50vw"
-                                            className={ImageStyles.metalFrame}
                                             src={selectedArtwork.poster_path}
                                             alt={selectedArtwork.title}
                                             onLoad={(e) => setPreview({ src: selectedArtwork.poster_path, ratio: e.currentTarget.naturalWidth / e.currentTarget.naturalHeight })}
