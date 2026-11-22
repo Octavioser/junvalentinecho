@@ -13,11 +13,11 @@ const ARTWORK_COLUMNS = [
     { name: 'overview', header: '설명', type: 'string' }
 ];
 
-// onReorderGroups·onReorderVisual: 표에서 줄을 끌어 순서를 바꿨을 때 (from 자리의 줄을 to 자리로)
+// onReorderGroups·onReorderVisual·onReorderMusic: 표에서 줄을 끌어 순서를 바꿨을 때 (from 자리의 줄을 to 자리로)
 // groupReorderLocked: 그룹 순서를 지금 바꿀 수 없는 이유 (없으면 바꿀 수 있음). 잠긴 손잡이를 누르면 onGroupReorderLockedAttempt
-const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId, onReorderGroups, onReorderVisual, groupReorderLocked, onGroupReorderLockedAttempt }: {
+const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId, onReorderGroups, onReorderVisual, onReorderMusic, groupReorderLocked, onGroupReorderLockedAttempt }: {
     tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: (id: string | null) => void;
-    onReorderGroups: (from: number, to: number) => void; onReorderVisual: (from: number, to: number) => void;
+    onReorderGroups: (from: number, to: number) => void; onReorderVisual: (from: number, to: number) => void; onReorderMusic: (from: number, to: number) => void;
     groupReorderLocked?: string; onGroupReorderLockedAttempt?: () => void;
 }) => {
 
@@ -78,10 +78,12 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                         { name: 'title', header: '제목', type: 'string' },
                         { name: 'uploadedAt', header: '올린 날짜', type: 'string' },
                     ]}
+                    // 홈 화면 플레이어에 나오는 순서 그대로: 맨 위 곡부터 재생됨 (끌어서 바꿀 수 있음)
                     gridData={musicList}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
                     emptyText="등록된 음악이 없어요."
+                    onReorder={onReorderMusic}
                 />
             }
         </div>

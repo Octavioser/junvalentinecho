@@ -165,12 +165,22 @@ export const delArtwork = async (artwork: Artwork[], id: string): Promise<void> 
 };
 
 
-// 음악 목록 (저장소 목록 조회 1번)
-const listMusic = async (): Promise<MusicBlob[]> => {
-    // 해당 경로 파일들 가져오기 
-    const { blobs } = await list({ prefix: "music/" });
+/**
+ * ✅ 음악 순서
+ * - 관리자가 정한 순서는 음악 파일과 같은 폴더에 작은 파일(music/order-시각.json)로 둡니다. 내용은 음악 파일 경로를 순서대로 늘어놓은 것.
+ *   같은 폴더라서 목록 조회 한 번으로 음악과 순서 파일을 같이 찾습니다 (조회 횟수가 늘지 않음).
+ * - 그림 목록과 같은 이유로 저장할 때마다 새 이름으로 올리고 옛 파일을 지웁니다 (같은 주소를 덮어쓰면 옛 내용이 잠시 보임).
+ * - 순서 파일에 없는 음악(순서를 정한 뒤 새로 올린 곡)은 뒤에 붙습니다.
+ */
+const MUSIC_PREFIX = "music/";
+const MUSIC_ORDER_BASENAME = "order";
 
-    return blobs.filter(blob =>
+// 음악 파일들과 가장 최근 순서 파일의 주소 (저장소 목록 조회 1번). 음악은 저장소가 주는 순서(파일 이름순) 그대로
+const listMusicFiles = async (): Promise<{ tracks: MusicBlob[]; orderUrl: string | null; }> => {
+    // 해당 경로 파일들 가져오기
+    const { blobs } = await list({ prefix: MUSIC_PREFIX });
+
+    const tracks = blobs.filter(blob =>
         blob.pathname.endsWith('.mp3') ||
         blob.pathname.endsWith('.wav')
     ).map((e: any) => ({
@@ -179,19 +189,69 @@ const listMusic = async (): Promise<MusicBlob[]> => {
         id: e.url,
         uploadedAt: e.uploadedAt.toLocaleString()
     }));
+
+    const orders = blobs
+        .filter(blob => blob.pathname.endsWith('.json'))
+        .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+
+    return { tracks, orderUrl: orders[0]?.url ?? null };
 };
 
-const cachedMusicList = unstable_cache(listMusic, ["music-list"], { tags: [MUSIC_TAG], revalidate: LIST_MAX_AGE });
+// 순서 파일 내용 (음악 파일 경로를 순서대로). 못 읽으면 던짐
+const fetchMusicOrder = async (url: string): Promise<string[]> => {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error(`음악 순서 파일을 읽지 못했습니다 (${res.status})`);
+    const order = await res.json();
+    return Array.isArray(order) ? order.filter((pathname) => typeof pathname === 'string') : [];
+};
+
+// 정해 둔 순서대로 세움. 순서 파일에 없는 음악은 원래 순서대로 뒤에 옴
+const sortMusic = (tracks: MusicBlob[], order: string[]) => {
+    const position = new Map(order.map((pathname, index) => [pathname, index]));
+    return tracks
+        .map((track, index) => ({ track, index }))
+        .sort((a, b) => ((position.get(a.track.pathname) ?? Infinity) - (position.get(b.track.pathname) ?? Infinity)) || (a.index - b.index))
+        .map(({ track }) => track);
+};
+
+// 순서 파일을 못 읽어도 음악은 나와야 하므로 그때는 원래 순서로 보여 줌
+const readMusicOrder = async (read: (url: string) => Promise<string[]>, url: string | null) =>
+    url ? await read(url).catch((e) => { console.error(String(e)); return [] as string[]; }) : [];
+
+const cachedMusicFiles = unstable_cache(listMusicFiles, ["music-files"], { tags: [MUSIC_TAG], revalidate: LIST_MAX_AGE });
+// 순서 파일도 저장할 때마다 주소가 새로 생기므로, 읽은 내용은 주소별로 계속 캐시 (읽기에 실패한 결과는 캐시에 남지 않음)
+const cachedMusicOrder = unstable_cache(fetchMusicOrder, ["music-order"]);
 
 // 음악 목록 (공개 화면용: 저장소 조회를 캐시)
 export const getMusicList = async (): Promise<MusicBlob[]> => {
-    return await cachedMusicList();
+    const { tracks, orderUrl } = await cachedMusicFiles();
+    return sortMusic(tracks, await readMusicOrder(cachedMusicOrder, orderUrl));
 };
 
 // 음악 목록 (관리자 화면용: 캐시 없이 저장소에서 바로)
 export const getMusicListFresh = async (): Promise<MusicBlob[]> => {
     await assertAdmin();
-    return await listMusic();
+    const { tracks, orderUrl } = await listMusicFiles();
+    return sortMusic(tracks, await readMusicOrder(fetchMusicOrder, orderUrl));
+};
+
+// 음악 순서 저장 (음악 파일 경로를 새 순서대로)
+export const saveMusicOrder = async (pathnames: string[]): Promise<void> => {
+    await assertAdmin();
+    if (!Array.isArray(pathnames) || !pathnames.every((pathname) => typeof pathname === 'string')) throw new Error("음악 순서가 올바르지 않습니다");
+
+    const { pathname: newPath } = await put(`${MUSIC_PREFIX}${MUSIC_ORDER_BASENAME}-${Date.now()}.json`, JSON.stringify(pathnames), {
+        access: "public",
+        contentType: "application/json",
+    });
+    // 공개 화면이 새 순서 파일을 찾도록 캐시를 바로 비움
+    updateTag(MUSIC_TAG);
+
+    // 방금 올린 것 말고 예전 순서 파일은 지움
+    const { blobs } = await list({ prefix: MUSIC_PREFIX });
+    const oldOrders = blobs.filter(b => b.pathname.endsWith(".json") && b.pathname !== newPath);
+
+    oldOrders.length && await del(oldOrders.map(b => b.pathname));
 };
 
 // 음악 파일은 브라우저에서 저장소로 바로 올리므로, 올린 뒤 이걸 불러서 공개 화면의 음악 목록 캐시를 비움

@@ -7,7 +7,7 @@ import ArtAddDialog from "./dialog/ArtAddDialog";
 import styles from "./ArtworkPage.module.css";
 import MainImagePosterCard from "@/components/MainImage/MainImagePosterCard";
 import { useRouter } from "next/navigation";
-import { delArtwork, delImage, updateAllArtwork, updateArtwork, delMusic } from "@/common/comon";
+import { delArtwork, delImage, updateAllArtwork, updateArtwork, delMusic, saveMusicOrder } from "@/common/comon";
 import ShowLoading from "./loading/ShowLoading";
 import FramedImage from "@/components/MainImage/FramedImage";
 import { snackbar, SnackbarHost } from "@/components/Snackbar/Snackbar";
@@ -34,11 +34,12 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
     const [tab, setTab] = useState<string>('1');
     const [openDialog, setOpenDialog] = useState<"add" | "mod" | null>(null);
 
-    // 표에서 끌어 바꾼 순서 (아직 저장 전). 메인 전시장은 그룹 번호를, 2D 표시는 작품 ID를 새 순서대로 늘어놓은 것
+    // 표에서 끌어 바꾼 순서 (아직 저장 전). 메인 전시장은 그룹 번호를, 2D 표시는 작품 ID를, 음악은 음악 ID를 새 순서대로 늘어놓은 것
     const [groupOrder, setGroupOrder] = useState<number[] | null>(null);
     const [visualOrder, setVisualOrder] = useState<string[] | null>(null);
+    const [musicOrder, setMusicOrder] = useState<string[] | null>(null);
     const unsavedOrder = useRef(false);
-    unsavedOrder.current = !!(groupOrder || visualOrder);
+    unsavedOrder.current = !!(groupOrder || visualOrder || musicOrder);
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -81,12 +82,25 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
         return visualOrder ? applyVisualOrder(grouped, visualOrder) : grouped;
     }, [artworks, groupOrder, visualOrder]);
 
+    // 음악도 마찬가지 (바꾼 순서대로 세운 목록)
+    const orderedMusic = useMemo(
+        () => musicOrder ? musicOrder.flatMap((id) => musicList.find((music) => music.id === id) ?? []) : musicList,
+        [musicList, musicOrder]
+    );
+
+    const sameItems = <T,>(a: T[], b: T[]) => a.length === b.length && a.every((item) => b.includes(item));
+
     // 다른 저장으로 목록이 바뀌었을 때: 그룹·2D 구성이 그대로면 바꾸던 순서를 유지하고, 달라졌으면 버림
     useEffect(() => {
-        const sameItems = <T,>(a: T[], b: T[]) => a.length === b.length && a.every((item) => b.includes(item));
         setGroupOrder((prev) => prev && sameItems(prev, groupIds(artworks)) ? prev : null);
         setVisualOrder((prev) => prev && sameItems(prev, visualList(artworks).map(({ id }) => id)) ? prev : null);
     }, [artworks]);
+
+    // 음악 목록이 새로 왔을 때: 곡 구성이 달라졌거나 바꾸던 순서와 같아졌으면(방금 저장한 순서가 반영됨) 바꾸던 순서를 버림
+    useEffect(() => {
+        const ids = musicList.map(({ id }) => id);
+        setMusicOrder((prev) => prev && sameItems(prev, ids) && !prev.every((id, index) => id === ids[index]) ? prev : null);
+    }, [musicList]);
 
     // 표에서 from 자리의 줄을 to 자리로 옮김. 원래 순서로 돌아오면 바뀐 게 없는 것으로 봄
     const reorder = <T,>(saved: T[], draft: T[] | null, from: number, to: number) => {
@@ -98,13 +112,16 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
         setGroupOrder(reorder(groupIds(artworks), groupOrder, from, to));
     };
     const reorderVisual = (from: number, to: number) => setVisualOrder(reorder(visualList(artworks).map(({ id }) => id), visualOrder, from, to));
+    const reorderMusic = (from: number, to: number) => setMusicOrder(reorder(musicList.map(({ id }) => id), musicOrder, from, to));
 
-    const resetOrder = () => { setGroupOrder(null); setVisualOrder(null); };
+    const resetOrder = () => { setGroupOrder(null); setVisualOrder(null); setMusicOrder(null); };
 
     const saveOrder = async () => {
         setIsLoading(true);
         try {
-            await updateAllArtwork(orderedArtworks);
+            // 순서는 한 번에 한 탭 것만 바꿀 수 있음 (탭을 옮길 때 저장하지 않은 순서를 먼저 정리함). 음악 순서는 그림 목록과 따로 저장
+            if (musicOrder) await saveMusicOrder(orderedMusic.map(({ pathname }) => pathname));
+            else await updateAllArtwork(orderedArtworks);
             resetOrder();
             snackbar.success('순서가 저장되었습니다.');
             router.refresh(); // 페이지 새로고침
@@ -277,7 +294,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
 
                             </>
                         )}
-                        {tab === '4' &&
+                        {tab === '4' && (musicOrder ? orderBar :
                             <>
                                 <button className={addButton} onClick={() => { setOpenDialog('add'); }}>추가</button>
                                 <button className={addButton}
@@ -306,17 +323,18 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                 </button>
 
                             </>
-                        }
+                        )}
                     </div>
 
                     <ArtworkInfoForm
                         tab={tab}
                         artworks={orderedArtworks}
-                        musicList={musicList}
+                        musicList={orderedMusic}
                         selectedArtworkId={selectedArtworkId}
                         setSelectedArtworkId={selectArtwork}
                         onReorderGroups={reorderGroups}
                         onReorderVisual={reorderVisual}
+                        onReorderMusic={reorderMusic}
                         groupReorderLocked={positionsDirty ? SAVE_POSITIONS_FIRST : undefined}
                         onGroupReorderLockedAttempt={() => snackbar.error(SAVE_POSITIONS_FIRST)}
                     />
