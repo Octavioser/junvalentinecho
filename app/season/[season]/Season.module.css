@@ -9,40 +9,90 @@
     box-sizing: border-box;
 }
 
-.leftPanel {
-    display: flex;
-    padding-top: calc(var(--sp) * 6);
-    width: 20%;
-    height: 100%;
-    border-right: 1px solid rgba(230, 230, 230, 0.3);
-    flex-direction: column;
-    overflow-y: auto;
-    box-sizing: border-box;
-    gap: calc(var(--sp) * 4);
-}
-
-.leftBox {
-    display: flex;
-    padding-left: var(--sp);
-    align-items: center;
-    text-overflow: ellipsis;
-}
-
-
-.rightPanel {
-    width: 70%;
+/* 그림과 그 아래 정보. 왼쪽 내비와 오른쪽 목록 칸이 같은 폭이라, 남은 자리의 가운데가 곧 화면 가운데 */
+.detailPanel {
+    flex: 1;
+    min-width: 0;
     margin-left: 5%;
     margin-right: 5%;
     height: 100%;
     display: flex;
     align-items: center;
     flex-direction: column;
+    /* 그림과 그 아래 정보를 한 덩어리로 세로 가운데에 둠 */
+    justify-content: center;
 }
 
-.rightDetail {
+/* 그림 칸. 그림은 이 안에서 비율을 지키며 아래쪽에 맞춰져, 바로 아래 정보와 간격이 일정함 */
+.detailImage {
     width: 80%;
-    height: 60%;
+    height: 48%;
+    flex-shrink: 0;
     justify-content: center;
     display: flex;
     align-items: flex-end;
+}
+
+/* 그림 아래 작품 정보. 갤러리 캡션 관례: "제목(기울임), 연도" / 재료 / 크기, 그 아래에 설명 */
+.caption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-top: calc(var(--sp) * 3);
+    max-width: 80%;
+    text-align: center;
+}
+
+.captionTitle {
+    font-style: italic;
+    font-weight: 600;
+}
+
+/* 설명은 정보 줄과 조금 떼고 옅게 */
+.captionText {
+    margin-top: calc(var(--sp) * 1.5);
+    max-width: 40ch;
+    line-height: 1.5;
+    opacity: 0.6;
+}
+
+/* 제목 목록이 차지하는 자리: 내비와 같은 폭. 세로 화면에서는 내비처럼 0이 되어 그림 자리에 영향을 주지 않음 */
+.listPanel {
+    position: relative;
+    flex: 0 0 var(--nav-width);
+    height: 100%;
+}
+
+/* 실제 목록: 화면 오른쪽 끝에 붙임. 제목이 칸보다 길면 그림 쪽으로 넘어감 (자리를 더 차지하지 않음) */
+.list {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--sp) * 6);
+    /* 폭은 가장 긴 제목에 맞춤 (칸 폭에 맞추면 제목이 낱말마다 줄바꿈됨). 아주 긴 제목만 줄바꿈 */
+    width: max-content;
+    min-width: var(--nav-width);
+    max-width: 40vw;
+    /* 좌우 여백은 내비 글자의 왼쪽 여백과 같게 */
+    padding: calc(var(--sp) * 6) calc(var(--sp) * 2);
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.listItem {
+    text-align: center;
+}
+
+/* 목록을 세로 가운데에 둠. 목록이 화면보다 길면 이 여백이 0이 되어 위에서부터 스크롤됨 */
+.listItem:first-child {
+    margin-top: auto;
+}
+
+.listItem:last-child {
+    margin-bottom: auto;
 }
