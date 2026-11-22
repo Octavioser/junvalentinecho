@@ -22,7 +22,7 @@ export async function POST(request: Request) {
             body,
 
             onBeforeGenerateToken: async (pathname) => {
-                // 관리자만 업로드 토큰 발급 (업로드 완료 알림은 Vercel 서버가 보내서 쿠키가 없으므로 여기서만 확인)
+                // 관리자만 업로드 토큰 발급
                 if (!(await isAdmin())) throw new Error('Unauthorized');
                 if (!pathname.startsWith('images/')) throw new Error('Invalid path');
                 // 형식·크기는 저장소가 이 조건대로 다시 검사함
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
                     cacheControlMaxAge: 60 * 60 * 24 * 365, // 1년(초)
                 };
             },
-            onUploadCompleted: async () => { },
+            // 업로드 완료 알림(onUploadCompleted)은 받지 않음: 올린 뒤 할 일이 없고, 두면 저장소가 올릴 때마다 이 주소를 한 번 더 부름
         });
 
         return NextResponse.json(jsonResponse);

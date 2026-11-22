@@ -19,7 +19,7 @@ export async function POST(request: Request) {
             body,
 
             onBeforeGenerateToken: async (pathname, clientPayload, multipart) => {
-                // 관리자만 업로드 토큰 발급 (업로드 완료 알림은 Vercel 서버가 보내서 쿠키가 없으므로 여기서만 확인)
+                // 관리자만 업로드 토큰 발급
                 if (!(await isAdmin())) throw new Error('Unauthorized');
                 // 업로드 제한/검증
                 return {
@@ -29,10 +29,7 @@ export async function POST(request: Request) {
                     addRandomSuffix: false,
                 };
             },
-            onUploadCompleted: async ({ }: {}) => {
-                // 여기에 blob.url DB 저장
-                // console.log('uploaded:', blob.url, tokenPayload);
-            },
+            // 업로드 완료 알림(onUploadCompleted)은 받지 않음: 올린 뒤 할 일이 없고, 두면 저장소가 올릴 때마다 이 주소를 한 번 더 부름
         });
 
         // ✅ 성공 분기에서도 return
