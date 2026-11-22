@@ -1,7 +1,7 @@
 'use server';
 import { Artwork, MusicBlob } from "@/types";
 import { put, del, head, list } from '@vercel/blob';
-import { revalidateTag, unstable_cache, unstable_noStore } from 'next/cache';
+import { updateTag, unstable_cache, unstable_noStore } from 'next/cache';
 import { assertAdmin } from './adminAuth';
 // export const api = async (apiUrl: string) => {
 //     try {
@@ -113,8 +113,8 @@ export const writeList = async (artworkList: Artwork[]) => {
         access: "public",
         contentType: "application/json",
     });
-    // 공개 화면이 새 목록 파일을 찾도록 캐시를 비움
-    revalidateTag(ARTWORKS_TAG);
+    // 공개 화면이 새 목록 파일을 찾도록 캐시를 바로 비움 (updateTag: 다음 요청부터 옛 값을 쓰지 않음. 서버 액션 안에서만 쓸 수 있음)
+    updateTag(ARTWORKS_TAG);
 
     // 방금 올린 것을 제외하고 이전 것들은 나머지를 지워야 함
     const { blobs } = await list({ prefix: JSON_PREFIX });
@@ -197,7 +197,7 @@ export const getMusicListFresh = async (): Promise<MusicBlob[]> => {
 // 음악 파일은 브라우저에서 저장소로 바로 올리므로, 올린 뒤 이걸 불러서 공개 화면의 음악 목록 캐시를 비움
 export const refreshMusicList = async (): Promise<void> => {
     await assertAdmin();
-    revalidateTag(MUSIC_TAG);
+    updateTag(MUSIC_TAG);
 };
 
 // export const putMusic = async (file: File) => {
@@ -211,5 +211,5 @@ export const refreshMusicList = async (): Promise<void> => {
 export const delMusic = async (pathname: string) => {
     await assertAdmin();
     await del(pathname);
-    revalidateTag(MUSIC_TAG);
+    updateTag(MUSIC_TAG);
 };

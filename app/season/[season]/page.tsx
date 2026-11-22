@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import React, { useState } from 'react';
 import SeasonDetail from "./SeasonDetail";
 
 // 주소로 들어온 시즌 이름은 한글·띄어쓰기가 %EC%8B%9C… 처럼 바뀐 채로 오므로 원래 글자로 되돌림 (안 그러면 작품의 시즌과 같지 않아 아무것도 안 나옴)

@@ -1,8 +1,8 @@
-// middleware.ts
+// proxy.ts (Next 15까지는 middleware.ts)
 // nextjs가 알아서 이파일을 인식
-// 미들웨어란 **요청(Request)**이 들어와서 **응답(Response)**이 나가기 전,
+// 프록시(예전 이름 미들웨어)란 **요청(Request)**이 들어와서 **응답(Response)**이 나가기 전,
 // 중간에서 실행되는 코드
-// Next.js에서는 middleware.ts 파일을 만들면 모든 페이지/라우트에 접근하기 전에 실행
+// Next.js에서는 proxy.ts 파일을 만들면 모든 페이지/라우트에 접근하기 전에 실행
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -12,9 +12,7 @@ const PROTECTED = "/hotshower-engineering";
 const SECRET = new TextEncoder().encode(process.env.ADMIN_SESSION_SECRET!);
 
 
-export async function middleware(req: NextRequest) {
-    "use server";
-
+export async function proxy(req: NextRequest) {
     const { pathname } = req.nextUrl;
     // 어드민 페이지가 아니면 통과 
     if (!pathname.startsWith(PROTECTED)) return NextResponse.next();

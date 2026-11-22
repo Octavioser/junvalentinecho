@@ -167,7 +167,8 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
             isFirst.current = false;
             return;
         }
-        audioRef.current && audioRef.current.play();
+        // 사용자가 아직 화면을 누르지 않았으면 브라우저가 자동 재생을 막음. 그때는 조용히 넘어감 (안 잡으면 개발 화면에 오류로 뜸)
+        audioRef.current?.play().catch(() => { });
     }, [playUrl]);
 
     // 이전/다음 곡 (끝에서는 처음으로). 음악이 하나도 없으면 아무것도 안 함
