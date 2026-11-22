@@ -4,6 +4,7 @@ import styles from "./Season.module.css";
 import Image from "next/image";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { ARTWORK_QUALITY } from "@/common/image";
+import { formatSize } from "@/common/format";
 
 
 const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
@@ -32,22 +33,19 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
                     style={(showId || id) === id ? { cursor: 'pointer' } : { filter: 'blur(4px)' }}
                     onClick={() => {
                         setIsClickId(id);
+                        setShowId(id);
                     }}
+                    // 마우스를 올린 동안에는 그 그림을 미리 보여 주고, 떠나면 클릭해 둔 그림으로 돌아감 (클릭한 그림이 없으면 아무것도 안 보임).
+                    // 다른 그림에 마우스를 올렸다 떼도 클릭한 선택은 풀리지 않음
                     onMouseOver={() => { setShowId(id); }}
-                    onMouseOut={() => {
-                        if (!isClickId) setShowId(null);
-                        if (isClickId !== id) {
-                            setIsClickId(null);
-                            setShowId(null);
-                        }
-                    }}
+                    onMouseOut={() => { setShowId(isClickId); }}
                 >
                     <span> {title}</span>
                 </div>
             ))}
         </div>
         <div className={rightPanel}>
-            {artworks.map(({ id, title, poster_path, overview }) => (
+            {artworks.map(({ id, title, poster_path, overview, width, height, material, year }) => (
                 <React.Fragment key={id}>
                     {id === showId &&
                         <>
@@ -71,7 +69,11 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
                                     onContextMenu={e => e.preventDefault()}
                                 />
                             </div>
+                            {/* 그림 아래 정보: 홈에서 그림을 눌렀을 때 뜨는 창과 같은 순서 (제목, 연도, 크기, 재료, 설명) */}
                             <span>{title}</span>
+                            <span>{year}</span>
+                            <span>{formatSize(width, height)}</span>
+                            <span>{material}</span>
                             <span>{overview}</span>
                         </>
                     }
