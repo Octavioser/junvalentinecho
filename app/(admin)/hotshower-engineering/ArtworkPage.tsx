@@ -21,6 +21,9 @@ const TABS = [
     { header: '음악', value: '4' }
 ];
 
+// 그림 위치 변경과 그룹 순서 변경은 한 번에 한 가지만: 하나를 저장하거나 되돌려야 다른 하나를 할 수 있음
+const SAVE_POSITIONS_FIRST = '저장하지 않은 그림 위치 변경이 있어요. 저장하거나 되돌린 뒤 순서를 바꿔 주세요.';
+
 const PANEL_TITLE: Record<string, string> = { '1': '이미지 미리보기', '2': '전시창 배치', '3': '이미지 미리보기', '4': '음악 듣기' };
 
 const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: MusicBlob[]; }) => {
@@ -40,7 +43,9 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
     const [preview, setPreview] = useState<{ src: string; ratio: number } | null>(null); // 미리보기 그림의 가로/세로 비율 (어느 그림 것인지 같이 기억)
 
     // 메인 전시장 탭에서 그림 위치를 옮기고 아직 저장하지 않은 상태
+    const [positionsDirty, setPositionsDirty] = useState(false);
     const unsavedPositions = useRef(false);
+    unsavedPositions.current = positionsDirty;
 
     const router = useRouter();
 
@@ -59,7 +64,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
     const leaveUnsavedPositions = async () => {
         if (!unsavedPositions.current) return true;
         const ok = await confirmDialog('저장하지 않은 이미지 위치 변경이 있어요.\n저장하지 않고 넘어갈까요?', { confirmLabel: '저장 안 하고 넘어가기' });
-        if (ok) unsavedPositions.current = false;
+        if (ok) setPositionsDirty(false);
         return ok;
     };
 
@@ -86,7 +91,10 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
         const next = moveItem(draft ?? saved, from, to);
         return next.every((item, index) => item === saved[index]) ? null : next;
     };
-    const reorderGroups = (from: number, to: number) => setGroupOrder(reorder(groupIds(artworks), groupOrder, from, to));
+    const reorderGroups = (from: number, to: number) => {
+        if (positionsDirty) return; // 그림 위치를 바꾸는 중에는 순서를 바꾸지 않음
+        setGroupOrder(reorder(groupIds(artworks), groupOrder, from, to));
+    };
     const reorderVisual = (from: number, to: number) => setVisualOrder(reorder(visualList(artworks).map(({ id }) => id), visualOrder, from, to));
 
     const resetOrder = () => { setGroupOrder(null); setVisualOrder(null); };
@@ -211,7 +219,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                         }
                                                         return artwork;
                                                     }));
-                                                    unsavedPositions.current = false;
+                                                    setPositionsDirty(false);
                                                     setSelectedArtworkId(null);
                                                     snackbar.success('그룹이 삭제되었습니다.');
                                                     router.refresh(); // 페이지 새로고침
@@ -299,6 +307,8 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                         setSelectedArtworkId={selectArtwork}
                         onReorderGroups={reorderGroups}
                         onReorderVisual={reorderVisual}
+                        groupReorderLocked={positionsDirty ? SAVE_POSITIONS_FIRST : undefined}
+                        onGroupReorderLockedAttempt={() => snackbar.error(SAVE_POSITIONS_FIRST)}
                     />
                 </div>
 
@@ -342,8 +352,9 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                             title={PANEL_TITLE[tab]}
                             artworks={artworks}
                             selectedArtworkId={selectedArtworkId}
+                            locked={!!groupOrder}
                             setIsLoading={setIsLoading}
-                            onDirtyChange={(dirty) => { unsavedPositions.current = dirty; }}
+                            onDirtyChange={setPositionsDirty}
                         />
                     ) : (
                         <div className={emptyHint}>왼쪽 목록에서 그룹을 선택하면 전시창 배치를 보고 그림 위치를 옮길 수 있어요.</div>

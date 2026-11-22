@@ -11,10 +11,11 @@ interface params {
     posterFrameRef: React.RefObject<HTMLDivElement | null>; // 포스터 프레임 참조
     refreshZindex: (id: string) => void; // zIndex 업데이트 함수
     onRatio?: (id: string, ratio: number) => void; // 이미지를 불러온 뒤 가로/세로 비율 알림
+    locked?: boolean; // 잠겨 있으면 그림을 옮길 수 없음 (그룹 순서를 바꾸는 중)
 }
 
 
-const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, refreshZindex, onRatio }: params) => {
+const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, refreshZindex, onRatio, locked }: params) => {
 
     const dragging = useRef(false);
     const imgRef = useRef<HTMLImageElement | null>(null);
@@ -64,6 +65,7 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
 
     const handleDown = (e: React.MouseEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
         e.stopPropagation();
+        if (locked) return;
         // handleDown에서 preventDefault를 하면 다음 이벤트가 씹힐 수 있음.
         // 대신 마우스 드래그 이미지 고스트 방지를 위해 draggable={false}는 이미 설정됨.
 

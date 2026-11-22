@@ -14,9 +14,11 @@ const ARTWORK_COLUMNS = [
 ];
 
 // onReorderGroups·onReorderVisual: 표에서 줄을 끌어 순서를 바꿨을 때 (from 자리의 줄을 to 자리로)
-const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId, onReorderGroups, onReorderVisual }: {
+// groupReorderLocked: 그룹 순서를 지금 바꿀 수 없는 이유 (없으면 바꿀 수 있음). 잠긴 손잡이를 누르면 onGroupReorderLockedAttempt
+const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId, onReorderGroups, onReorderVisual, groupReorderLocked, onGroupReorderLockedAttempt }: {
     tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: (id: string | null) => void;
     onReorderGroups: (from: number, to: number) => void; onReorderVisual: (from: number, to: number) => void;
+    groupReorderLocked?: string; onGroupReorderLockedAttempt?: () => void;
 }) => {
 
     const withSize = (list: Artwork[]) => list.map(e => ({ ...e, size: formatSizeNumbers(e.width, e.height) }));
@@ -64,6 +66,8 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                     setSelectedArtworkId={setSelectedArtworkId}
                     emptyText="메인 전시장에 올린 그룹이 없어요."
                     onReorder={onReorderGroups}
+                    reorderLocked={groupReorderLocked}
+                    onReorderLockedAttempt={onGroupReorderLockedAttempt}
                 />
             }
             {tab === '4' &&

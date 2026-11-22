@@ -92,6 +92,13 @@
     color: #86868b;
 }
 
+/* 순서를 바꿀 수 없는 동안 */
+.handle.handleLocked,
+.tr:hover .handle.handleLocked {
+    color: #e5e5ea;
+    cursor: not-allowed;
+}
+
 .dragging .td {
     opacity: 0.4;
 }
