@@ -38,6 +38,7 @@ const ArtworkDisplayPanel = ({ title, artworks, selectedArtworkId, locked, setIs
     const [moved, setMoved] = useState<Record<string, Position>>({});   // 옮긴 위치 (그림 ID별)
     const [positionsDirty, setPositionsDirty] = useState(false);
     const [captionDraft, setCaptionDraft] = useState<string[] | null>(null); // 끌어서 바꾼 설명 순서 (그림 ID를 새 순서대로)
+    const [captionSaved, setCaptionSaved] = useState<string[] | null>(null); // 방금 저장한 설명 순서 (새 목록이 오기 전까지 "저장 안 함"으로 보이지 않게)
     const [imageRatios, setImageRatios] = useState<Record<string, number>>({}); // 그림별 가로/세로 비율
 
     const router = useRouter();
@@ -54,11 +55,18 @@ const ArtworkDisplayPanel = ({ title, artworks, selectedArtworkId, locked, setIs
     // 홈 화면 카드 옆 설명 순서. 끌어서 바꾼 게 없으면 지금 저장된 순서(정한 적 없으면 위에 걸린 그림부터)
     const currentCaptionIds = useMemo(() => captionList(items).map(({ id }) => id), [items]);
     const captionIds = captionDraft && sameIds(captionDraft, currentCaptionIds) ? captionDraft : currentCaptionIds;
-    const captionDirty = !sameOrder(captionIds, currentCaptionIds);
+    const captionDirty = !sameOrder(captionIds, currentCaptionIds) && !(captionSaved && sameOrder(captionIds, captionSaved));
+
+    // 끌어 바꾼 순서를 더 들고 있을 필요가 없으면 버림: 지금 순서와 같아졌거나(저장한 목록이 새로 옴, 끌어서 원래대로 돌려놓음),
+    // 그룹의 그림 구성이 달라졌을 때. 계속 들고 있으면 나중에 그림을 옮겨 자동 순서가 달라졌을 때 옛 순서가 "바꾼 것"으로 되살아남
+    useEffect(() => {
+        if (!captionDraft) return;
+        if (!sameIds(captionDraft, currentCaptionIds) || sameOrder(captionDraft, currentCaptionIds)) { setCaptionDraft(null); setCaptionSaved(null); }
+    }, [captionDraft, currentCaptionIds]);
 
     const dirty = positionsDirty || captionDirty;
 
-    const discard = () => { setMoved({}); setPositionsDirty(false); setCaptionDraft(null); };
+    const discard = () => { setMoved({}); setPositionsDirty(false); setCaptionDraft(null); setCaptionSaved(null); };
 
     useEffect(() => { discard(); }, [selectedArtworkId]);
 
@@ -84,6 +92,7 @@ const ArtworkDisplayPanel = ({ title, artworks, selectedArtworkId, locked, setIs
             }));
             // 바꾼 값은 그대로 둠: 새 목록이 올 때까지 옛 모습으로 잠깐 돌아가 보이지 않게 (새 목록과 값이 같아짐)
             setPositionsDirty(false);
+            if (captionDirty) setCaptionSaved(captionIds);
             snackbar.success('저장되었습니다.');
             router.refresh(); // 페이지 새로고침
         } catch {

@@ -19,8 +19,10 @@
     display: flex;
     align-items: center;
     flex-direction: column;
-    /* 그림과 그 아래 정보를 한 덩어리로 세로 가운데에 둠 */
-    justify-content: center;
+    /* 그림과 그 아래 정보를 한 덩어리로 세로 가운데에 둠: 그림 위(.detailImage)와 정보 아래(.caption)의 자동 여백으로 맞춤.
+       justify-content: center로 하면 설명이 길어 화면보다 커졌을 때 그림 위쪽이 잘려서 볼 수 없게 됨.
+       자동 여백은 그럴 때 0이 되어 위에서부터 보이고, 넘치는 만큼 스크롤됨 */
+    overflow-y: auto;
 }
 
 /* 그림 칸. 그림은 이 안에서 비율을 지키며 아래쪽에 맞춰져, 바로 아래 정보와 간격이 일정함 */
@@ -28,6 +30,7 @@
     width: 80%;
     height: 48%;
     flex-shrink: 0;
+    margin-top: auto;
     justify-content: center;
     display: flex;
     align-items: flex-end;
@@ -39,7 +42,9 @@
     flex-direction: column;
     align-items: center;
     gap: 6px;
+    flex-shrink: 0;
     margin-top: calc(var(--sp) * 3);
+    margin-bottom: auto;
     max-width: 80%;
     text-align: center;
 }
