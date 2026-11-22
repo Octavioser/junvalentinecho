@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { formatSize } from "@/common/format";
 import { ARTWORK_QUALITY } from "@/common/image";
+import { captionList } from "@/common/order";
 
 import MainImgDialog from "./(mainImgDailog)/MainImgDialog";
 
@@ -182,9 +183,8 @@ const Gallery = () => {
                                 </MainImagePosterCard>
                             </div>
                             <div className={posterCardExplainContainer}>
-                                {/* 설명은 카드에서 위에 걸린 그림부터 (높이가 같으면 왼쪽 그림부터). 그림 목록 자체의 순서는 겹침 순서라 그대로 둠 */}
-                                {[...(item.galleryId && displayGroupList[item.galleryId] || [])]
-                                    .sort((a, b) => ((a.top ?? 0) - (b.top ?? 0)) || ((a.left ?? 0) - (b.left ?? 0)))
+                                {/* 설명은 관리자가 정한 순서대로, 정한 적 없으면 카드에서 위에 걸린 그림부터. 그림 목록 자체의 순서는 겹침 순서라 그대로 둠 */}
+                                {captionList(item.galleryId && displayGroupList[item.galleryId] || [])
                                     .map(({ title, width, height, material }, index) =>
                                         <div key={`explain${index}`} className={posterCardExplain}>
                                             <span style={{ whiteSpace: 'normal', fontWeight: '600', fontStyle: 'italic' }}>{title}</span>

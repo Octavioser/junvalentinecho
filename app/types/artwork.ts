@@ -13,6 +13,7 @@ export interface Artwork {
     groupWinSize: number | null; // 전시창 크기 (cm)
     visualYn: string | null; // 비주얼 ID
     visualOrder?: number | null; // 2D 표시 순서 (없으면 등록한 순서대로 뒤에)
+    captionOrder?: number | null; // 홈 화면 카드 옆 설명 순서, 그룹 안에서 (없으면 위에 걸린 그림부터)
     width: number; // 실제 길이
     height: number; // 실제높이
 

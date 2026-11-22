@@ -8,6 +8,14 @@ export const visualList = (artworks: Artwork[]) =>
         .sort((a, b) => ((a.artwork.visualOrder ?? Infinity) - (b.artwork.visualOrder ?? Infinity)) || (a.index - b.index))
         .map(({ artwork }) => artwork);
 
+// 홈 화면에서 한 카드(그룹)의 그림 설명을 나열하는 순서: 관리자가 정한 순서(captionOrder)대로.
+// 순서를 정한 적 없는 그림은 그 뒤에, 위에 걸린 그림부터 (높이가 같으면 왼쪽 그림부터)
+export const captionList = (group: Artwork[]) =>
+    [...group].sort((a, b) =>
+        ((a.captionOrder ?? Infinity) - (b.captionOrder ?? Infinity))
+        || ((a.top ?? 0) - (b.top ?? 0))
+        || ((a.left ?? 0) - (b.left ?? 0)));
+
 // 메인 전시장 그룹 번호 목록 (번호가 작은 그룹이 앞)
 export const groupIds = (artworks: Artwork[]) =>
     [...new Set(artworks.map(({ galleryId }) => galleryId).filter((id): id is number => !!id))].sort((a, b) => a - b);

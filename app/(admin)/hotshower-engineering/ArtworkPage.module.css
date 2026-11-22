@@ -146,6 +146,30 @@
     font-weight: 500;
 }
 
+/* 전시창 배치 옆: 홈 화면 카드 옆에 나오는 설명의 순서 (줄을 끌어서 바꿈) */
+.captionOrder {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: 220px;
+    min-height: 0;
+    padding-top: 16px;
+    border-left: 1px solid #F5F5F7;
+}
+
+.captionOrderTitle {
+    padding: 0 16px 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.captionOrderHint {
+    padding: 0 16px 8px;
+    font-size: 12px;
+    color: #86868b;
+}
+
 /* 전시창보다 큰 그림 경고 */
 .warning {
     margin: 16px 32px 0;

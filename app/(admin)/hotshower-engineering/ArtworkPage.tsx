@@ -21,8 +21,10 @@ const TABS = [
     { header: '음악', value: '4' }
 ];
 
-// 그림 위치 변경과 그룹 순서 변경은 한 번에 한 가지만: 하나를 저장하거나 되돌려야 다른 하나를 할 수 있음
-const SAVE_POSITIONS_FIRST = '저장하지 않은 그림 위치 변경이 있어요. 저장하거나 되돌린 뒤 순서를 바꿔 주세요.';
+// 전시창 배치(그림 위치·설명 순서) 변경과 그룹 순서 변경은 한 번에 한 가지만: 하나를 저장하거나 되돌려야 다른 하나를 할 수 있음
+const SAVE_POSITIONS_FIRST = '저장하지 않은 전시창 배치 변경이 있어요. 저장하거나 되돌린 뒤 그룹 순서를 바꿔 주세요.';
+// 전시창 배치를 바꾼 동안 왼쪽(이미지 관리) 제목 줄에 띄우는 안내. 오른쪽의 "그룹 순서를 저장하거나 되돌리면 배치를 바꿀 수 있어요"와 짝
+const PLACEMENT_LOCK_NOTE = '전시창 배치를 저장하거나 되돌리면 그룹 순서를 바꿀 수 있어요';
 
 const PANEL_TITLE: Record<string, string> = { '1': '이미지 미리보기', '2': '전시창 배치', '3': '이미지 미리보기', '4': '음악 듣기' };
 
@@ -42,7 +44,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
 
     const [preview, setPreview] = useState<{ src: string; ratio: number } | null>(null); // 미리보기 그림의 가로/세로 비율 (어느 그림 것인지 같이 기억)
 
-    // 메인 전시장 탭에서 그림 위치를 옮기고 아직 저장하지 않은 상태
+    // 메인 전시장 탭에서 전시창 배치(그림 위치·설명 순서)를 바꾸고 아직 저장하지 않은 상태
     const [positionsDirty, setPositionsDirty] = useState(false);
     const unsavedPositions = useRef(false);
     unsavedPositions.current = positionsDirty;
@@ -63,7 +65,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
     // 저장하지 않은 위치 변경이 있으면 버리고 넘어갈지 먼저 물어봄
     const leaveUnsavedPositions = async () => {
         if (!unsavedPositions.current) return true;
-        const ok = await confirmDialog('저장하지 않은 이미지 위치 변경이 있어요.\n저장하지 않고 넘어갈까요?', { confirmLabel: '저장 안 하고 넘어가기' });
+        const ok = await confirmDialog('저장하지 않은 전시창 배치 변경이 있어요.\n저장하지 않고 넘어갈까요?', { confirmLabel: '저장 안 하고 넘어가기' });
         if (ok) setPositionsDirty(false);
         return ok;
     };
@@ -152,7 +154,10 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
         <>
             <div className={pageWrapper}>
                 <div className={leftPanel}>
-                    <div className={headerPanel}>이미지 관리</div>
+                    <div className={headerPanel}>
+                        이미지 관리
+                        {positionsDirty && <div className={styles.headerActions}><div className={styles.unsavedNote}>{PLACEMENT_LOCK_NOTE}</div></div>}
+                    </div>
                     <div className={tabBar}>
                         {TABS.map(({ header, value }, index) => (
                             <div
@@ -215,7 +220,8 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                     const targetgalleryId = selectedArtwork?.galleryId;
                                                     await updateAllArtwork(artworks.map((artwork) => {
                                                         if (artwork.galleryId === targetgalleryId) {
-                                                            return { ...artwork, galleryId: null };
+                                                            // 설명 순서 값도 지움 (나중에 다른 그룹에 넣었을 때 예전 값이 남아 있지 않게)
+                                                            return { ...artwork, galleryId: null, captionOrder: null };
                                                         }
                                                         return artwork;
                                                     }));

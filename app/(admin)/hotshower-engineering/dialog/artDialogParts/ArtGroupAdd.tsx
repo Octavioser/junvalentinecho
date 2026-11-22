@@ -148,7 +148,8 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                             return;
                         }
 
-                        await updateArtwork(artworks, { ...targetData, galleryId, groupWinSize: groupWinSize ?? 1000 });
+                        // 설명 순서 값은 비움: 예전 그룹에서 쓰던 값이 남아 있으면 안 되고, 새로 들어온 그림은 맨 뒤에 붙음
+                        await updateArtwork(artworks, { ...targetData, galleryId, groupWinSize: groupWinSize ?? 1000, captionOrder: null });
                         setTargetID(null);
                         setOpenDialog(null);
                         setSelectedArtworkId(null);
