@@ -105,7 +105,9 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
         if (!file) return;
         const reject = (image: string) => setErrors(prev => ({ ...prev, image }));
 
-        if (!IMAGE_TYPES[file.type]) return reject('JPEG, PNG, WebP, AVIF 파일만 올릴 수 있어요.');
+        // 파일 형식을 못 알아낸 경우(type이 빈 값)도 있어서 AVIF는 확장자로도 확인
+        if (file.type === 'image/avif' || /\.avif$/i.test(file.name)) return reject('AVIF 파일은 올릴 수 없어요. JPEG·PNG·WebP로 바꿔서 올려주세요.');
+        if (!IMAGE_TYPES[file.type]) return reject('JPEG, PNG, WebP 파일만 올릴 수 있어요.');
         if (file.size > IMAGE_MAX_BYTES) return reject(`파일이 ${MAX_MB}MB보다 커요. (지금 ${(file.size / 1024 / 1024).toFixed(1)}MB)`);
 
         // 가로·세로가 너무 크면 화면용으로 줄인 사본을 만들 수 없어서 그림이 안 보임
@@ -303,7 +305,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     </label>
                     {errors.image
                         ? <div className={errorText}>{errors.image}</div>
-                        : <div className={hint}>JPEG·PNG·WebP·AVIF, 최대 {MAX_MB}MB, 가로·세로 {IMAGE_MAX_PIXELS}px 이하{openDialog === 'add' ? ' (필수)' : ''}</div>
+                        : <div className={hint}>JPEG·PNG·WebP, 최대 {MAX_MB}MB, 가로·세로 {IMAGE_MAX_PIXELS}px 이하{openDialog === 'add' ? ' (필수)' : ''}</div>
                     }
                 </div>
             </div>

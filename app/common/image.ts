@@ -1,11 +1,11 @@
 // 그림 파일 업로드 조건과 화면 표시 품질 (관리자 입력창·업로드 허가 경로·공개 화면이 같이 씀)
 
-// 올릴 수 있는 형식 → 저장할 확장자. 브라우저가 보여줄 수 있고 화면용 사본으로 변환되는 형식만
+// 올릴 수 있는 형식 → 저장할 확장자. 브라우저가 보여줄 수 있고 화면용 사본으로 변환되는 형식만.
+// AVIF는 받지 않음: 실제 사이트(Vercel)가 AVIF 원본은 줄이지 않고 원본(수 MB)을 그대로 내려보내서 그림이 늦게 뜸
 export const IMAGE_TYPES: Record<string, string> = {
     'image/jpeg': 'jpg',
     'image/png': 'png',
     'image/webp': 'webp',
-    'image/avif': 'avif',
 };
 
 export const IMAGE_MAX_BYTES = 4.5 * 1024 * 1024; // 원본 파일 최대 4.5MB
