@@ -135,6 +135,10 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
     const selectedArtwork = artworks.find((artwork) => artwork.id === selectedArtworkId);
     // 비율은 그림을 다 받아야 알 수 있음. 그 전에는 이전 그림 비율로 크기가 잡혀 크게 보였다가 줄어드므로 비율을 알 때까지 숨김
     const previewRatio = preview && preview.src === selectedArtwork?.poster_path ? preview.ratio : null;
+    // 미리보기 그림이 화면에 그려지는 너비: 화면 폭의 20%를 넘지 않고, 높이는 화면 높이의 64%를 넘지 않음 (아래 미리보기 칸의 크기에서 나옴).
+    // 이 너비에 맞는 사본을 받음. 비율은 그림을 받기 전에는 입력해 둔 실제 크기(cm)로 어림하고(10% 여유), 받은 뒤에는 그림의 실제 비율을 씀
+    const previewShape = previewRatio ?? (selectedArtwork && selectedArtwork.width > 0 && selectedArtwork.height > 0 ? selectedArtwork.width / selectedArtwork.height * 1.1 : null);
+    const previewSizes = previewShape ? `min(20vw, ${(64 * previewShape).toFixed(1)}vh)` : '20vw';
     const selectedMusic = musicList.find((music) => music.id === selectedArtworkId);
 
     const {
@@ -332,7 +336,7 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                             key={selectedArtwork.poster_path}
                                             width={0}
                                             height={0}
-                                            sizes="50vw"
+                                            sizes={previewSizes}
                                             src={selectedArtwork.poster_path}
                                             alt={selectedArtwork.title}
                                             onLoad={(e) => setPreview({ src: selectedArtwork.poster_path, ratio: e.currentTarget.naturalWidth / e.currentTarget.naturalHeight })}

@@ -15,6 +15,11 @@ interface params {
 }
 
 
+// 전시창 카드 한 변의 화면 크기는 화면 폭의 40%, 화면 높이의 80%를 넘지 않음 (ArtworkDisplayPanel의 카드 크기).
+// 설명 순서 목록이 옆에 생기는 그룹은 카드가 이보다 작아서, 필요한 것보다 한 단계 큰 사본을 받을 수 있음 (흐려지지는 않음)
+const CARD_VW = 40;
+const CARD_VH = 80;
+
 const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, refreshZindex, onRatio, locked }: params) => {
 
     const dragging = useRef(false);
@@ -25,6 +30,9 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
     const imgStartY = useRef(0);
 
     const { id, poster_path, title, top, width, groupWinSize, left, zIndex } = targetArtworks;
+
+    // 이 그림이 카드에서 차지하는 비율 (전시창보다 큰 그림은 1로 봄)
+    const share = Math.min(1, width / (groupWinSize || 1000));
 
     const handleMove = (e: React.MouseEvent<HTMLImageElement> | React.TouchEvent<HTMLImageElement>) => {
         if (!dragging.current) return;
@@ -87,7 +95,9 @@ const ArtworkDisplayImage = ({ posterFrameRef, targetArtworks, setTargetItem, re
         <FramedImage
             width={0}
             height={0}
-            sizes="33vw"
+            // 화면에 그려지는 너비에 맞는 사본을 받음. 카드 전체 너비로 알려 주면 작게 놓인 그림도 큰 파일을 받음 (이 화면은 확대가 없음).
+            // sizes="auto"는 쓰지 않음: 그룹을 다시 고르면 브라우저가 화면 전체 폭으로 계산해 가장 큰 사본(3840)을 받았음
+            sizes={`min(${(CARD_VW * share).toFixed(1)}vw, ${(CARD_VH * share).toFixed(1)}vh)`}
             ref={imgRef}
             style={{ top: `${top ?? 0}%`, width: `${(width / (groupWinSize || 1000)) * 100}%`, height: 'auto', left: `${left ?? 0}%`, zIndex: zIndex ?? undefined }}
             src={poster_path}

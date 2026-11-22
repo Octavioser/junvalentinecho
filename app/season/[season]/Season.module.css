@@ -25,6 +25,16 @@
     overflow-y: auto;
 }
 
+/* 그림 하나(그림 칸 + 정보). 이 시즌의 그림을 모두 그려 두고 고른 것만 보여 줌.
+   보이는 것은 감싼 상자가 없는 것처럼 두어(display: contents) 그림 칸과 정보가 .detailPanel 안에 바로 놓이게 함 */
+.detailItem {
+    display: contents;
+}
+
+.detailItemHidden {
+    display: none;
+}
+
 /* 그림 칸. 그림은 이 안에서 비율을 지키며 아래쪽에 맞춰져, 바로 아래 정보와 간격이 일정함 */
 .detailImage {
     width: 80%;

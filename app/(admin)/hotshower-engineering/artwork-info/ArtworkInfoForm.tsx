@@ -24,7 +24,9 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
     const withSize = (list: Artwork[]) => list.map(e => ({ ...e, size: formatSizeNumbers(e.width, e.height) }));
 
     return (
-        <div style={{ boxSizing: 'border-box', width: '100%', flex: 1, padding: 'var(--sp)' }}>
+        // minHeight: 0이 있어야 줄이 많을 때 이 칸이 내용만큼 늘어나지 않고, 안의 표(GridComponents)가 스크롤됨.
+        // 없으면 칸이 패널 밖으로 넘치고 패널이 잘라내서, 아래쪽 줄이 가려진 채 스크롤도 안 생김
+        <div style={{ boxSizing: 'border-box', width: '100%', flex: 1, minHeight: 0, padding: 'var(--sp)' }}>
             {tab === '1' &&
                 <GridComponents
                     columnList={ARTWORK_COLUMNS}
