@@ -5,51 +5,62 @@ import { Artwork } from "@/types";
 import { formatSize } from "@/common/format";
 import { ARTWORK_QUALITY } from "@/common/image";
 
-// 그림을 보여 주는 단계 (뒤로 갈수록 선명함). 같은 img의 주소만 바꾸므로, 다음 단계의 그림이 다 받아질 때까지는 지금 그림이 그대로 보임
-//  - preview : 이 창을 열려고 누른 그림(화면에 이미 떠 있던 것). 새로 받을 게 없어서 창이 열리자마자 보임
-//  - copy    : 이 창 크기에 맞춘 사본
-//  - original: 올린 원본 파일 (수 MB)
-type Stage = 'preview' | 'copy' | 'original';
-
-// previewSrc: 누른 그림의 주소 (없으면 사본부터 받음)
+// previewSrc: 이 창을 열려고 누른 그림(화면에 이미 떠 있던 것)의 주소. 새로 받을 게 없어서 창이 열리자마자 보여 줄 수 있음
+//
+// 그림은 두 장을 같은 자리에 겹쳐 둠:
+//  - 아래: 누른 그림 (바로 보임)
+//  - 위  : 이 창 크기에 맞춘 사본 → 올린 원본 파일(수 MB). 다 받아서 뜬 다음에 보이게 하고, 그때 아래 그림을 치움
+// 한 img의 주소를 "누른 그림 → 사본"으로 바꾸는 방식은 쓰지 않음: 사본 목록(srcset)을 붙이는 순간 브라우저가 떠 있던 그림을 지워서,
+// 사본이 올 때까지 그림 자리가 비었음 (사본을 처음 만들 때는 1초 넘게 걸림)
 const MainImgDialog = ({ targetImg: { poster_path, title, width, height, material, year, overview }, previewSrc, dialogClose }:
     { targetImg: Artwork, previewSrc?: string, dialogClose: () => void; }) => {
 
-    const { dialogOverlay, dialogContainer, dialogImageContainer, dialogImage, dialogInfo, dialogInfoTitle, dialogInfoOverView } = styles;
+    const { dialogOverlay, dialogContainer, dialogImageContainer, dialogImageBox, dialogImage, dialogInfo, dialogInfoTitle, dialogInfoOverView } = styles;
 
-    // 누른 그림이 이미 원본이면(홈 화면에서 확대해 둔 그림) 처음부터 원본
-    const [stage, setStage] = useState<Stage>(!previewSrc ? 'copy' : previewSrc === poster_path ? 'original' : 'preview');
+    // 위 그림이 원본인지. 누른 그림이 이미 원본이면(홈 화면에서 확대해 둔 그림) 처음부터 원본
+    const [original, setOriginal] = useState(previewSrc === poster_path);
+    // 위 그림이 떴는지 (뜨기 전에는 숨겨 두고 아래 그림을 보여 줌)
+    const [shown, setShown] = useState(false);
 
-    // 원본은 창이 열리자마자 따로 받기 시작해서, 다 받아지면 바로 원본으로 바꿈 (사본을 기다렸다가 받기 시작하면 그만큼 늦어짐)
+    // 원본은 창이 열리자마자 따로 받기 시작해서, 다 받고 풀어 둔(decode) 다음에 위 그림을 원본으로 바꿈.
+    // (사본을 기다렸다가 받기 시작하면 그만큼 늦어지고, 풀기 전에 바꾸면 푸는 동안 그림 자리가 잠깐 비어서 번쩍임)
     useEffect(() => {
+        let alive = true;
         const image = new window.Image();
         image.crossOrigin = 'anonymous';
-        image.onload = () => setStage('original');
         image.src = poster_path;
-        return () => { image.onload = null; };
+        image.decode().then(() => { if (alive) setOriginal(true); }).catch(() => { /* 원본을 못 받으면 사본을 계속 보여 줌 */ });
+        return () => { alive = false; };
     }, [poster_path]);
-
-    const source =
-        stage === 'preview' ? { src: previewSrc!, unoptimized: true }
-            // 그림 칸은 가로 화면에서 높이의 60%, 세로 화면에서 너비의 63%
-            : stage === 'copy' ? { src: poster_path, sizes: '(max-aspect-ratio: 1/1) 63vw, 60vh', quality: ARTWORK_QUALITY }
-                // 위에서 미리 받아 둔 파일을 그대로 쓰려면 같은 방식(crossOrigin)으로 받아야 함
-                : { src: poster_path, unoptimized: true, crossOrigin: 'anonymous' as const };
 
     return <div className={dialogOverlay} onClick={() => { dialogClose(); }}>
         <div className={dialogContainer} onClick={e => e.stopPropagation()}>
             <div className={dialogImageContainer}>
-                <Image
-                    className={dialogImage}
-                    alt={title}
-                    width={0}
-                    height={0}
-                    {...source}
-                    // 누른 그림이 뜨면 이 창 크기에 맞춘 사본을 받기 시작 (원본이 먼저 오면 원본으로 넘어감)
-                    onLoad={() => setStage(prev => prev === 'preview' ? 'copy' : prev)}
-                    draggable={false}
-                    onContextMenu={e => e.preventDefault()}
-                />
+                <div className={dialogImageBox}>
+                    {previewSrc && !shown && (
+                        <img className={dialogImage} src={previewSrc} alt="" draggable={false} onContextMenu={e => e.preventDefault()} />
+                    )}
+                    <Image
+                        className={dialogImage}
+                        style={{ visibility: shown ? 'visible' : 'hidden' }}
+                        src={poster_path}
+                        alt={title}
+                        width={0}
+                        height={0}
+                        // 원본: 위에서 미리 받아 둔 파일을 그대로 쓰려면 같은 방식(crossOrigin)으로 받아야 함
+                        // 사본: 그림 칸은 가로 화면에서 높이의 60%, 세로 화면에서 너비의 63%
+                        {...(original
+                            ? { unoptimized: true, crossOrigin: 'anonymous' as const }
+                            : { sizes: '(max-aspect-ratio: 1/1) 63vw, 60vh', quality: ARTWORK_QUALITY })}
+                        // 그림이 바뀔 때 새 그림을 다 푼 다음에 한 번에 바꿔 그림 (기본값 async는 푸는 동안 그 자리를 비워 둬서 번쩍임)
+                        decoding="sync"
+                        // 항상 화면에 보이는 그림이라 늦게 받기(lazy)를 끔 (숨겨 둔 동안에도 받아야 함)
+                        loading="eager"
+                        onLoad={() => setShown(true)}
+                        draggable={false}
+                        onContextMenu={e => e.preventDefault()}
+                    />
+                </div>
             </div>
             <div className={dialogInfo}>
                 <span className={dialogInfoTitle}>{title}</span>

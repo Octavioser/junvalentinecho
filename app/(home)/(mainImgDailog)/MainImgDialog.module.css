@@ -33,15 +33,22 @@
     box-sizing: border-box;
 }
 
-.dialogImage {
+/* 그림 자리. 그림 두 장(누른 그림, 그 위에 새로 받은 그림)을 이 안에 겹쳐 둠 */
+.dialogImageBox {
+    position: relative;
     width: 80%;
     height: 80%;
+}
+
+.dialogImage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
     object-position: center;
     display: block;
     user-select: none;
-    justify-items: center;
-    align-content: center;
 }
 
 .dialogInfo {
@@ -82,7 +89,7 @@
         border-bottom: 1px solid rgba(230, 230, 230, 0.3);
     }
 
-    .dialogImage {
+    .dialogImageBox {
         width: 90%;
         height: 90%;
     }

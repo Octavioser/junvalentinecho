@@ -176,7 +176,6 @@ export default function CameraRig({ input, farZ }: { input: MutableRefObject<Mov
                 lookGoal.current = null;
             }
             focused.current = focus;
-            input.current.focusListeners.forEach(listener => listener(focus));
         }
         const xGoal = focus ? ROOM.artWallX + viewDistance(focus) : ROOM.railX;
 

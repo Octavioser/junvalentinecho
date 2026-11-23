@@ -31,9 +31,21 @@ const Gallery = () => {
     const [dialogPreview, setDialogPreview] = useState<string | undefined>(undefined); // 상세창을 열려고 누른 그림의 주소 (창이 열리자마자 그 그림부터 보여 줌)
     const pressStart = useRef<{ x: number; y: number; } | null>(null); // 그림을 누르기 시작한 자리 (끌기와 클릭 구분용)
 
-    // 확대해 본 카드. 평소에는 카드 크기에 맞는 사본을 보여 주고, 확대한 카드의 그림만 원본 파일로 바꿈 (다시 줄여도 원본 유지).
-    // 모든 카드를 원본으로 보여 주면 넘길 때마다 수 MB짜리 큰 그림을 풀어야 해서 버벅임
-    const [zoomed, setZoomed] = useState<{ [groupId: string]: true; }>({});
+    // 원본으로 바꿔 보여 줄 그림. 평소에는 카드 크기에 맞는 사본을 보여 주고, 확대한 카드의 그림만 원본 파일로 바꿈 (다시 줄여도 원본 유지).
+    // 모든 카드를 원본으로 보여 주면 넘길 때마다 수 MB짜리 큰 그림을 풀어야 해서 버벅임.
+    // 원본은 먼저 따로 받아서 풀어 둔(decode) 다음에 바꿈: 주소부터 바꾸면 새 그림을 푸는 동안 그 자리가 잠깐 비어서 번쩍임
+    const [originals, setOriginals] = useState<{ [artworkId: string]: true; }>({});
+    const originalRequested = useRef(new Set<string>());
+    const loadOriginals = (group: Artwork[]) => group.forEach(({ id, poster_path }) => {
+        if (originalRequested.current.has(id)) return;
+        originalRequested.current.add(id);
+        const image = new window.Image();
+        image.crossOrigin = 'anonymous';
+        image.src = poster_path;
+        image.decode()
+            .then(() => setOriginals(prev => ({ ...prev, [id]: true })))
+            .catch(() => { originalRequested.current.delete(id); }); // 못 받았으면 사본을 그대로 두고, 다음에 확대할 때 다시 시도
+    });
 
     // 옵저버로 확대 대상 이미지 선정하기
     useEffect(() => {
@@ -149,7 +161,7 @@ const Gallery = () => {
                         <div className={posterCardFrame} ref={(el) => { if (el) cardFrame.current.push(el); }} data-groupid={item.id}>
                             <div className={styles.posterCardSquare}>
                                 <MainImagePosterCard winSize={(displayGroupList[item.galleryId!] || [])[0].groupWinSize || 1000} alwaysShowRatio={true}
-                                    onScaleChange={(scale) => { if (scale > 1.01) setZoomed(prev => prev[item.id] ? prev : { ...prev, [item.id]: true }); }}
+                                    onScaleChange={(scale) => { if (scale > 1.01) loadOriginals(displayGroupList[item.galleryId!] || []); }}
                                 >
                                     {(item.galleryId && displayGroupList[item.galleryId] || []).map(({ title, id, poster_path, top, width, left, zIndex, season, groupWinSize }, index) => {
                                         const winSize = groupWinSize || 1000;
@@ -157,12 +169,13 @@ const Gallery = () => {
                                             <FramedImage
                                                 width={0}
                                                 height={0}
-                                                // 확대한 카드: 올린 원본 파일을 그대로 받음. 같은 img의 주소만 바뀌므로 원본이 다 받아질 때까지는 사본이 그대로 보이다가 바뀜.
-                                                //   (저장소에서 바로 받는 그림이라 crossOrigin이 있어야 투명한 곳이 있는지 읽을 수 있음)
+                                                // 원본이 준비된 그림: 올린 원본 파일 (미리 받아 둔 파일을 그대로 쓰려면 같은 방식(crossOrigin)으로 받아야 함)
                                                 // 평소: 그림이 화면에서 실제로 차지하는 너비(카드 대비 비율 x 카드 크기)에 맞는 사본
-                                                {...(zoomed[item.id]
+                                                {...(originals[id]
                                                     ? { unoptimized: true, crossOrigin: 'anonymous' as const }
                                                     : { sizes: `${((width / winSize) * CARD_VMIN).toFixed(1)}vmin`, quality: ARTWORK_QUALITY })}
+                                                // 그림이 바뀔 때 새 그림을 다 푼 다음에 한 번에 바꿔 그림 (기본값 async는 푸는 동안 그 자리를 비워 둬서 번쩍임)
+                                                decoding="sync"
                                                 key={`image${id}`}
                                                 style={{ top: `${top}%`, width: `${(width / winSize) * 100}%`, height: 'auto', left: `${left}%`, zIndex: zIndex ?? undefined, cursor: 'pointer', userSelect: 'none', pointerEvents: 'auto' }}
                                                 src={poster_path}

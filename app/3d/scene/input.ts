@@ -6,10 +6,9 @@ export type MoveInput = {
     held: Map<string, 1 | -1>;  // 누르고 있는 키 코드 → 1: 안쪽, -1: 입구 쪽
     wake: () => void;           // 멈춰 있던 렌더 루프 깨우기
     focus: Focus | null;        // 눌러서 다가가 있는 그림 (없으면 관람 레일 위를 걷는 중)
-    focusListeners: Set<(focus: Focus | null) => void>; // 다가간 그림이 바뀔 때 알림 (그 그림만 원본으로 바꿔 거는 용도)
 };
 
-export const createMoveInput = (): MoveInput => ({ held: new Map(), wake: () => { }, focus: null, focusListeners: new Set() });
+export const createMoveInput = (): MoveInput => ({ held: new Map(), wake: () => { }, focus: null });
 
 export const moveDirection = ({ held }: MoveInput) => {
     let sum = 0;
