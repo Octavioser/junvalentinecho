@@ -313,8 +313,9 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                         )}
                         {tab === '3' && (seasonOrder ? orderBar :
                             <>
-                                <button className={addButton} onClick={() => { setOpenDialog('add'); }}>새 시즌 만들기</button>
-                                <button className={addButton} disabled={!selectedSeason} onClick={() => { setOpenDialog('mod'); }}>이름 바꾸기</button>
+                                {/* 저장하면 새 시즌·바꾼 이름이 선택되면서 오른쪽에서 바꾸던 시즌 그림 순서가 없어지므로, 창을 열기 전에 먼저 물어봄 */}
+                                <button className={addButton} onClick={async () => { if (await leaveUnsavedPositions()) setOpenDialog('add'); }}>새 시즌 만들기</button>
+                                <button className={addButton} disabled={!selectedSeason} onClick={async () => { if (await leaveUnsavedPositions()) setOpenDialog('mod'); }}>이름 바꾸기</button>
                                 <button className={addButton}
                                     disabled={!selectedSeason}
                                     onClick={async () => {
