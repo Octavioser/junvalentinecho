@@ -26,7 +26,7 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [playUrl, setPlayUrl] = useState(musicList[0]?.url || '');
 
-    const isFirst = useRef(true);
+    const lastUrl = useRef(playUrl); // 마지막으로 재생을 시작한 곡 (곡이 바뀌었는지 보는 용도)
 
     const [isDropDownOpen, setIsDropDwownOpen] = useState(false);
 
@@ -162,11 +162,11 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
     }, [isPlaying]);                                      // 재생 여부 바뀔 때 이 이펙트 재실
 
 
+    // 곡이 바뀌었을 때만 재생 (목록에서 고르기, 이전·다음, 한 곡이 끝나 다음 곡으로 넘어갈 때). 화면이 처음 뜰 때는 재생하지 않음.
+    // "처음 실행인지"로 구분하면 안 됨: 개발 모드는 이 효과를 화면이 뜰 때 두 번 실행해서, 두 번째에 노래가 저절로 나옴
     useEffect(() => {
-        if (isFirst.current) {
-            isFirst.current = false;
-            return;
-        }
+        if (lastUrl.current === playUrl) return;
+        lastUrl.current = playUrl;
         // 사용자가 아직 화면을 누르지 않았으면 브라우저가 자동 재생을 막음. 그때는 조용히 넘어감 (안 잡으면 개발 화면에 오류로 뜸)
         audioRef.current?.play().catch(() => { });
     }, [playUrl]);

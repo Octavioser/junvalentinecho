@@ -82,10 +82,12 @@
         height: 50%;
         border-left: none;
         border-bottom: 1px solid rgba(230, 230, 230, 0.3);
+        /* 화면 맨 위 가운데의 이름(JOONHYEOK DANIEL CHO)과 그림이 겹치지 않게, 그림 자리를 이름 아래에서 시작 */
+        padding-top: calc(var(--sp) * 7);
     }
 
     .rightDetailImgContainer {
         width: auto;
-        height: 80%;
+        height: 88%;
     }
 }

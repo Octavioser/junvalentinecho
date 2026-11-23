@@ -159,10 +159,11 @@ export function shadowTexture(width: number, height: number, blur: number, shape
     return { texture, width: planeW, height: planeH };
 }
 
-// 그림 옆 벽 캡션 (홈 화면 캡션과 같은 구성: 제목 / 크기 / 재료)
-export async function captionTexture({ title, width, height, material }: Artwork) {
-    const pxPerM = 1400;
-    const titleSize = 0.05 * pxPerM, bodySize = 0.036 * pxPerM, maxWidth = 0.62 * pxPerM;
+// 그림 옆 벽 캡션 (홈 화면 캡션과 같은 구성: 제목 / 크기 / 재료 / 연도).
+// 글자 크기도 홈 화면처럼: 모든 줄이 같은 크기이고 제목만 굵은 기울임. 3m 떨어진 자리에서 홈 화면의 설명 글자와 비슷한 크기로 보임
+export async function captionTexture({ title, width, height, material, year }: Artwork) {
+    const pxPerM = 2000;
+    const titleSize = 0.028 * pxPerM, bodySize = 0.028 * pxPerM, maxWidth = 0.5 * pxPerM;
     const family = `${getComputedStyle(document.body).fontFamily}, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif`;
     const titleFont = `italic 600 ${titleSize}px ${family}`;
     const bodyFont = `300 ${bodySize}px ${family}`;
@@ -182,7 +183,7 @@ export async function captionTexture({ title, width, height, material }: Artwork
         if (last && measure.measureText(`${last} ${word}`).width <= maxWidth) titleLines[titleLines.length - 1] = `${last} ${word}`;
         else titleLines.push(word);
     }
-    const bodyLines = [formatSize(width, height), material].filter((line): line is string => !!line);
+    const bodyLines = [formatSize(width, height), material, year ? String(year) : null].filter((line): line is string => !!line);
 
     const lineGap = 1.45;
     const cw = Math.ceil(maxWidth);

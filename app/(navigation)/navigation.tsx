@@ -1,9 +1,10 @@
 "use client";
 import { Fragment, useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./navigation.module.css";
 
-const INTERNAL_PAGES = ['/', '/visual', '/3d', '/info'];
+const INTERNAL_PAGES = ['/', '/sound', '/visual', '/3d', '/info'];
 
 // 3D 메뉴에 마우스를 올리거나 누르는 순간 3D 모듈(three.js)을 미리 받기 시작
 const preload3d = () => { import("@/3d/scene/Scene"); };
@@ -26,9 +27,7 @@ const Nav = () => {
     // hook을 모두 부른 다음에 숨겨야 관리자 ↔ 일반 페이지를 오갈 때 hook 개수가 바뀌지 않음
     if (path.includes('hotshower-engineering')) return <></>;
 
-    const isMain = path === '/';
-
-    const { navContainer, mainTitle, hamburger, nav, show, open, navItem, active } = styles;
+    const { navContainer, mainTitle, titleLink, hamburger, nav, show, open, navItem, active } = styles;
 
     return (
         <Fragment>
@@ -37,12 +36,15 @@ const Nav = () => {
             >☰
             </button>
             <div className={`${navContainer} ${navOpen ? open : ''}`}>
-                {isMain && <div className={mainTitle}><span>JOONHYEOK DANIEL CHO</span></div>}
+                {/* 모든 화면에 보이는 이름. 누르면 홈으로 (홈에서는 그대로) */}
+                <div className={mainTitle}>
+                    <Link href="/" className={titleLink} aria-label="홈으로"><span>JOONHYEOK DANIEL CHO</span></Link>
+                </div>
                 <nav className={`${nav} ${navOpen ? show : ''}`}>
                     <ul>
                         {[
                             { href: '/', label: 'HOME' },
-                            { href: 'https://soundcloud.com/junvalentinecho', label: 'SOUND', target: '_blank', rel: 'noopener noreferrer' },
+                            { href: '/sound', label: 'SOUND' }, // 아직 내용이 없어서 "페이지를 찾을 수 없음" 화면이 나옴 (app/sound)
                             { href: '/visual', label: '2D' },
                             { href: '/3d', label: '3D' },
                             { href: '/info', label: 'cv/bio' },

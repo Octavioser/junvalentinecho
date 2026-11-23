@@ -40,6 +40,12 @@
     pointer-events: none;
 }
 
+/* 글자가 있는 곳만 눌리게 (모바일에서는 .mainTitle이 화면 폭 전체라, 통째로 눌리면 아래 화면의 터치를 가로챔) */
+.titleLink {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
 .nav {
     height: 100%;
     pointer-events: none;
@@ -126,7 +132,10 @@
         gap: 26px;
     }
 
+    /* 세로 화면(모바일)에서는 메뉴 글자를 흐리게 하지 않고 모두 또렷하게 보여 줌 (PC는 지금 화면이 아닌 메뉴를 흐리게 함) */
     .navItem {
         padding: 12px 0;
+        opacity: 1;
+        filter: none;
     }
 }

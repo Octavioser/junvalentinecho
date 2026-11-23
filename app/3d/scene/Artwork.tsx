@@ -3,8 +3,8 @@ import { ThreeEvent, useThree } from "@react-three/fiber";
 import { AdditiveBlending, Texture } from "three";
 import { HANG, ROOM, WallItem } from "../wallLayout";
 import { captionTexture, lightPoolTexture, shadowTexture } from "./canvasTextures";
-import { MoveInput } from "./input";
-import { useImageTexture } from "./useImageTexture";
+import { Focus, MoveInput } from "./input";
+import { useArtworkTexture } from "./useImageTexture";
 import { hasTransparency } from "@/common/image";
 
 const FRAME = 0.004;         // 메탈 프레임 테두리
@@ -16,8 +16,8 @@ const CAPTION_GAP = 0.2;
 const CAPTION_Y = 1.32;
 const CLICK_SLOP = 8;        // 이보다 많이 움직였으면 누른 게 아니라 끌어서 시선을 돌린 것 (px)
 
-// 같은 출처의 Next 이미지 최적화를 거쳐 큰 원본을 줄여서 받음 (품질 75는 next.config.js의 images.qualities에 있어야 함)
-const textureUrl = ({ poster_path }: WallItem['artwork'], width: number) =>
+// 벽에 거는 사본: 같은 출처의 Next 이미지 최적화를 거쳐 큰 원본을 줄여서 받음 (품질 75는 next.config.js의 images.qualities에 있어야 함)
+const copyUrl = ({ poster_path }: WallItem['artwork'], width: number) =>
     `/_next/image?url=${encodeURIComponent(poster_path)}&w=${width > 2 ? 1920 : 1080}&q=75`;
 
 const decal = { transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 };
@@ -29,10 +29,20 @@ export default function ArtworkPiece({ item, input }: { item: WallItem; input: M
     const { artwork, width, z } = item;
     const gl = useThree(state => state.gl);
     const invalidate = useThree(state => state.invalidate);
-    const texture = useImageTexture(textureUrl(artwork, width));
+    // 평소에는 줄인 사본을 걸어 두고, 이 그림 앞으로 다가가면 올린 원본 파일로 바꿔 검 (모든 그림을 원본으로 걸면 받는 양과 메모리가 커서 버벅임).
+    // 물러나도 원본을 그대로 두었다가(다시 다가가면 바로 보이게) 다른 그림 앞으로 가면 내려놓음: 원본은 한 번에 한 장만
+    const [wantOriginal, setWantOriginal] = useState(false);
+    useEffect(() => {
+        const listeners = input.current.focusListeners;
+        const onFocus = (focus: Focus | null) => { if (focus) setWantOriginal(focus.id === artwork.id); };
+        listeners.add(onFocus);
+        return () => { listeners.delete(onFocus); };
+    }, [artwork.id, input]);
 
-    // 높이는 홈 화면처럼 이미지 비율로 (데이터의 세로 cm는 캡션 표기용)
-    const image = texture?.image as HTMLImageElement | undefined;
+    const { copy, texture } = useArtworkTexture(copyUrl(artwork, width), artwork.poster_path, wantOriginal);
+
+    // 높이는 홈 화면처럼 이미지 비율로 (데이터의 세로 cm는 캡션 표기용). 비율·투명한 곳·그림자는 사본으로 봄 (원본으로 바뀌어도 그대로)
+    const image = copy?.image as HTMLImageElement | undefined;
     const height = image ? width * image.naturalHeight / image.naturalWidth : 0;
     const y = Math.max(HANG.centerY, height / 2 + HANG.minBottom);
 

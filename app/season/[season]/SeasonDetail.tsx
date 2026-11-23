@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { ARTWORK_QUALITY } from "@/common/image";
 import { formatSize } from "@/common/format";
+import MainImgDialog from "../../(home)/(mainImgDailog)/MainImgDialog";
 
 // 그림 칸(Season.module.css의 .detailImage)의 크기: 너비는 화면 폭의 72%를 넘지 않고, 높이는 플레이어를 뺀 화면 높이의 48%
 const BOX_VW = 72;
@@ -16,22 +17,31 @@ const BOX_VH = 40.8; // (100 - 15) x 0.48
 const drawnWidth = (width: number, height: number) =>
     width > 0 && height > 0 ? `min(${BOX_VW}vw, ${(BOX_VH * (width / height) * 1.1).toFixed(1)}vh)` : `${BOX_VW}vw`;
 
+// 마우스가 그림이 실제로 그려진 곳 위에 있는지. 그림 칸은 그림보다 넓고, 그림은 그 안에서 비율을 지키며 아래 가운데에 놓임
+const onPicture = (e: React.MouseEvent<HTMLImageElement>) => {
+    const image = e.currentTarget;
+    if (!image.naturalWidth || !image.naturalHeight) return false;
+    const box = image.getBoundingClientRect();
+    const scale = Math.min(box.width / image.naturalWidth, box.height / image.naturalHeight);
+    const pictureWidth = image.naturalWidth * scale, pictureHeight = image.naturalHeight * scale;
+    return Math.abs(e.clientX - (box.left + box.width / 2)) <= pictureWidth / 2 && e.clientY >= box.bottom - pictureHeight;
+};
+
 const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
 
     const artworks = (useArtworks().artworks || []).filter(({ season }) => season === param);
 
     useEffect(() => {
-        if (id) {
-            setIsClickId(id);
-            setShowId(id);
-        }
+        if (id) setShowId(id);
     }, [id]);
 
     const { container, listPanel, list, listItem, detailPanel, detailItem, detailItemHidden, detailImage, caption, captionTitle, captionText } = styles;
 
+    // 지금 보여 주는 그림. 제목에 마우스를 올리거나 누르면 그 그림으로 바뀌고 그대로 남음 (마우스를 떼도 돌아가지 않음)
     const [showId, setShowId] = useState<String | null>(null);
 
-    const [isClickId, setIsClickId] = useState<String | null>(null);
+    const [dialogId, setDialogId] = useState<string | null>(null); // 그림을 눌러 연 상세창 (홈 화면과 같은 창)
+    const dialogArtwork = artworks.find(({ id }) => id === dialogId);
 
     return <div className={container}>
         <div className={detailPanel}>
@@ -58,13 +68,17 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
                             loading="eager"
                             draggable={false}
                             onContextMenu={e => e.preventDefault()}
+                            // 그림을 누르면 홈 화면처럼 상세창이 뜸 (그림 옆 빈 곳은 반응하지 않음)
+                            onMouseMove={(e) => { e.currentTarget.style.cursor = onPicture(e) ? 'pointer' : ''; }}
+                            onClick={(e) => { if (onPicture(e)) setDialogId(id); }}
                         />
                     </div>
-                    {/* 그림 아래 정보: 갤러리 캡션 관례대로 "제목(기울임), 연도" / 재료 / 크기, 그 아래에 설명 */}
+                    {/* 그림 아래 정보: 제목(기울임) / 재료 / 크기 / 연도(맨 아래), 그 아래에 설명 글 */}
                     <div className={caption}>
-                        <span><i className={captionTitle}>{title}</i>, {year}</span>
+                        <span><i className={captionTitle}>{title}</i></span>
                         {material && <span>{material}</span>}
                         <span>{formatSize(width, height)}</span>
+                        {!!year && <span>{year}</span>}
                         {overview && <span className={captionText}>{overview}</span>}
                     </div>
                 </div>
@@ -72,26 +86,22 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
         </div>
         {/* 이 시즌의 그림 제목 목록 (오른쪽) */}
         <div className={listPanel}>
-            {/* 마우스가 목록을 완전히 벗어났을 때만 클릭해 둔 그림으로 돌아감 (클릭한 그림이 없으면 아무것도 안 보임).
-                제목 사이 빈 곳을 지날 때는 마지막으로 올려 본 그림을 그대로 보여 줘서 화면이 왔다 갔다 하지 않음 */}
-            <div className={list} onMouseLeave={() => { setShowId(isClickId); }}>
+            <div className={list}>
                 {artworks.map(({ id, overview, poster_path, season, title }) => (
                     <div
                         key={id}
                         className={listItem}
                         style={(showId || id) === id ? { cursor: 'pointer' } : { filter: 'blur(4px)' }}
-                        onClick={() => {
-                            setIsClickId(id);
-                            setShowId(id);
-                        }}
-                        // 마우스를 올리면 그 그림을 미리 보여 줌. 클릭한 선택은 그대로 남음
+                        // 마우스를 올리기만 해도 고른 것으로 침 (누르는 것과 같음). 터치 화면은 누르면 고름
                         onMouseOver={() => { setShowId(id); }}
+                        onClick={() => { setShowId(id); }}
                     >
                         <span> {title}</span>
                     </div>
                 ))}
             </div>
         </div>
+        {dialogArtwork && <MainImgDialog targetImg={dialogArtwork} dialogClose={() => { setDialogId(null); }} />}
     </div>;
 
 };
