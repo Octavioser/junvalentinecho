@@ -30,10 +30,38 @@ export const applyGroupOrder = (artworks: Artwork[], order: number[]) => {
         : artwork);
 };
 
-// 2D 표시 순서를 order(작품 ID를 새 순서대로 늘어놓은 것)대로 매김
-export const applyVisualOrder = (artworks: Artwork[], order: string[]) => {
+// 그림들을 메인 전시장 그룹에 넣음 (ids: 고른 순서대로. 다른 그룹에 있던 그림은 거기서 빠짐).
+// 설명 순서: 그 그룹이 순서를 정해 둔 그룹이면 고른 순서대로 맨 뒤에 붙임.
+// 새 그룹이거나 순서를 정한 적 없는 그룹이면 번호 없이 둠 (위에 걸린 그림부터 나옴. 새 그림에만 번호를 주면 새 그림이 맨 앞으로 가 버림)
+export const joinGroup = (artworks: Artwork[], ids: string[], galleryId: number, groupWinSize: number) => {
+    const members = artworks.filter((artwork) => artwork.galleryId === galleryId && !ids.includes(artwork.id));
+    const ordered = members.length > 0 && members.every(({ captionOrder }) => captionOrder != null);
+    const last = Math.max(0, ...members.map(({ captionOrder }) => captionOrder ?? 0));
+    const position = new Map(ids.map((id, index) => [id, ordered ? last + index + 1 : null]));
+    return artworks.map((artwork) => position.has(artwork.id)
+        ? { ...artwork, galleryId, groupWinSize, captionOrder: position.get(artwork.id)! }
+        : artwork);
+};
+
+// 3D 전시장 벽에 거는 그림: 관리자가 3D에 넣은 것만(wallOrder가 있는 것), 정한 순서대로. 홈 화면에 걸었는지와는 상관없음
+export const wallList = (artworks: Artwork[]) =>
+    artworks
+        .map((artwork, index) => ({ artwork, index }))
+        .filter(({ artwork }) => artwork.wallOrder != null)
+        .sort((a, b) => (a.artwork.wallOrder! - b.artwork.wallOrder!) || (a.index - b.index))
+        .map(({ artwork }) => artwork);
+
+// 3D 전시장 순서를 order(작품 ID를 새 순서대로 늘어놓은 것)대로 매김
+export const applyWallOrder = (artworks: Artwork[], order: string[]) => {
     const position = new Map(order.map((id, index) => [id, index + 1]));
-    return artworks.map((artwork) => position.has(artwork.id) ? { ...artwork, visualOrder: position.get(artwork.id)! } : artwork);
+    return artworks.map((artwork) => position.has(artwork.id) ? { ...artwork, wallOrder: position.get(artwork.id)! } : artwork);
+};
+
+// 그림들을 3D 전시장 맨 뒤에 검 (ids: 걸 순서대로)
+export const addToWall = (artworks: Artwork[], ids: string[]) => {
+    const last = Math.max(0, ...artworks.map(({ wallOrder }) => wallOrder ?? 0));
+    const position = new Map(ids.map((id, index) => [id, last + index + 1]));
+    return artworks.map((artwork) => position.has(artwork.id) ? { ...artwork, wallOrder: position.get(artwork.id)! } : artwork);
 };
 
 // from 자리의 항목을 to 자리로 옮긴 새 배열

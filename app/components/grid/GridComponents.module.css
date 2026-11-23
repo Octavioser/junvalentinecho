@@ -78,6 +78,45 @@
     /* Apple Blue Accent */
 }
 
+/* 여러 줄 고르기: 맨 앞 칸의 동그라미에 고른 순서 번호가 들어감 */
+.pickCell {
+    width: 34px;
+    padding-right: 0;
+    /* 빈 동그라미와 번호가 든 동그라미가 같은 높이에 오게 (글자 기준선에 맞추면 빈 동그라미만 위로 올라가고 줄도 높아짐) */
+    vertical-align: middle;
+}
+
+/* 빠르게 여러 줄을 누를 때 글자가 선택되지 않게 */
+.pickable {
+    user-select: none;
+}
+
+.pickMark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 22px;
+    height: 22px;
+    border: 1.5px solid #c7c7cc;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: #FFFFFF;
+}
+
+.tr:hover .pickMark {
+    border-color: #86868b;
+}
+
+.pickMark.pickMarkOn,
+.tr:hover .pickMark.pickMarkOn {
+    background-color: #0071e3;
+    border-color: #0071e3;
+}
+
 /* 끌어서 순서 바꾸기 */
 .handle {
     width: 28px;

@@ -3,15 +3,17 @@ import React, { useEffect } from "react";
 import { Artwork, MusicBlob } from "@/types";
 import styles from "./ArtAddDialog.module.css";
 import ArtNewAddForm from "./artDialogParts/ArtNewAddForm";
-import ArtVisualAdd from "./artDialogParts/ArtVisualAdd";
+import SeasonAdd from "./artDialogParts/SeasonAdd";
+import WallAdd from "./artDialogParts/WallAdd";
 import ArtGroupAdd from "./artDialogParts/ArtGroupAdd";
 import MusicAdd from "./artDialogParts/MusicAdd";
 
 const TITLE: Record<string, { add: string; mod: string; }> = {
     '1': { add: '그림 추가', mod: '그림 정보 수정' },
     '2': { add: '새 그룹 만들기', mod: '그룹에 추가 · 크기 변경' },
-    '3': { add: '2D 표시에 추가', mod: '2D 표시에 추가' },
+    '3': { add: '새 시즌 만들기', mod: '시즌 이름 바꾸기' },
     '4': { add: '음악 추가', mod: '음악 추가' },
+    '5': { add: '3D 전시장에 추가', mod: '3D 전시장에 추가' },
 };
 
 const ArtAddDialog = ({
@@ -54,7 +56,9 @@ const ArtAddDialog = ({
                 <div className={body}>
                     {tab === '1' && <ArtNewAddForm artworks={artworks} selectedArtworkId={selectedArtworkId} openDialog={openDialog} setOpenDialog={setOpenDialog} setIsLoading={setIsLoading} />}
                     {tab === '2' && <ArtGroupAdd artworks={artworks} selectedArtworkId={selectedArtworkId} setSelectedArtworkId={setSelectedArtworkId} openDialog={openDialog} setOpenDialog={setOpenDialog} setIsLoading={setIsLoading} />}
-                    {tab === '3' && <ArtVisualAdd artworks={artworks} setOpenDialog={setOpenDialog} setIsLoading={setIsLoading} />}
+                    {/* 2D 시즌 탭에서는 고른 줄의 값(selectedArtworkId)이 시즌 이름 */}
+                    {tab === '3' && <SeasonAdd artworks={artworks} selectedSeason={selectedArtworkId} setSelectedSeason={setSelectedArtworkId} openDialog={openDialog} setOpenDialog={setOpenDialog} setIsLoading={setIsLoading} />}
+                    {tab === '5' && <WallAdd artworks={artworks} setOpenDialog={setOpenDialog} setIsLoading={setIsLoading} />}
                     {tab === '4' && <MusicAdd musicList={musicList} setOpenDialog={setOpenDialog} setIsLoading={setIsLoading} />}
                 </div>
             </div >

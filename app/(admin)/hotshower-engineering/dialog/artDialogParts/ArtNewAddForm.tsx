@@ -11,7 +11,6 @@ import { snackbar } from "@/components/Snackbar/Snackbar";
 
 type FormState = {
     id: string;
-    season: string;
     year: number | '';
     title: string;
     material: string;
@@ -70,7 +69,6 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
 
     const [form, setForm] = useState<FormState>({
         id: '',
-        season: '',
         year: '',
         title: '',
         material: '',
@@ -87,8 +85,8 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
         if (openDialog === 'mod') {
             const artwork = artworks.find((artwork: Artwork) => artwork.id === selectedArtworkId);
             if (artwork) {
-                const { id, season, year, title, material, location, width, height, overview, poster_path } = artwork;
-                setForm({ id, season, year, title, material: material || '', location: location || '', width, height, overview, poster_path });
+                const { id, year, title, material, location, width, height, overview, poster_path } = artwork;
+                setForm({ id, year, title, material: material || '', location: location || '', width, height, overview, poster_path });
             }
         }
     }, [openDialog]);
@@ -126,14 +124,13 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
     };
 
     const validate = (): Errors => {
-        const { id, season, year, title, width, height, overview } = form;
+        const { id, year, title, width, height, overview } = form;
         const next: Errors = {};
         if (openDialog === 'add') {
             if (!id.trim()) next.id = 'ID를 입력해주세요.';
             else if (artworks.some((artwork: Artwork) => artwork.id === id)) next.id = '이미 있는 ID예요.';
         }
         if (!title.trim()) next.title = '제목을 입력해주세요.';
-        if (!season.trim()) next.season = '시즌을 입력해주세요.';
         if (!/^\d+$/.test(String(year)) || Number(year) < 2000 || Number(year) > 2100) next.year = '2000~2100 사이 연도를 입력해주세요.';
         if (!/^\d+(\.\d+)?$/.test(String(width)) || !(Number(width) > 0)) next.width = '0보다 큰 숫자를 입력해주세요.';
         if (!/^\d+(\.\d+)?$/.test(String(height)) || !(Number(height) > 0)) next.height = '0보다 큰 숫자를 입력해주세요.';
@@ -151,7 +148,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
         }
         let uploadedUrl: string | null = null; // 이번에 새로 올린 그림 (정보 저장이 실패하면 다시 지움)
         try {
-            const { id, season, year, title, material, location, width, height, overview, poster_path } = form;
+            const { id, year, title, material, location, width, height, overview, poster_path } = form;
             setIsLoading(true);
 
             // 한국시간
@@ -168,7 +165,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     poster_path: url, // 이미지 경로
                     title, // 영화 제목
                     overview, // 내용
-                    season, // 시즌
+                    season: '', // 시즌: 처음에는 없음 (관리자 "2D 시즌" 탭에서 시즌에 넣음)
                     year: Number(year),
                     material, // 재료
                     location, // 위치
@@ -194,8 +191,7 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     id, // 영화 ID
                     poster_path: url, // 이미지 경로
                     title, // 영화 제목
-                    overview, // 내용
-                    season, // 시즌
+                    overview, // 내용 (시즌은 여기서 건드리지 않음: "2D 시즌" 탭에서 넣고 뺌)
                     year: Number(year),
                     material, // 재료
                     location, // 위치
@@ -232,7 +228,6 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
 
     const {
         id: formId,
-        season: formSeason,
         year: formYear,
         title: formTitle,
         material: fomMaterial,
@@ -264,22 +259,18 @@ const ArtNewAddForm = ({ artworks, selectedArtworkId, openDialog, setOpenDialog,
                     <Field label="제목" required error={errors.title}>
                         <input className={input} type="text" name="title" value={formTitle} onChange={handleChange} />
                     </Field>
+                    {/* 시즌은 여기서 적지 않음: 관리자 "2D 시즌" 탭에서 시즌을 만들고 그림을 넣음 */}
                     <div className={row}>
-                        <Field label="시즌" required error={errors.season}>
-                            <input className={input} type="text" name="season" value={formSeason} onChange={handleChange} />
-                        </Field>
                         <Field label="연도" required error={errors.year}>
                             <input className={input} type="number" inputMode="numeric" name="year" value={formYear} onChange={handleChange} placeholder="2026" />
-                        </Field>
-                    </div>
-                    <div className={row}>
-                        <Field label="재료" hint="예: oil on linen">
-                            <input className={input} type="text" name="material" value={fomMaterial} onChange={handleChange} />
                         </Field>
                         <Field label="위치">
                             <input className={input} type="text" name="location" value={fomLocation} onChange={handleChange} />
                         </Field>
                     </div>
+                    <Field label="재료" hint="예: oil on linen">
+                        <input className={input} type="text" name="material" value={fomMaterial} onChange={handleChange} />
+                    </Field>
                     <div className={row}>
                         <Field label="실제 세로 (cm)" required error={errors.height}>
                             <input className={input} type="number" step="0.01" min="0" name="height" value={formHeight} onChange={handleChange} />

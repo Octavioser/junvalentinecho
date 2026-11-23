@@ -3,7 +3,9 @@ import React, { useEffect, useState } from "react";
 import { Artwork } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { useRouter } from "next/navigation";
-import { updateArtwork, updateAllArtwork } from "@/common/comon";
+import { updateAllArtwork } from "@/common/comon";
+import { joinGroup } from "@/common/order";
+import { togglePick } from "./ArtPicker";
 import { snackbar } from "@/components/Snackbar/Snackbar";
 import { formatSizeNumbers } from "@/common/format";
 import styles from "../ArtAddDialog.module.css";
@@ -18,7 +20,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
 
-    const [targetID, setTargetID] = useState<string | null>(null);
+    const [picked, setPicked] = useState<string[]>([]); // 넣을 그림들 (누른 순서대로)
 
     const [groupWinSize, setGroupWinSize] = useState<number | null>(1000);
     const [error, setError] = useState<string | null>(null);
@@ -40,6 +42,8 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
         return data;
     })();
 
+    const targetIds = picked.filter((id) => gridData.some((row) => row.id === id)); // 목록에서 없어진 그림은 뺌
+
     const validSize = !!groupWinSize && groupWinSize > 0;
 
     const router = useRouter();
@@ -48,8 +52,8 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
         <div className={picker}>
             <div className={pickerHint}>
                 {openDialog === 'add'
-                    ? '새 그룹에 넣을 그림을 고르고 전시창 크기를 정하세요.'
-                    : '이 그룹에 넣을 그림을 고르거나, 전시창 크기만 바꿀 수 있어요.'}
+                    ? '새 그룹에 넣을 그림을 고르고 전시창 크기를 정하세요. 여러 개를 한 번에 고를 수 있어요.'
+                    : '이 그룹에 넣을 그림을 고르거나(여러 개도 한 번에), 전시창 크기만 바꿀 수 있어요.'}
             </div>
             <div className={pickerGrid}>
                 <GridComponents
@@ -60,8 +64,8 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                         { name: 'overview', header: '설명', type: 'string' }
                     ]}
                     gridData={gridData}
-                    selectedArtworkId={targetID}
-                    setSelectedArtworkId={(id) => { setTargetID(id); setError(null); }}
+                    picked={targetIds}
+                    onPick={(id) => { setPicked(togglePick(targetIds, id)); setError(null); }}
                     emptyText="넣을 수 있는 그림이 없어요."
                 />
             </div>
@@ -102,7 +106,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                                 return e;
                             }));
 
-                            setTargetID(null);
+                            setPicked([]);
                             setOpenDialog(null);
                             setSelectedArtworkId(null);
                             snackbar.success('해당 그룹의 전시창 크기가 변경되었습니다.');
@@ -117,7 +121,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                     }}>크기만 저장</button>
                 }
                 <button type="button" className={primaryButton} onClick={async () => {
-                    if (!targetID) {
+                    if (!targetIds.length) {
                         setError('그룹에 넣을 그림을 목록에서 골라주세요.');
                         return;
                     }
@@ -128,14 +132,6 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                     }
                     setIsLoading(true);
                     try {
-                        const targetData = artworks.find((artwork) => artwork.id === targetID);
-
-                        if (!targetData) {
-                            snackbar.error('대상을 찾을 수 없습니다.');
-                            setIsLoading(false);
-                            return;
-                        }
-
                         const galleryId = openDialog === 'add' ?
                             // 그룹추가
                             artworks.reduce((acc, curr) => Math.max(acc, curr.galleryId ?? 0), 0) + 1
@@ -148,9 +144,9 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                             return;
                         }
 
-                        // 설명 순서 값은 비움: 예전 그룹에서 쓰던 값이 남아 있으면 안 되고, 새로 들어온 그림은 맨 뒤에 붙음
-                        await updateArtwork(artworks, { ...targetData, galleryId, groupWinSize: groupWinSize ?? 1000, captionOrder: null });
-                        setTargetID(null);
+                        // 고른 그림들을 한 번에 넣음. 예전 그룹에서 쓰던 설명 순서 값은 남기지 않고, 새로 들어온 그림은 맨 뒤에 붙음 (joinGroup)
+                        await updateAllArtwork(joinGroup(artworks, targetIds, galleryId, groupWinSize ?? 1000));
+                        setPicked([]);
                         setOpenDialog(null);
                         setSelectedArtworkId(null);
                         snackbar.success(openDialog === 'mod' ? '해당 그룹에 추가되었습니다.' : '새로운 그룹이 만들어졌습니다.');
@@ -161,7 +157,7 @@ const ArtGroupAdd = ({ artworks, selectedArtworkId, setSelectedArtworkId, openDi
                     } finally {
                         setIsLoading(false);
                     }
-                }}>{openDialog === 'mod' ? '그룹에 추가' : '그룹 만들기'}</button>
+                }}>{openDialog === 'mod' ? '그룹에 추가' : '그룹 만들기'}{targetIds.length > 1 ? ` (${targetIds.length}개)` : ''}</button>
             </div>
         </div>
     );

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { ARTWORK_QUALITY } from "@/common/image";
 import { formatSize } from "@/common/format";
+import { seasonArtworks } from "@/common/season";
 import MainImgDialog from "../../(home)/(mainImgDailog)/MainImgDialog";
 
 // 그림 칸(Season.module.css의 .detailImage)의 크기: 너비는 화면 폭의 72%를 넘지 않고, 높이는 플레이어를 뺀 화면 높이의 48%
@@ -29,7 +30,8 @@ const onPicture = (e: React.MouseEvent<HTMLImageElement>) => {
 
 const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
 
-    const artworks = (useArtworks().artworks || []).filter(({ season }) => season === param);
+    // 이 시즌에 들어 있는 그림을 관리자가 정한 순서대로
+    const artworks = seasonArtworks(useArtworks().artworks || [], param);
 
     useEffect(() => {
         if (id) setShowId(id);

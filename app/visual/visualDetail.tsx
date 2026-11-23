@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from "next/image";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { ARTWORK_QUALITY } from "@/common/image";
-import { visualList } from "@/common/order";
+import { seasonCovers } from "@/common/season";
 
 
 // 마우스가 그림이 실제로 그려진 곳 위에 있는지. 그림 칸은 정사각형이고, 그림은 그 안에서 비율을 지키며 가운데에 놓임
@@ -42,8 +42,8 @@ const VisualDetail = () => {
         return () => query.removeEventListener('change', update);
     }, []);
 
-    // 2D 표시에 넣은 그림을 관리자에서 정한 순서대로
-    const Artwork = visualList(useArtworks().artworks || []);
+    // 시즌마다 대표 그림 하나씩, 관리자에서 정한 시즌 순서대로 (대표가 없는 시즌은 나오지 않음)
+    const Artwork = seasonCovers(useArtworks().artworks || []);
 
     // 지금 그림을 보여 주는 시리즈. 이름에 마우스를 올리면(터치는 한 번 누르면) 그 그림이 뜨고 그대로 남음.
     // 그대로 남아야 마우스를 그림으로 옮겨서 누를 수 있음

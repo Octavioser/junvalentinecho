@@ -3,7 +3,8 @@ import React from "react";
 import { Artwork, MusicBlob } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { formatSizeNumbers } from "@/common/format";
-import { visualList } from "@/common/order";
+import { wallList } from "@/common/order";
+import { seasonArtworks, seasonCover, seasonNames } from "@/common/season";
 
 const ARTWORK_COLUMNS = [
     { name: 'season', header: '시즌', type: 'string' },
@@ -13,11 +14,12 @@ const ARTWORK_COLUMNS = [
     { name: 'overview', header: '설명', type: 'string' }
 ];
 
-// onReorderGroups·onReorderVisual·onReorderMusic: 표에서 줄을 끌어 순서를 바꿨을 때 (from 자리의 줄을 to 자리로)
+// onReorderGroups·onReorderSeasons·onReorderWall·onReorderMusic: 표에서 줄을 끌어 순서를 바꿨을 때 (from 자리의 줄을 to 자리로)
 // groupReorderLocked: 그룹 순서를 지금 바꿀 수 없는 이유 (없으면 바꿀 수 있음). 잠긴 손잡이를 누르면 onGroupReorderLockedAttempt
-const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId, onReorderGroups, onReorderVisual, onReorderMusic, groupReorderLocked, onGroupReorderLockedAttempt }: {
+const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelectedArtworkId, onReorderGroups, onReorderSeasons, onReorderWall, onReorderMusic, groupReorderLocked, onGroupReorderLockedAttempt }: {
     tab: string, artworks: Artwork[], musicList: MusicBlob[], selectedArtworkId: string | null, setSelectedArtworkId: (id: string | null) => void;
-    onReorderGroups: (from: number, to: number) => void; onReorderVisual: (from: number, to: number) => void; onReorderMusic: (from: number, to: number) => void;
+    onReorderGroups: (from: number, to: number) => void; onReorderSeasons: (from: number, to: number) => void;
+    onReorderWall: (from: number, to: number) => void; onReorderMusic: (from: number, to: number) => void;
     groupReorderLocked?: string; onGroupReorderLockedAttempt?: () => void;
 }) => {
 
@@ -36,15 +38,35 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                     emptyText="등록된 그림이 없어요. 추가 버튼으로 올려주세요."
                 />
             }
-            {tab === '3' &&
+            {tab === '5' &&
                 <GridComponents
                     columnList={ARTWORK_COLUMNS}
-                    // 2D 화면에 보이는 순서 그대로 (끌어서 바꿀 수 있음)
-                    gridData={withSize(visualList(artworks))}
+                    // 3D 전시장 벽에 걸리는 순서 그대로: 맨 위가 입구 쪽 (끌어서 바꿀 수 있음)
+                    gridData={withSize(wallList(artworks))}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
-                    emptyText="2D 표시에 넣은 그림이 없어요."
-                    onReorder={onReorderVisual}
+                    emptyText="3D 전시장에 건 그림이 없어요. 추가 버튼으로 넣어주세요."
+                    onReorder={onReorderWall}
+                />
+            }
+            {tab === '3' &&
+                <GridComponents
+                    columnList={[
+                        { name: 'season', header: '시즌', type: 'string' },
+                        { name: 'count', header: '그림 수', type: 'number' },
+                        { name: 'cover', header: '2D 대표 그림', type: 'string' },
+                    ]}
+                    // 시즌마다 한 줄, 2D 화면에 나오는 순서대로 (끌어서 바꿀 수 있음). 줄의 ID는 시즌 이름
+                    gridData={seasonNames(artworks).map((season) => ({
+                        id: season,
+                        season,
+                        count: seasonArtworks(artworks, season).length,
+                        cover: seasonCover(artworks, season)?.title ?? '없음 (2D 화면에 안 나옴)',
+                    }))}
+                    selectedArtworkId={selectedArtworkId}
+                    setSelectedArtworkId={setSelectedArtworkId}
+                    emptyText="시즌이 없어요. 새 시즌 만들기로 만들어주세요."
+                    onReorder={onReorderSeasons}
                 />
             }
             {tab === '2' &&
