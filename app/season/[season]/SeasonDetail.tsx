@@ -42,6 +42,7 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
 
     const [dialogId, setDialogId] = useState<string | null>(null); // 그림을 눌러 연 상세창 (홈 화면과 같은 창)
     const dialogArtwork = artworks.find(({ id }) => id === dialogId);
+    const [dialogPreview, setDialogPreview] = useState<string | undefined>(undefined); // 누른 그림의 주소 (창이 열리자마자 그 그림부터 보여 줌)
 
     return <div className={container}>
         <div className={detailPanel}>
@@ -70,7 +71,7 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
                             onContextMenu={e => e.preventDefault()}
                             // 그림을 누르면 홈 화면처럼 상세창이 뜸 (그림 옆 빈 곳은 반응하지 않음)
                             onMouseMove={(e) => { e.currentTarget.style.cursor = onPicture(e) ? 'pointer' : ''; }}
-                            onClick={(e) => { if (onPicture(e)) setDialogId(id); }}
+                            onClick={(e) => { if (onPicture(e)) { setDialogPreview(e.currentTarget.currentSrc || undefined); setDialogId(id); } }}
                         />
                     </div>
                     {/* 그림 아래 정보: 제목(기울임) / 재료 / 크기 / 연도(맨 아래), 그 아래에 설명 글 */}
@@ -101,7 +102,7 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
                 ))}
             </div>
         </div>
-        {dialogArtwork && <MainImgDialog targetImg={dialogArtwork} dialogClose={() => { setDialogId(null); }} />}
+        {dialogArtwork && <MainImgDialog targetImg={dialogArtwork} previewSrc={dialogPreview} dialogClose={() => { setDialogId(null); }} />}
     </div>;
 
 };

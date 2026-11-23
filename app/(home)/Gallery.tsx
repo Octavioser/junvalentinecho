@@ -28,6 +28,7 @@ const Gallery = () => {
     const [displayGroupList, setDisplayGroupList] = useState<{ [x: string]: Artwork[]; }>({});
 
     const [dialogImageId, setDialogImageId] = useState<string | null>(null);
+    const [dialogPreview, setDialogPreview] = useState<string | undefined>(undefined); // 상세창을 열려고 누른 그림의 주소 (창이 열리자마자 그 그림부터 보여 줌)
     const pressStart = useRef<{ x: number; y: number; } | null>(null); // 그림을 누르기 시작한 자리 (끌기와 클릭 구분용)
 
     // 확대해 본 카드. 평소에는 카드 크기에 맞는 사본을 보여 주고, 확대한 카드의 그림만 원본 파일로 바꿈 (다시 줄여도 원본 유지).
@@ -173,6 +174,7 @@ const Gallery = () => {
                                                     // 그림 위에서 끌어서 옮긴 뒤 손을 떼도 클릭이 생기므로, 누른 자리에서 거의 안 움직였을 때만 상세창을 엶
                                                     const start = pressStart.current;
                                                     if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > CLICK_SLOP) return;
+                                                    setDialogPreview(e.currentTarget.currentSrc || undefined);
                                                     setDialogImageId(id);
                                                 }}
                                             />
@@ -201,7 +203,7 @@ const Gallery = () => {
             {(() => {
                 if (dialogImageId) {
                     const target = artworks.find(item => item.id === dialogImageId);
-                    return target ? <MainImgDialog targetImg={target} dialogClose={() => { setDialogImageId(null); }} /> : null;
+                    return target ? <MainImgDialog targetImg={target} previewSrc={dialogPreview} dialogClose={() => { setDialogImageId(null); }} /> : null;
                 }
                 return null;
             })()}
