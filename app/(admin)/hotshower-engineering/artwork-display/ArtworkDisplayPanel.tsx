@@ -22,7 +22,7 @@ const sameIds = (a: string[], b: string[]) => a.length === b.length && a.every((
 const sameOrder = (a: string[], b: string[]) => a.length === b.length && a.every((id, index) => id === b[index]);
 
 const ArtworkDisplayPanel = ({ title, artworks, selectedArtworkId, locked, setIsLoading, onDirtyChange }: {
-    title: string, // 패널 제목 (저장 버튼과 같은 줄에 표시)
+    title: React.ReactNode, // 패널 제목 (저장 버튼과 같은 줄에 표시)
     artworks: Artwork[],
     selectedArtworkId: string | null,
     locked: boolean; // 그룹 순서를 바꾸고 아직 저장하지 않은 동안에는 배치를 바꿀 수 없음 (두 가지 변경이 섞이지 않게)

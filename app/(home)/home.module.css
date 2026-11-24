@@ -50,16 +50,37 @@
 
 .posterCardExplainContainer {
     width: 30%;
+    min-width: 0;
+    box-sizing: border-box;
+    /* 그림과 설명 사이를 띄움 */
+    padding-left: calc(var(--sp) * 3);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    gap: calc(var(--sp) * 4);
+    /* 설명이 많아 정해진 높이를 넘으면 captionFit.ts가 간격(--caption-gap) → 글자 크기(--caption-font) 순서로 줄임.
+       --caption-shift: 세로 화면에서 설명이 화면 위 이름에 닿지 않게 아래로 내리는 만큼 */
+    gap: calc(var(--sp) * 4 * var(--caption-gap, 1));
+    transform: translateY(var(--caption-shift, 0px));
+    /* 긴 줄은 칸 안에서 줄바꿈 (가로로 넘기는 목록이라 바깥에서 nowrap을 물려받음) */
+    white-space: normal;
+    overflow-wrap: break-word;
 }
 
 .posterCardExplain {
     display: flex;
     flex-direction: column;
     text-align: end;
+}
+
+.posterCardExplain span {
+    font-size: calc(11px * var(--caption-font, 1));
+    line-height: 1;
+}
+
+/* 설명의 제목 줄 */
+.posterCardExplainTitle {
+    font-weight: 600;
+    font-style: italic;
 }
 
 /* 세로 화면(모바일): 설명이 카드에 딱 붙거나 겹치지 않게 사이를 띄움.
@@ -78,14 +99,10 @@
         width: calc(80vmin / 1.3);
     }
 
+    /* 카드와의 사이는 틀의 gap으로 띄우므로 안쪽 여백은 없앰 (설명 칸이 좁음) */
     .posterCardExplainContainer {
         flex: 1;
         width: auto;
-        min-width: 0;
-    }
-
-    /* 칸보다 긴 줄은 카드 쪽으로 넘치지 않고 줄바꿈 */
-    .posterCardExplain span {
-        white-space: normal;
+        padding-left: 0;
     }
 }

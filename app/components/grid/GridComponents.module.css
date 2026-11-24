@@ -53,6 +53,8 @@
     color: #1d1d1f;
     border-bottom: 1px solid #F5F5F7;
     transition: background-color 0.1s ease;
+    /* 줄을 바꿔 적은 값(그림 설명 등)은 표에서도 줄을 바꿔 보여 줌 */
+    white-space: pre-line;
 }
 
 .tr {
@@ -65,6 +67,11 @@
 
 .selected .td {
     background-color: #F0F7FF;
+}
+
+/* 흐리게 보여 줄 줄 (예: 홈 화면에서 가린 그룹). 글자만 옅게 해서 칸 안의 색 표시(알약)는 그대로 눈에 띔 */
+.muted .td {
+    color: #aeaeb2;
 }
 
 .empty {

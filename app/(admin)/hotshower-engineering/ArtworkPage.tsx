@@ -12,7 +12,7 @@ import ShowLoading from "./loading/ShowLoading";
 import FramedImage from "@/components/MainImage/FramedImage";
 import { snackbar, SnackbarHost } from "@/components/Snackbar/Snackbar";
 import { confirmDialog, ConfirmHost } from "@/components/Confirm/ConfirmDialog";
-import { applyGroupOrder, applyWallOrder, groupIds, moveItem, wallList } from "@/common/order";
+import { applyGroupOrder, applyWallOrder, groupIds, hiddenGroupIds, moveItem, setGroupHidden, wallList } from "@/common/order";
 import { applySeasonOrder, deleteSeason, leaveSeason, seasonCover, seasonNames } from "@/common/season";
 import SeasonPanel from "./season-panel/SeasonPanel";
 
@@ -174,12 +174,15 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
     // 2D 시즌 탭에서 고른 시즌 (이 탭에서는 고른 줄의 값이 시즌 이름)
     const selectedSeason = tab === '3' && selectedArtworkId && seasonNames(artworks).includes(selectedArtworkId) ? selectedArtworkId : null;
 
-    // 그림 목록 전체를 고쳐서 저장 (3D 전시장·2D 시즌 탭의 버튼들이 씀)
-    const saveArtworks = async (next: Artwork[], message: string) => {
+    // 메인 전시장 탭에서 고른 그룹이 홈 화면에서 가려져 있는지
+    const selectedGroupHidden = tab === '2' && !!selectedArtwork?.galleryId && hiddenGroupIds(artworks).has(selectedArtwork.galleryId);
+
+    // 그림 목록 전체를 고쳐서 저장 (메인 전시장·3D 전시장·2D 시즌 탭의 버튼들이 씀). keepSelection: 저장한 뒤에도 고른 줄을 그대로 둠
+    const saveArtworks = async (next: Artwork[], message: string, keepSelection = false) => {
         setIsLoading(true);
         try {
             await updateAllArtwork(next);
-            setSelectedArtworkId(null);
+            if (!keepSelection) setSelectedArtworkId(null);
             snackbar.success(message);
             router.refresh(); // 페이지 새로고침
         } catch {
@@ -273,8 +276,8 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                                                     const targetgalleryId = selectedArtwork?.galleryId;
                                                     await updateAllArtwork(artworks.map((artwork) => {
                                                         if (artwork.galleryId === targetgalleryId) {
-                                                            // 설명 순서 값도 지움 (나중에 다른 그룹에 넣었을 때 예전 값이 남아 있지 않게)
-                                                            return { ...artwork, galleryId: null, captionOrder: null };
+                                                            // 설명 순서·가리기 값도 지움 (나중에 다른 그룹에 넣었을 때 예전 값이 남아 있지 않게)
+                                                            return { ...artwork, galleryId: null, captionOrder: null, galleryHidden: null };
                                                         }
                                                         return artwork;
                                                     }));
@@ -290,6 +293,18 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
 
                                             }}>
                                             그룹 삭제
+                                        </button>
+                                        {/* 지우지 않고 홈 화면에서만 잠깐 숨김. 그림·배치·순서는 그대로라 "다시 보이기"로 바로 되돌림 */}
+                                        <button className={addButton}
+                                            disabled={!selectedArtwork?.galleryId}
+                                            onClick={() => {
+                                                if (!selectedArtwork?.galleryId) return;
+                                                saveArtworks(
+                                                    setGroupHidden(artworks, selectedArtwork.galleryId, !selectedGroupHidden),
+                                                    selectedGroupHidden ? '홈 화면에 다시 보이게 했습니다.' : '홈 화면에서 가렸습니다.',
+                                                    true);
+                                            }}>
+                                            {selectedGroupHidden ? '다시 보이기' : '가리기'}
                                         </button>
                                     </>
                                 }
@@ -412,7 +427,9 @@ const ArtworkPage = ({ artworks, musicList }: { artworks: Artwork[]; musicList: 
                     ))}
                     {tab === '2' && (selectedArtworkId ? (
                         <ArtworkDisplayPanel
-                            title={PANEL_TITLE[tab]}
+                            title={selectedGroupHidden
+                                ? <>{PANEL_TITLE[tab]}<div className={`${styles.homeBadge} ${styles.homeBadgeHidden}`}>홈 화면에서 가림</div></>
+                                : PANEL_TITLE[tab]}
                             artworks={artworks}
                             selectedArtworkId={selectedArtworkId}
                             locked={!!groupOrder}

@@ -70,6 +70,8 @@
 .dialogInfoOverView {
     border-top: 1px solid #e0e0e0;
     padding-top: calc(var(--sp) * 6);
+    /* 관리자에서 줄을 바꿔 적은 설명은 그대로 줄을 바꿔 보여 줌 */
+    white-space: pre-line;
 }
 
 

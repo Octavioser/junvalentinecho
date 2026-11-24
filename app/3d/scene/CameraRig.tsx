@@ -24,7 +24,10 @@ const END_STOP = 2;        // 앞뒤 벽에서 멈추는 거리
 // 그림을 눌러서 다가가기
 const APPROACH_TIME = 1 / 3;      // 그림 앞으로 걸어가거나 돌아올 때 따라가는 시간 (클수록 천천히). 거의 다 도착하는 데 이 값의 약 3배(1초)
 const VIEW_MARGIN = 1.5;          // 다가갔을 때 그림이 화면에 꽉 차지 않게 두는 여유 (하단 플레이어에 가리지 않게)
-const MIN_VIEW = 0.8;             // 작은 그림도 이보다 가까이 가지는 않음 (m)
+// 아무리 작은 그림도 이보다 가까이 가지는 않음 (m). 큰 그림은 화면의 2/3쯤 차는 거리에 서지만, 작은 그림은 여기서 멈춤.
+// 0.8m는 12x22cm 그림이 휴대폰 폭의 1/5 정도로만 보여 멀었고, 큰 그림처럼 2/3까지 다가가면(0.15m) 너무 가까웠음.
+// 0.5m: 12x22cm 그림이 휴대폰 폭의 1/3쯤, PC 화면 높이의 절반쯤
+const MIN_VIEW = 0.5;
 const WALL_YAW = Math.PI / 2;     // 그림 벽을 정면으로 보는 방향
 
 // from에서 가장 가까운 쪽으로 도는 목표 각도 (시선을 여러 바퀴 돌린 뒤에도 반 바퀴 넘게 돌지 않게)
@@ -33,6 +36,15 @@ const nearestAngle = (goal: number, from: number) => from + MathUtils.euclideanM
 export const photoFov = (aspect: number) => MathUtils.radToDeg(aspect >= PHOTO_ASPECT
     ? PHOTO_VFOV
     : Math.min(MAX_VFOV, 2 * Math.atan(Math.tan(PHOTO_HFOV / 2) / aspect)));
+
+// 그림을 눌러 다가갔을 때 벽에서 떨어지는 거리: 그림 전체가 여유 있게 보이는 거리. 아주 큰 그림은 관람 레일까지만 물러남.
+// fov는 세로 화각(도), aspect는 화면 가로/세로. 그림 텍스처를 얼마나 크게 받을지 정할 때도 씀 (Artwork.tsx)
+export const viewDistanceFor = ({ width, height }: { width: number; height: number; }, fov: number, aspect: number) => {
+    const vHalf = MathUtils.degToRad(fov) / 2;
+    const hHalf = Math.atan(Math.tan(vHalf) * aspect);
+    const fit = Math.max(height / 2 / Math.tan(vHalf), width / 2 / Math.tan(hHalf));
+    return MathUtils.clamp(fit * VIEW_MARGIN, MIN_VIEW, ROOM.railX - ROOM.artWallX);
+};
 
 export default function CameraRig({ input, farZ }: { input: MutableRefObject<MoveInput>; farZ: number; }) {
     const camera = useThree(state => state.camera) as PerspectiveCamera;
@@ -144,12 +156,7 @@ export default function CameraRig({ input, farZ }: { input: MutableRefObject<Mov
     }, [gl, camera, input, invalidate, reducedMotion]);
 
     // 그림 전체가 여유 있게 보이는 거리 (벽에서 떨어진 정도). 아주 큰 그림은 관람 레일까지만 물러남
-    const viewDistance = ({ width, height }: Focus) => {
-        const vHalf = MathUtils.degToRad(camera.fov) / 2;
-        const hHalf = Math.atan(Math.tan(vHalf) * camera.aspect);
-        const fit = Math.max(height / 2 / Math.tan(vHalf), width / 2 / Math.tan(hHalf));
-        return MathUtils.clamp(fit * VIEW_MARGIN, MIN_VIEW, ROOM.railX - ROOM.artWallX);
-    };
+    const viewDistance = (focus: Focus) => viewDistanceFor(focus, camera.fov, camera.aspect);
 
     useFrame((_, delta) => {
         // 렌더를 쉬었다가 다시 시작하면 delta가 쉰 시간 전체라서 잘라냄

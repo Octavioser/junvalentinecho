@@ -9,7 +9,8 @@ import Link from "next/link";
 import { useArtworks } from "@/providers/ArtworksProvider";
 import { formatSize } from "@/common/format";
 import { ARTWORK_QUALITY } from "@/common/image";
-import { captionList } from "@/common/order";
+import { captionList, hiddenGroupIds } from "@/common/order";
+import { useCaptionFit } from "./captionFit";
 
 import MainImgDialog from "./(mainImgDailog)/MainImgDialog";
 
@@ -26,6 +27,7 @@ const Gallery = () => {
 
     const [groupIdList, setGroupIdList] = useState<Artwork[]>([]);
     const [displayGroupList, setDisplayGroupList] = useState<{ [x: string]: Artwork[]; }>({});
+    const captionBox = useCaptionFit(displayGroupList); // 카드 옆 설명 칸들 (넘치면 줄여서 맞춤)
 
     const [dialogImageId, setDialogImageId] = useState<string | null>(null);
     const [dialogPreview, setDialogPreview] = useState<string | undefined>(undefined); // 상세창을 열려고 누른 그림의 주소 (창이 열리자마자 그 그림부터 보여 줌)
@@ -126,9 +128,10 @@ const Gallery = () => {
 
 
     useEffect(() => {
-        // 중복된 galleryId를 가진 Artwork 객체를 제거
+        // 그룹마다 하나씩 (관리자가 "가리기"한 그룹은 빼고), 그룹 번호 순으로
+        const hidden = hiddenGroupIds(artworks);
         setGroupIdList(
-            (Array.from(new Map(artworks.filter((item) => item.galleryId).map(item => [item.galleryId, item])).values()) || [])
+            (Array.from(new Map(artworks.filter((item) => item.galleryId && !hidden.has(item.galleryId)).map(item => [item.galleryId, item])).values()) || [])
                 .sort((a, b) => (a.galleryId || 0) - (b.galleryId || 0))
         );
 
@@ -195,12 +198,13 @@ const Gallery = () => {
                                     })}
                                 </MainImagePosterCard>
                             </div>
-                            <div className={posterCardExplainContainer}>
+                            {/* 설명이 많아 칸을 넘치면 간격·글자 크기를 줄여서 맞춤 (captionFit.ts) */}
+                            <div className={posterCardExplainContainer} ref={captionBox}>
                                 {/* 설명은 관리자가 정한 순서대로, 정한 적 없으면 카드에서 위에 걸린 그림부터. 그림 목록 자체의 순서는 겹침 순서라 그대로 둠 */}
                                 {captionList(item.galleryId && displayGroupList[item.galleryId] || [])
                                     .map(({ title, width, height, material, year }, index) =>
                                         <div key={`explain${index}`} className={posterCardExplain}>
-                                            <span style={{ whiteSpace: 'normal', fontWeight: '600', fontStyle: 'italic' }}>{title}</span>
+                                            <span className={styles.posterCardExplainTitle}>{title}</span>
                                             <span>{formatSize(width, height)}</span>
                                             <span>{material}</span>
                                             {/* 연도는 맨 아래 */}

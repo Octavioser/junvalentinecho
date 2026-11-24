@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import styles from "./navigation.module.css";
 
-const INTERNAL_PAGES = ['/', '/sound', '/visual', '/3d', '/info'];
+const INTERNAL_PAGES = ['/', '/visual', '/3d', '/info'];
 
 // 3D 메뉴에 마우스를 올리거나 누르는 순간 3D 모듈(three.js)을 미리 받기 시작
 const preload3d = () => { import("@/3d/scene/Scene"); };
@@ -44,7 +44,8 @@ const Nav = () => {
                     <ul>
                         {[
                             { href: '/', label: 'HOME' },
-                            { href: '/sound', label: 'SOUND' }, // 아직 내용이 없어서 "페이지를 찾을 수 없음" 화면이 나옴 (app/sound)
+                            // 새 탭으로 열어서 사이트에서 듣던 음악이 끊기지 않게
+                            { href: 'https://linktr.ee/joonhyeokdanielcho', label: 'SOUND', target: '_blank', rel: 'noopener noreferrer' },
                             { href: '/visual', label: '2D' },
                             { href: '/3d', label: '3D' },
                             { href: '/info', label: 'cv/bio' },

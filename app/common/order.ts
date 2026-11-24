@@ -20,6 +20,15 @@ export const captionList = (group: Artwork[]) =>
 export const groupIds = (artworks: Artwork[]) =>
     [...new Set(artworks.map(({ galleryId }) => galleryId).filter((id): id is number => !!id))].sort((a, b) => a - b);
 
+// 홈 화면에서 가려 둔 그룹 번호들. 가리기 표시(galleryHidden)는 그룹의 모든 그림에 같이 적지만,
+// 하나라도 있으면 그룹 전체를 가림 (그룹에 새로 넣은 그림에 표시가 빠져도 카드가 반쪽만 나오지 않게)
+export const hiddenGroupIds = (artworks: Artwork[]) =>
+    new Set(artworks.filter(({ galleryId, galleryHidden }) => galleryId && galleryHidden).map(({ galleryId }) => galleryId!));
+
+// 그룹을 홈 화면에서 가리거나 다시 보이게 함 (그림·배치·순서는 그대로)
+export const setGroupHidden = (artworks: Artwork[], galleryId: number, hidden: boolean) =>
+    artworks.map((artwork) => artwork.galleryId === galleryId ? { ...artwork, galleryHidden: hidden ? true : null } : artwork);
+
 // 그룹을 order(그룹 번호를 새 순서대로 늘어놓은 것)대로 다시 세움.
 // 그룹 번호가 곧 순서라서, 쓰던 번호들을 새 순서에 맞게 다시 나눠 줌
 export const applyGroupOrder = (artworks: Artwork[], order: number[]) => {
@@ -33,13 +42,15 @@ export const applyGroupOrder = (artworks: Artwork[], order: number[]) => {
 // 그림들을 메인 전시장 그룹에 넣음 (ids: 고른 순서대로. 다른 그룹에 있던 그림은 거기서 빠짐).
 // 설명 순서: 그 그룹이 순서를 정해 둔 그룹이면 고른 순서대로 맨 뒤에 붙임.
 // 새 그룹이거나 순서를 정한 적 없는 그룹이면 번호 없이 둠 (위에 걸린 그림부터 나옴. 새 그림에만 번호를 주면 새 그림이 맨 앞으로 가 버림)
+// 가리기: 가려 둔 그룹에 넣으면 같이 가려지고, 새 그룹이나 보이는 그룹으로 옮기면 가리기 표시가 지워짐
 export const joinGroup = (artworks: Artwork[], ids: string[], galleryId: number, groupWinSize: number) => {
     const members = artworks.filter((artwork) => artwork.galleryId === galleryId && !ids.includes(artwork.id));
     const ordered = members.length > 0 && members.every(({ captionOrder }) => captionOrder != null);
     const last = Math.max(0, ...members.map(({ captionOrder }) => captionOrder ?? 0));
+    const hidden = members.some(({ galleryHidden }) => galleryHidden);
     const position = new Map(ids.map((id, index) => [id, ordered ? last + index + 1 : null]));
     return artworks.map((artwork) => position.has(artwork.id)
-        ? { ...artwork, galleryId, groupWinSize, captionOrder: position.get(artwork.id)! }
+        ? { ...artwork, galleryId, groupWinSize, captionOrder: position.get(artwork.id)!, galleryHidden: hidden ? true : null }
         : artwork);
 };
 

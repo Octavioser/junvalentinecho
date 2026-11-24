@@ -35,6 +35,7 @@ export function wallLayout(artworks: Artwork[]): { items: WallItem[]; farZ: numb
     let edge = HANG.firstZ;
     shown.forEach((artwork, i) => {
         if (i > 0) edge -= HANG.gap;
+        // 실제 크기 그대로 검: 전시장은 그림끼리 크기를 비교해 보는 곳이라 아주 작은 그림도 키우지 않음
         const width = artwork.width / 100;
         items.push({ artwork, width, z: edge - width / 2 });
         edge -= width;

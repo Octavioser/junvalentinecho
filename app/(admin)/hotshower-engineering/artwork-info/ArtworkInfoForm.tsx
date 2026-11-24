@@ -3,8 +3,13 @@ import React from "react";
 import { Artwork, MusicBlob } from "@/types";
 import GridComponents from "@/components/grid/GridComponents";
 import { formatSizeNumbers } from "@/common/format";
-import { wallList } from "@/common/order";
+import { hiddenGroupIds, wallList } from "@/common/order";
 import { seasonArtworks, seasonCover, seasonNames } from "@/common/season";
+import styles from "../ArtworkPage.module.css";
+
+// 메인 전시장 탭: 그룹이 홈 화면에 보이는지 (가린 그룹은 주황 알약)
+const HomeBadge = ({ hidden }: { hidden: boolean; }) =>
+    <div className={`${styles.homeBadge} ${hidden ? styles.homeBadgeHidden : styles.homeBadgeShown}`}>{hidden ? '가림' : '보임'}</div>;
 
 const ARTWORK_COLUMNS = [
     { name: 'season', header: '시즌', type: 'string' },
@@ -24,6 +29,7 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
 }) => {
 
     const withSize = (list: Artwork[]) => list.map(e => ({ ...e, size: formatSizeNumbers(e.width, e.height) }));
+    const hiddenGroups = hiddenGroupIds(artworks); // 홈 화면에서 가려 둔 그룹 (메인 전시장 탭)
 
     return (
         // minHeight: 0이 있어야 줄이 많을 때 이 칸이 내용만큼 늘어나지 않고, 안의 표(GridComponents)가 스크롤됨.
@@ -76,8 +82,9 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                         { name: 'galleryId', header: '그룹', type: 'string' },
                         { name: 'title', header: '제목', type: 'string' },
                         { name: 'groupWinSize', header: '전시창 크기(cm)', type: 'string' },
+                        { name: 'homeShown', header: '홈 화면', type: 'string' },
                     ]}
-                    // 그룹마다 한 줄, 홈 화면에 나오는 순서(그룹 번호 순)대로 (끌어서 바꿀 수 있음)
+                    // 그룹마다 한 줄, 홈 화면에 나오는 순서(그룹 번호 순)대로 (끌어서 바꿀 수 있음). 가린 그룹은 줄을 흐리게 하고 주황 "가림"
                     gridData={(artworks.filter(({ galleryId }) => galleryId)).reduce((acc: Artwork[], curr: Artwork) => {
                         const existingGroup = acc.find((item) => item.galleryId === curr.galleryId);
                         if (existingGroup) return [
@@ -85,7 +92,9 @@ const ArtworkInfoForm = ({ tab, artworks, musicList, selectedArtworkId, setSelec
                             { ...curr, title: `${existingGroup.title} | ${curr.title}` }
                         ];
                         return [...acc, curr];
-                    }, []).sort((a, b) => (a.galleryId ?? 0) - (b.galleryId ?? 0))}
+                    }, []).sort((a, b) => (a.galleryId ?? 0) - (b.galleryId ?? 0))
+                        .map((group) => ({ ...group, homeShown: <HomeBadge hidden={hiddenGroups.has(group.galleryId!)} /> }))}
+                    mutedRow={(group) => hiddenGroups.has(group.galleryId)}
                     selectedArtworkId={selectedArtworkId}
                     setSelectedArtworkId={setSelectedArtworkId}
                     emptyText="메인 전시장에 올린 그룹이 없어요."

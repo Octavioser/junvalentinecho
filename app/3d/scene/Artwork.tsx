@@ -1,10 +1,11 @@
 import { MutableRefObject, useEffect, useMemo, useState } from "react";
 import { ThreeEvent, useThree } from "@react-three/fiber";
-import { AdditiveBlending, Texture } from "three";
+import { AdditiveBlending, MathUtils, Texture } from "three";
 import { HANG, ROOM, WallItem } from "../wallLayout";
 import { captionTexture, lightPoolTexture, shadowTexture } from "./canvasTextures";
 import { MoveInput } from "./input";
 import { useImageTexture } from "./useImageTexture";
+import { photoFov, viewDistanceFor } from "./CameraRig";
 import { hasTransparency } from "@/common/image";
 
 const FRAME = 0.004;         // 메탈 프레임 테두리
@@ -16,9 +17,24 @@ const CAPTION_GAP = 0.2;
 const CAPTION_Y = 1.32;
 const CLICK_SLOP = 8;        // 이보다 많이 움직였으면 누른 게 아니라 끌어서 시선을 돌린 것 (px)
 
+// Next 이미지 최적화가 만들어 주는 사본 너비들 (Next 기본값 imageSizes + deviceSizes 중 텍스처로 쓸 만한 것)
+const COPY_WIDTHS = [256, 384, 640, 750, 828, 1080, 1200, 1920];
+
+// 그림 텍스처로 받을 사본의 너비(px): 이 화면에서 그 그림이 가장 크게 보일 때(눌러서 앞으로 다가갔을 때) 차지하는 너비에 맞춤.
+// 사본이 화면에 그려지는 크기보다 훨씬 크면 GPU가 줄이면서 캔버스 결 같은 잔무늬가 가로줄(모아레)로 깨져 보임.
+// 예전에는 모든 그림을 1080px(2m 넘는 그림은 1920px)로 받아서, 12cm짜리 작은 그림이 휴대폰에서 줄무늬로 보였음 (원본은 더 커서 더 심해짐)
+// screenHeight·dpr: 지금 3D 화면의 세로(CSS px)와 화소 배율. width·height: 벽에 걸린 그림 크기(m)
+const textureWidth = (width: number, height: number, screenWidth: number, screenHeight: number, dpr: number) => {
+    const aspect = screenWidth / screenHeight;
+    const fov = photoFov(aspect);
+    const visibleHeight = 2 * viewDistanceFor({ width, height }, fov, aspect) * Math.tan(MathUtils.degToRad(fov) / 2);
+    const needed = width / visibleHeight * screenHeight * dpr;
+    return COPY_WIDTHS.find((copy) => copy >= needed) ?? COPY_WIDTHS[COPY_WIDTHS.length - 1];
+};
+
 // 같은 출처의 Next 이미지 최적화를 거쳐 큰 원본을 줄여서 받음 (품질 75는 next.config.js의 images.qualities에 있어야 함)
-const textureUrl = ({ poster_path }: WallItem['artwork'], width: number) =>
-    `/_next/image?url=${encodeURIComponent(poster_path)}&w=${width > 2 ? 1920 : 1080}&q=75`;
+const textureUrl = (posterPath: string, copyWidth: number) =>
+    `/_next/image?url=${encodeURIComponent(posterPath)}&w=${copyWidth}&q=75`;
 
 const decal = { transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 };
 
@@ -29,7 +45,15 @@ export default function ArtworkPiece({ item, input }: { item: WallItem; input: M
     const { artwork, width, z } = item;
     const gl = useThree(state => state.gl);
     const invalidate = useThree(state => state.invalidate);
-    const texture = useImageTexture(textureUrl(artwork, width));
+    const get = useThree(state => state.get);
+    // 받을 사본 크기는 처음 그릴 때의 화면 크기로 한 번만 정함 (창 크기를 바꿀 때마다 그림을 새로 받지 않게).
+    // 세로 길이는 입력해 둔 실제 크기(cm)로 어림 (그림 파일을 받기 전이라 비율을 아직 모름)
+    const url = useMemo(() => {
+        const { size, viewport } = get();
+        const height = artwork.height > 0 ? artwork.height / 100 : width;
+        return textureUrl(artwork.poster_path, textureWidth(width, height, size.width, size.height, viewport.dpr));
+    }, [artwork.poster_path, artwork.height, width, get]);
+    const texture = useImageTexture(url);
 
     // 높이는 홈 화면처럼 이미지 비율로 (데이터의 세로 cm는 캡션 표기용)
     const image = texture?.image as HTMLImageElement | undefined;

@@ -6,7 +6,8 @@ import styles from "./GridComponents.module.css";
 // reorderLocked(이유)를 주면 잠깐 끌 수 없게 하고, 손잡이를 누르면 onReorderLockedAttempt로 알림
 // picked(고른 줄의 id를 고른 순서대로)와 onPick을 주면 여러 줄을 고르는 표가 됨:
 // 줄을 누르면 onPick(id)로 알리고(고르기·풀기는 부르는 쪽에서), 맨 앞 칸에 고른 순서 번호가 보임. 이때는 selectedArtworkId를 쓰지 않음
-const GridComponents = ({ columnList, gridData, selectedArtworkId = null, setSelectedArtworkId, emptyText = '등록된 항목이 없어요.', onReorder, reorderLocked, onReorderLockedAttempt, picked, onPick }: { columnList: { header: string, name: string; type?: string; }[], gridData: Record<string, any>[], selectedArtworkId?: string | null, setSelectedArtworkId?: (id: string | null) => void; emptyText?: string; onReorder?: (from: number, to: number) => void; reorderLocked?: string; onReorderLockedAttempt?: () => void; picked?: string[]; onPick?: (id: string) => void; }) => {
+// mutedRow: 흐리게 보여 줄 줄 (예: 홈 화면에서 가린 그룹)
+const GridComponents = ({ columnList, gridData, selectedArtworkId = null, setSelectedArtworkId, emptyText = '등록된 항목이 없어요.', onReorder, reorderLocked, onReorderLockedAttempt, picked, onPick, mutedRow }: { columnList: { header: string, name: string; type?: string; }[], gridData: Record<string, any>[], selectedArtworkId?: string | null, setSelectedArtworkId?: (id: string | null) => void; emptyText?: string; onReorder?: (from: number, to: number) => void; reorderLocked?: string; onReorderLockedAttempt?: () => void; picked?: string[]; onPick?: (id: string) => void; mutedRow?: (row: Record<string, any>) => boolean; }) => {
 
     const [dragIndex, setDragIndex] = useState<number | null>(null); // 끌고 있는 줄
     const [dropAt, setDropAt] = useState<number | null>(null);       // 놓으면 이 번호의 줄 앞에 들어감 (맨 끝은 줄 수)
@@ -45,6 +46,7 @@ const GridComponents = ({ columnList, gridData, selectedArtworkId = null, setSel
                                 className={[
                                     styles.tr,
                                     picked ? styles.pickable : '',
+                                    mutedRow?.(data) ? styles.muted : '',
                                     isSelected ? styles.selected : '',
                                     dragIndex === index ? styles.dragging : '',
                                     dropLine === index ? styles.dropBefore : '',

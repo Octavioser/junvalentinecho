@@ -146,6 +146,42 @@
     font-weight: 500;
 }
 
+/* 메인 전시장: 그룹이 홈 화면에 보이는지 표시하는 알약 (가림은 주황으로 눈에 띄게, 보임은 옅은 초록) */
+.homeBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.homeBadge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+}
+
+.homeBadgeHidden {
+    background-color: #ff9500;
+    color: #FFFFFF;
+}
+
+.homeBadgeShown {
+    background-color: #e8f6ec;
+    color: #1f8a43;
+}
+
+/* 오른쪽 패널 제목 옆에 붙을 때 */
+.headerPanel .homeBadge {
+    margin-left: 12px;
+}
+
 /* 전시창 배치 옆: 홈 화면 카드 옆에 나오는 설명의 순서 (줄을 끌어서 바꿈) */
 .captionOrder {
     display: flex;
