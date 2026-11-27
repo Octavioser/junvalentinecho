@@ -30,23 +30,13 @@
 .metalFrame {
     position: absolute;
     display: block;
-    /* 메탈릭 액자 프레임 */
-    /* --inverse-scale 변수를 사용하여 줌 레벨에 따라 두께를 일정하게 유지 (1/scale) */
-    padding: calc(1px * var(--inverse-scale, 1));
+    /* 전시창에 거는 그림: 테두리 없이 그림자만 줌 (예전에는 1px 회색 금속 액자 테두리가 있었음. 이름은 그때 것 그대로) */
+    /* --inverse-scale 변수를 사용하여 줌 레벨에 따라 그림자 크기를 일정하게 유지 (1/scale) */
 
-    background: linear-gradient(145deg,
-            #e0e0e0,
-            #b0b0b0,
-            #e0e0e0);
-
-    border-radius: calc(2px * var(--inverse-scale, 1));
-
-    /* 메인: 오른쪽+하단 (이미지는 얇게) / 보조: 왼쪽 상단 아주 살짝 (줌 보정) + 베벨 인셋 유지 */
+    /* 메인: 오른쪽+하단 (이미지는 얇게) / 보조: 왼쪽 상단 아주 살짝 (줌 보정) */
     box-shadow:
         calc(2px * var(--inverse-scale, 1)) calc(2px * var(--inverse-scale, 1)) calc(3px * var(--inverse-scale, 1)) calc(-1px * var(--inverse-scale, 1)) rgba(40, 48, 60, 0.18),
-        calc(-1px * var(--inverse-scale, 1)) calc(-1px * var(--inverse-scale, 1)) calc(1px * var(--inverse-scale, 1)) rgba(40, 48, 60, 0.05),
-        inset calc(1px * var(--inverse-scale, 1)) calc(1px * var(--inverse-scale, 1)) calc(2px * var(--inverse-scale, 1)) rgba(255, 255, 255, 0.6),
-        inset calc(-1px * var(--inverse-scale, 1)) calc(-1px * var(--inverse-scale, 1)) calc(2px * var(--inverse-scale, 1)) rgba(0, 0, 0, 0.08);
+        calc(-1px * var(--inverse-scale, 1)) calc(-1px * var(--inverse-scale, 1)) calc(1px * var(--inverse-scale, 1)) rgba(40, 48, 60, 0.05);
     transition: transform 0.3s ease;
     object-fit: cover;
     /* 잘리게 */
@@ -54,11 +44,8 @@
     box-sizing: border-box;
 }
 
-/* 배경을 잘라낸 그림 (투명한 곳이 있는 그림): 네모난 액자를 빼고, 그림 모양을 따라 같은 방향·세기의 그림자만 줌 */
+/* 배경을 잘라낸 그림 (투명한 곳이 있는 그림): 네모난 그림자 대신, 그림 모양을 따라 같은 방향·세기의 그림자를 줌 */
 .metalFrame.cutout {
-    padding: 0;
-    background: none;
-    border-radius: 0;
     box-shadow: none;
     filter:
         drop-shadow(calc(1.5px * var(--inverse-scale, 1)) calc(1.5px * var(--inverse-scale, 1)) calc(1.5px * var(--inverse-scale, 1)) rgba(40, 48, 60, 0.18))

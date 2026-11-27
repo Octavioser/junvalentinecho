@@ -206,9 +206,10 @@ const Gallery = () => {
                                         <div key={`explain${index}`} className={posterCardExplain}>
                                             <span className={styles.posterCardExplainTitle}>{title}</span>
                                             <span>{formatSize(width, height)}</span>
-                                            <span>{material}</span>
+                                            {/* 재료·연도: 설명이 너무 많아 카드 높이에 안 들어가는 카드는 이 두 줄을 숨기고 제목과 크기만 보여 줌 (captionFit.ts) */}
+                                            <span className={styles.posterCardExplainDetail}>{material}</span>
                                             {/* 연도는 맨 아래 */}
-                                            {!!year && <span>{year}</span>}
+                                            {!!year && <span className={styles.posterCardExplainDetail}>{year}</span>}
                                         </div>
                                     )}
                             </div>

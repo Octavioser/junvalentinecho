@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from "./Season.module.css";
 import Image from "next/image";
 import { useArtworks } from "@/providers/ArtworksProvider";
@@ -11,6 +11,7 @@ import MainImgDialog from "../../(home)/(mainImgDailog)/MainImgDialog";
 // 그림 칸(Season.module.css의 .detailImage)의 크기: 너비는 화면 폭의 72%를 넘지 않고, 높이는 플레이어를 뺀 화면 높이의 48%
 const BOX_VW = 72;
 const BOX_VH = 40.8; // (100 - 15) x 0.48
+const LIST_FADE = 56; // 제목 목록이 더 있는 쪽 끝이 서서히 사라지는 길이 (px)
 
 // 그림이 화면에서 실제로 그려지는 너비. 칸 안에 비율을 지키며 들어가므로, 세로로 긴 그림은 칸 높이에 맞춰져 훨씬 좁게 그려짐.
 // 이 너비에 맞는 사본을 받게 함: 칸 너비로만 알려 주면 좁게 보이는 그림도 화면 폭짜리 큰 파일(수백 KB~수 MB)을 받음.
@@ -41,6 +42,49 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
 
     // 지금 보여 주는 그림. 제목에 마우스를 올리거나 누르면 그 그림으로 바뀌고 그대로 남음 (마우스를 떼도 돌아가지 않음)
     const [showId, setShowId] = useState<String | null>(null);
+
+    // 제목 목록을 넘겨 볼 수 있다는 표시: 더 있는 쪽(위·아래) 끝을 서서히 흐리게 하고, 오른쪽 가는 막대로 지금 위치를 보여 줌.
+    // 제목도 목록 가운데에서 멀수록(끝으로 갈수록) 연하고 더 흐리게 보임.
+    // 넘길 때마다 화면 전체를 다시 그리지 않게, 상태로 두지 않고 요소에 바로 적음
+    const listRef = useRef<HTMLDivElement>(null);
+    const thumbRef = useRef<HTMLDivElement>(null);
+    const updateScrollCue = useCallback(() => {
+        const el = listRef.current;
+        if (!el) return;
+        const { scrollTop, scrollHeight, clientHeight } = el;
+        // 끝까지 남은 거리만큼만 흐리게 해서, 끝에 다가가면 흐림이 줄다가 없어짐
+        el.style.setProperty('--fade-top', `${Math.min(LIST_FADE, Math.max(0, scrollTop))}px`);
+        el.style.setProperty('--fade-bottom', `${Math.min(LIST_FADE, Math.max(0, scrollHeight - clientHeight - scrollTop))}px`);
+        const thumb = thumbRef.current;
+        if (thumb) {
+            thumb.style.opacity = scrollHeight > clientHeight + 1 ? '1' : '0';
+            thumb.style.height = `${clientHeight / scrollHeight * 100}%`;
+            thumb.style.top = `${scrollTop / scrollHeight * 100}%`;
+        }
+        // 제목마다 목록 가운데에서 얼마나 떨어져 있는지 (--away: 가운데 0 ~ 위아래 끝 1).
+        // 이 값이 클수록 연하고 흐리게 보임 (Season.module.css)
+        const box = el.getBoundingClientRect();
+        if (box.height <= 0) return; // 아직 화면에 놓이지 않았음 (놓이면 크기가 바뀌면서 다시 불림)
+        const middle = box.top + box.height / 2;
+        for (const item of el.children) {
+            const rect = item.getBoundingClientRect();
+            const away = Math.min(1, Math.abs((rect.top + rect.bottom) / 2 - middle) / (box.height / 2));
+            (item as HTMLElement).style.setProperty('--away', away.toFixed(3));
+        }
+    }, []);
+    // 처음 그릴 때, 목록 내용이 바뀔 때, 화면 크기가 바뀔 때, 글꼴을 다 받았을 때(줄바꿈이 달라짐) 다시 맞춤
+    useEffect(() => {
+        updateScrollCue();
+        const el = listRef.current;
+        const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateScrollCue) : null;
+        if (el && observer) observer.observe(el);
+        window.addEventListener('resize', updateScrollCue);
+        document.fonts?.ready.then(updateScrollCue);
+        return () => {
+            observer?.disconnect();
+            window.removeEventListener('resize', updateScrollCue);
+        };
+    }, [updateScrollCue, artworks.length]);
 
     const [dialogId, setDialogId] = useState<string | null>(null); // 그림을 눌러 연 상세창 (홈 화면과 같은 창)
     const dialogArtwork = artworks.find(({ id }) => id === dialogId);
@@ -89,12 +133,13 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
         </div>
         {/* 이 시즌의 그림 제목 목록 (오른쪽) */}
         <div className={listPanel}>
-            <div className={list}>
+            <div className={list} ref={listRef} onScroll={updateScrollCue}>
                 {artworks.map(({ id, overview, poster_path, season, title }) => (
                     <div
                         key={id}
-                        className={listItem}
-                        style={(showId || id) === id ? { cursor: 'pointer' } : { filter: 'blur(4px)' }}
+                        // 또렷하게 보일 제목: 지금 보여 주는 그림의 제목, 아직 아무것도 안 골랐으면 모든 제목. 나머지는 흐리게.
+                        // 거기에 더해 목록 끝으로 갈수록 연해지고 흐림도 세짐 (Season.module.css의 --away)
+                        className={[listItem, (showId || id) === id ? styles.listItemOn : styles.listItemOff, id === showId ? styles.listItemSelected : ''].join(' ')}
                         // 마우스를 올리기만 해도 고른 것으로 침 (누르는 것과 같음). 터치 화면은 누르면 고름
                         onMouseOver={() => { setShowId(id); }}
                         onClick={() => { setShowId(id); }}
@@ -103,6 +148,8 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
                     </div>
                 ))}
             </div>
+            {/* 목록의 어디쯤을 보고 있는지 알려 주는 가는 막대 (세로 화면에서 목록이 넘칠 때만 보임) */}
+            <div className={styles.scrollBar} aria-hidden="true"><div className={styles.scrollThumb} ref={thumbRef} /></div>
         </div>
         {dialogArtwork && <MainImgDialog targetImg={dialogArtwork} previewSrc={dialogPreview} dialogClose={() => { setDialogId(null); }} />}
     </div>;

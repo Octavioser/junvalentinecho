@@ -36,20 +36,25 @@
     padding-left: 3%;
 }
 
+/* 카드 틀: 정사각형 카드(한 변 80vmin / 1.3) + 그 옆 설명 칸. 가로 80vmin, 세로는 카드 한 변.
+   크기를 비율(aspect-ratio)로 주지 않고 값으로 못박음: 비율로 주면 사파리는 안의 내용이 길 때 틀을 내용 높이만큼 키워서
+   (크롬은 안 키움), 설명이 많은 카드에서 틀과 카드가 세로로 늘어나고 설명을 줄이는 계산(captionFit.ts)도 "이미 들어간다"고 봄 */
 .posterCardFrame {
     width: 80vmin;
-    aspect-ratio: 1.3 / 1;
+    height: calc(80vmin / 1.3);
     display: flex;
 }
 
 /* 그림이 걸리는 정사각형 카드 자리 */
 .posterCardSquare {
-    width: 100%;
-    aspect-ratio: 1 / 1;
+    flex: 0 0 auto;
+    width: calc(80vmin / 1.3);
+    height: calc(80vmin / 1.3);
 }
 
+/* 카드 옆 설명 칸: 틀에서 카드를 뺀 나머지 폭 */
 .posterCardExplainContainer {
-    width: 30%;
+    flex: 1 1 0;
     min-width: 0;
     box-sizing: border-box;
     /* 그림과 설명 사이를 띄움 */
@@ -57,10 +62,12 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    /* 설명이 많아 정해진 높이를 넘으면 captionFit.ts가 간격(--caption-gap) → 글자 크기(--caption-font) 순서로 줄임.
-       --caption-shift: 세로 화면에서 설명이 화면 위 이름에 닿지 않게 아래로 내리는 만큼 */
+    /* 설명이 많아 카드 높이를 넘으면 captionFit.ts가 간격(--caption-gap) → 글자 크기(--caption-font) 순서로 줄임.
+       --caption-shift: 그래도 카드보다 길 때, 카드 가운데에 맞춰 위아래로 같은 만큼 나가도록 아래로 내리는 만큼.
+       아래 여백을 그만큼 음수로 줘서 내림 (설명은 칸 아래 끝에 맞춰 쌓이므로 칸이 아래로 늘어난 만큼 내려감).
+       transform으로 옮기지 않는 이유: 이 칸이 따로 그려지는 층이 되어, 아이폰 사파리에서 칸 오른쪽 끝에 걸친 글자가 잘렸음 */
     gap: calc(var(--sp) * 4 * var(--caption-gap, 1));
-    transform: translateY(var(--caption-shift, 0px));
+    margin-bottom: calc(-1 * var(--caption-shift, 0px));
     /* 긴 줄은 칸 안에서 줄바꿈 (가로로 넘기는 목록이라 바깥에서 nowrap을 물려받음) */
     white-space: normal;
     overflow-wrap: break-word;
@@ -72,9 +79,17 @@
     text-align: end;
 }
 
+/* 줄 높이를 글자 크기에 딸려 보내지 않고 같은 값을 px로 따로 줌: 아주 작은 글자를 그려 주지 않는 브라우저(8px 아래로 안 줄어듦)에서도
+   줄 높이는 줄어들어서, 설명이 카드 높이 안에 들어감 */
 .posterCardExplain span {
     font-size: calc(11px * var(--caption-font, 1));
-    line-height: 1;
+    line-height: calc(11px * var(--caption-font, 1));
+    /* 글자 줄의 상자를 좌우로 조금 넓힘 (글자 자리는 그대로: 넓힌 만큼 바깥 여백을 음수로 줌).
+       아이폰 사파리는 줄 상자 밖으로 삐져나온 글자를 잘라 그림: 기울인 제목은 마지막 글자의 윗부분이 상자 오른쪽으로 나가고
+       (기울임·굵게를 브라우저가 만들어 그려서 더 나감), 오른쪽에 맞춘 줄이라 그 자리가 딱 상자 끝이었음.
+       오른쪽 0.25em = 기울인 글자가 나가는 만큼(글자 높이의 1/4쯤), 왼쪽은 꼬리가 내려오는 글자(y, p)가 조금 나가는 만큼 */
+    margin: 0 -0.25em 0 -0.1em;
+    padding: 0 0.25em 0 0.1em;
 }
 
 /* 설명의 제목 줄 */
@@ -83,26 +98,21 @@
     font-style: italic;
 }
 
+/* 설명이 너무 많아 카드 높이에 안 들어가는 카드: 재료·연도 줄을 숨기고 제목과 크기만 보여 줌. captionFit.ts가 data-compact를 붙임 */
+.posterCardExplainContainer[data-compact] .posterCardExplainDetail {
+    display: none;
+}
+
 /* 세로 화면(모바일): 설명이 카드에 딱 붙거나 겹치지 않게 사이를 띄움.
    카드 크기는 그대로 두고(한 변 80vmin / 1.3), 틀을 조금 넓혀서 그만큼을 간격과 설명 칸에 씀 */
 @media (max-aspect-ratio: 1/1) {
     .posterCardFrame {
         width: 88vmin;
-        /* 높이는 카드 한 변으로 고정: 설명이 여러 개라 더 길어도 카드가 따라 늘어나지 않게 (설명은 지금처럼 위로 넘침) */
-        height: calc(80vmin / 1.3);
-        aspect-ratio: auto;
         gap: calc(var(--sp) * 1.5);
-    }
-
-    .posterCardSquare {
-        flex: 0 0 auto;
-        width: calc(80vmin / 1.3);
     }
 
     /* 카드와의 사이는 틀의 gap으로 띄우므로 안쪽 여백은 없앰 (설명 칸이 좁음) */
     .posterCardExplainContainer {
-        flex: 1;
-        width: auto;
         padding-left: 0;
     }
 }

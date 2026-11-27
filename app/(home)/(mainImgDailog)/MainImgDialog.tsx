@@ -36,7 +36,8 @@ const MainImgDialog = ({ targetImg: { poster_path, title, width, height, materia
     return <div className={dialogOverlay} onClick={() => { dialogClose(); }}>
         <div className={dialogContainer} onClick={e => e.stopPropagation()}>
             <div className={dialogImageContainer}>
-                <div className={dialogImageBox}>
+                {/* --picture-ratio: 그림의 가로/세로 비율 (입력해 둔 실제 크기로 어림). 세로 화면에서 그림 자리를 이 비율로 잡아 창 폭을 꽉 채움 */}
+                <div className={dialogImageBox} style={{ '--picture-ratio': width > 0 && height > 0 ? width / height : 1 } as React.CSSProperties}>
                     {previewSrc && !shown && (
                         <img className={dialogImage} src={previewSrc} alt="" draggable={false} onContextMenu={e => e.preventDefault()} />
                     )}
@@ -48,10 +49,10 @@ const MainImgDialog = ({ targetImg: { poster_path, title, width, height, materia
                         width={0}
                         height={0}
                         // 원본: 위에서 미리 받아 둔 파일을 그대로 쓰려면 같은 방식(crossOrigin)으로 받아야 함
-                        // 사본: 그림 칸은 가로 화면에서 높이의 60%, 세로 화면에서 너비의 63%
+                        // 사본: 그림 칸은 가로 화면에서 높이의 60%, 세로 화면에서 너비의 94%
                         {...(original
                             ? { unoptimized: true, crossOrigin: 'anonymous' as const }
-                            : { sizes: '(max-aspect-ratio: 1/1) 63vw, 60vh', quality: ARTWORK_QUALITY })}
+                            : { sizes: '(max-aspect-ratio: 1/1) 94vw, 60vh', quality: ARTWORK_QUALITY })}
                         // 그림이 바뀔 때 새 그림을 다 푼 다음에 한 번에 바꿔 그림 (기본값 async는 푸는 동안 그 자리를 비워 둬서 번쩍임)
                         decoding="sync"
                         // 항상 화면에 보이는 그림이라 늦게 받기(lazy)를 끔 (숨겨 둔 동안에도 받아야 함)

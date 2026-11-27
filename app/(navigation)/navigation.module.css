@@ -100,15 +100,21 @@
         pointer-events: auto;
     }
 
+    /* 이름과 햄버거 버튼을 같은 줄에 놓음: 둘 다 위에서 22px, 높이 32px인 줄의 세로 가운데 (버튼이 이름보다 위에 떠 보이지 않게).
+       이름의 자리는 그대로이고(가운데가 위에서 38px), 버튼이 그 높이로 내려옴 */
     .mainTitle {
         width: 100%;
         justify-content: center;
         left: auto;
         opacity: 1;
+        top: 22px;
+        height: 32px;
+        align-items: center;
     }
 
     .hamburger {
         display: inline-flex;
+        top: 22px;
     }
 
     .nav {

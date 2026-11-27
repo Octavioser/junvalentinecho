@@ -5,8 +5,8 @@ import Image, { ImageProps } from "next/image";
 import styles from "./MainImage.module.css";
 import { hasTransparency } from "@/common/image";
 
-// 전시창에 거는 그림: 얇은 금속 액자와 그림자를 두름.
-// 배경을 잘라낸 그림(투명한 곳이 있는 그림)은 네모난 액자 대신 그림 모양을 따라 그림자만 짐
+// 전시창에 거는 그림: 테두리 없이 그림자만 줌 (예전에는 얇은 회색 금속 액자 테두리가 있었음).
+// 배경을 잘라낸 그림(투명한 곳이 있는 그림)은 네모난 그림자 대신 그림 모양을 따라 그림자가 짐
 const FramedImage = ({ className, onLoad, ...props }: ImageProps & { ref?: Ref<HTMLImageElement | null>; }) => {
     const [cutout, setCutout] = useState(false);
     const checkedSrc = useRef<string | null>(null); // 투명한 곳을 확인한 그림 파일 (src)

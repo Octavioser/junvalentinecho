@@ -62,6 +62,9 @@
 .captionTitle {
     font-style: italic;
     font-weight: 600;
+    /* 기울인 글자는 마지막 글자의 윗부분이 줄 상자 오른쪽으로 삐져나가는데, 아이폰 사파리는 상자 밖을 잘라 그림.
+       좌우로 여백을 줘서 그 부분이 상자 안에 들어오게 함 (양쪽에 같이 줘서 가운데 맞춤은 그대로) */
+    padding: 0 0.25em;
 }
 
 /* 설명은 정보 줄과 조금 떼고 옅게 */
@@ -99,10 +102,48 @@
     padding: calc(var(--sp) * 6) calc(var(--sp) * 2);
     box-sizing: border-box;
     overflow-y: auto;
+    /* 목록이 위나 아래로 더 있으면 그쪽 끝이 서서히 사라짐 → 넘겨 볼 수 있다는 표시.
+       --fade-top·--fade-bottom은 SeasonDetail이 넘긴 위치에 따라 적음 (끝에 닿으면 0이 되어 또렷해짐) */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-top, 0px), #000 calc(100% - var(--fade-bottom, 0px)), transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0, #000 var(--fade-top, 0px), #000 calc(100% - var(--fade-bottom, 0px)), transparent 100%);
 }
 
+/* 제목은 목록 가운데에서 멀수록(위아래 끝으로 갈수록) 연하고 흐리게 보임. PC·모바일 같음.
+   --away: 가운데에서 떨어진 정도 (가운데 0 ~ 위아래 끝 1). SeasonDetail이 넘긴 위치에 따라 제목마다 적음.
+   진하기는 가운데 1 → 끝 0.3 */
 .listItem {
     text-align: center;
+    opacity: calc(1 - 0.7 * var(--away, 0));
+}
+
+/* 또렷하게 보이는 제목(지금 보여 주는 그림, 아직 안 골랐으면 전부)과 흐리게 보이는 나머지.
+   마우스를 올리면(터치 화면은 누르면) 그 제목이 골라지며 또렷해짐 */
+.listItemOn {
+    cursor: pointer;
+}
+
+/* 흐림 강도도 끝으로 갈수록 점점 세짐: 가운데 1px(읽을 수 있을 만큼) → 끝 5px.
+   가운데 쪽 제목은 읽을 수 있어서, 마우스를 올려 볼 수 없는 휴대폰에서도 목록을 넘기며 제목을 보고 고를 수 있음.
+   (값을 아직 못 받았을 때는 예전의 한결같은 흐림 4px) */
+.listItemOff {
+    filter: blur(calc(1px + 4px * var(--away, 0.75)));
+}
+
+/* 지금 보여 주는 그림의 제목은 끝 쪽에 있어도 연해지지 않고 또렷함 (어느 그림을 보고 있는지 알 수 있게) */
+.listItemSelected {
+    opacity: 1;
+}
+
+/* 긴 제목은 두 줄까지만 보여 주고 넘치면 … 로 줄임 */
+.listItem span {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    /* 넘치는 글자를 잘라내는 상자가 되므로, 줄 위아래로 삐져나오는 획(y, g의 꼬리 등)이 잘리지 않게 여유를 둠 */
+    padding: 0.2em 0;
 }
 
 /* 목록을 세로 가운데에 둠. 목록이 화면보다 길면 이 여백이 0이 되어 위에서부터 스크롤됨 */
@@ -112,4 +153,72 @@
 
 .listItem:last-child {
     margin-bottom: auto;
+}
+
+/* 목록 오른쪽의 가는 막대: 지금 목록의 어디쯤을 보고 있는지 (목록이 넘칠 때만 SeasonDetail이 보이게 함).
+   세로 화면(모바일)에서만 씀: 휴대폰은 넘기는 중이 아니면 스크롤 막대를 보여 주지 않아서, 넘길 수 있는 목록인지 알 수 없음 */
+.scrollBar {
+    display: none;
+}
+
+/* 세로 화면(모바일): 목록에 제 폭의 칸을 줌. 전에는 목록이 폭을 차지하지 않고 그림 위에 겹쳐 떠서, 제목이 그림을 가렸음 */
+@media (max-aspect-ratio: 1/1) {
+
+    /* 그림과 정보는 목록을 뺀 왼쪽 자리의 가운데에. 목록에 폭을 내준 만큼 여백을 줄이고 그림 칸을 자리 폭 가득 씀 */
+    .detailPanel {
+        margin-left: 4%;
+        margin-right: 0;
+    }
+
+    .detailImage {
+        width: 100%;
+    }
+
+    .caption {
+        max-width: 100%;
+    }
+
+    /* 목록 칸: 폭은 가장 긴 제목만큼(최대 화면 폭의 36%, 그보다 긴 제목은 줄바꿈).
+       화면 위 가운데의 이름과 겹치지 않게 그 아래에서 시작하고, 넘긴 제목도 그 선에서 사라짐 */
+    .listPanel {
+        flex: 0 0 auto;
+        display: flex;
+        height: auto;
+        margin-top: calc(var(--sp) * 8);
+    }
+
+    .list {
+        position: static;
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        max-width: 36vw;
+        padding: calc(var(--sp) * 3) calc(var(--sp) * 2) calc(var(--sp) * 6) calc(var(--sp) * 1.5);
+        /* 브라우저의 스크롤 막대는 숨기고 아래 .scrollBar 하나만 보여 줌 (기기마다 보이기도 안 보이기도 해서, 보이는 기기에서는 막대가 둘이 됨) */
+        scrollbar-width: none;
+    }
+
+    .list::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollBar {
+        display: block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 3px;
+        width: 2px;
+        pointer-events: none;
+    }
+
+    .scrollThumb {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        border-radius: 1px;
+        background-color: rgba(0, 0, 0, 0.28);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
 }
