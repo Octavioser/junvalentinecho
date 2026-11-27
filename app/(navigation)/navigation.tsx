@@ -31,9 +31,16 @@ const Nav = () => {
 
     return (
         <Fragment>
+            {/* 줄 세 개는 글자(☰)가 아니라 그림으로 그림: 글자로 쓰면 기기마다 다른 글꼴로 그려져서 크기와 높이가 달라지고,
+                버튼 가운데에 오지 않아 옆의 이름과 높이가 어긋남 */}
             <button className={hamburger}
+                aria-label={navOpen ? '메뉴 닫기' : '메뉴 열기'}
+                aria-expanded={navOpen}
                 onClick={() => setNavOpen((prev) => !prev)}
-            >☰
+            >
+                <svg width="18" height="16" viewBox="0 0 18 16" aria-hidden="true">
+                    <path d="M0 1h18M0 8h18M0 15h18" stroke="currentColor" strokeWidth="2" fill="none" />
+                </svg>
             </button>
             <div className={`${navContainer} ${navOpen ? open : ''}`}>
                 {/* 모든 화면에 보이는 이름. 누르면 홈으로 (홈에서는 그대로) */}

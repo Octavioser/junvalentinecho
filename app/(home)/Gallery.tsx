@@ -97,6 +97,8 @@ const Gallery = () => {
 
         // 2. 가로 스크롤 변환 (Ctrl 키 없을 때만) - 캡쳐 단계에서 처리하여 자식 컴포넌트(라이브러리)로 이벤트 전달 방지
         const handleScroll = (e: WheelEvent) => {
+            // 그림을 눌러 연 창 위에서 굴린 휠은 건드리지 않음: 뒤의 전시장이 넘어가지 않고, 창 안의 긴 설명은 휠로 넘겨 볼 수 있음
+            if ((e.target as Element | null)?.closest?.('[data-picture-dialog]')) return;
             if (!e.ctrlKey && e.deltaY !== 0) {
                 if (reducedMotion) {
                     // 동작 줄이기: 기존처럼 즉시 스크롤

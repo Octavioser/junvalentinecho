@@ -1,43 +1,52 @@
+/* 그림을 누르면 뜨는 창. 흰 상자 없이 화면 전체를 반투명하게 흐리고(뒤의 화면이 뿌옇게 비침), 그 위에 그림과 글씨를 바로 놓음.
+   --max-h: 그림이 가질 수 있는 가장 큰 높이, --info-width: 그림 오른쪽 글씨 칸의 폭, --gap: 그림과 글씨 사이 */
 .dialogOverlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    /* 사파리용 */
-    display: flex;
-    align-items: center;
-    justify-content: center;
     z-index: 9999;
-}
-
-.dialogContainer {
     display: flex;
-    position: relative;
-    height: 75%;
-    aspect-ratio: 1.3 / 1;
-    background-color: white;
-    border: 1px solid rgba(230, 230, 230, 0.3);
-}
-
-.dialogImageContainer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    /* ← 부모를 절대 넘지 않음 */
-    max-height: 100%;
-    max-width: 100%;
-    aspect-ratio: 1 / 1;
-    border-right: 1px solid rgba(230, 230, 230, 0.3);
     box-sizing: border-box;
+    padding: calc(var(--sp) * 4);
+    /* 내용이 화면보다 길면(세로 화면에서 설명이 긴 그림) 창 안에서 넘겨 봄. 넘김이 뒤의 화면으로 이어지지 않게 함 */
+    overflow-y: auto;
+    /* 가로로는 넘기지 않음 (세로 스크롤 막대가 생기는 PC 창에서 막대 폭만큼 가로로 넘치는 것을 막음) */
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    /* 손가락으로는 위아래 넘기기와 두 손가락 확대만 받음: 옆으로 밀어도 뒤의 전시장이 넘어가지 않게 */
+    touch-action: pan-y pinch-zoom;
+    background-color: rgba(253, 253, 253, 0.78);
+    /* 사파리용(-webkit-)을 먼저, 표준을 나중에 적음: 순서가 반대면 빌드 도구가 표준 쪽을 지워서 크롬에서는 흐려지지 않았음 */
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    --max-h: 84vh;
+    --info-width: clamp(160px, 16vw, 240px);
+    --gap: calc(var(--sp) * 3);
 }
 
-/* 그림 자리. 그림 두 장(누른 그림, 그 위에 새로 받은 그림)을 이 안에 겹쳐 둠 */
+/* 주소창이 들락거리는 휴대폰 브라우저에서는 지금 보이는 화면 높이(dvh)를 기준으로 */
+@supports (height: 1dvh) {
+    .dialogOverlay {
+        --max-h: 84dvh;
+    }
+}
+
+/* 그림 + 글씨 한 덩어리. 화면 가운데에 놓음 (자동 여백으로 맞춤: 화면보다 길어지면 여백이 0이 되어 위에서부터 보임) */
+.dialogContent {
+    margin: auto;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--gap);
+}
+
+/* 그림 자리: 그림 비율 그대로, 화면에 들어가는 가장 큰 크기 (높이 --max-h, 너비는 화면 폭에서 여백과 글씨 칸을 뺀 만큼).
+   그림과 딱 같은 크기라서 옆의 글씨가 그림의 오른쪽 위 모서리에 붙음. 그림 두 장(누른 그림, 그 위에 새로 받은 그림)을 이 안에 겹쳐 둠.
+   크기를 비율(aspect-ratio)이 아니라 계산한 값으로 줌 (사파리는 비율로 준 상자의 크기를 다르게 잡을 때가 있음) */
 .dialogImageBox {
+    --max-w: calc(100vw - var(--sp) * 8 - var(--gap) - var(--info-width));
     position: relative;
-    width: 80%;
-    height: 80%;
+    flex: 0 0 auto;
+    width: min(var(--max-w), calc(var(--max-h) * var(--picture-ratio, 1)));
+    height: min(var(--max-h), calc(var(--max-w) / var(--picture-ratio, 1)));
 }
 
 .dialogImage {
@@ -49,70 +58,101 @@
     object-position: center;
     display: block;
     user-select: none;
+    /* 그림이 뿌연 배경에서 떠 보이게 하는 그림자 (홈 화면 전시창 그림자와 같은 색).
+       상자가 아니라 그림 모양을 따라 생겨서, 배경을 잘라낸 그림에도 네모난 그림자가 생기지 않음 */
+    filter: drop-shadow(0 3px 6px rgba(40, 48, 60, 0.10)) drop-shadow(0 16px 32px rgba(40, 48, 60, 0.12));
 }
 
+/* 그림 오른쪽의 글씨 칸: 그림 위쪽 끝에 맞춰 위에서부터, 글씨는 홈 화면 설명처럼 오른쪽에 맞춤. 설명이 길어 그림 높이를 넘으면 이 칸 안에서 넘겨 봄 */
 .dialogInfo {
+    flex: 0 0 var(--info-width);
+    width: var(--info-width);
+    max-height: var(--max-h);
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    text-align: start;
-    flex: 1;
-    gap: calc(var(--sp) * 2);
+    align-items: flex-end;
+    text-align: end;
+    /* 오른쪽 안쪽 여백: 아래에서 글자 줄의 상자를 오른쪽으로 조금 넓히는데, 그게 이 칸 밖으로 나가면 가로 스크롤이 생김 */
+    padding-right: 4px;
     box-sizing: border-box;
-    padding: calc(var(--sp) * 6) calc(var(--sp) * 2)
+    overflow-wrap: break-word;
+    /* 첫 줄 글자의 윗선이 그림 위쪽 끝과 같은 높이에 오게 살짝 올림 (글자 줄 위쪽의 빈 자리만큼) */
+    margin-top: -2px;
+}
+
+/* 정보 줄(제목 / 크기 / 재료 / 연도): 홈 화면 카드 옆 설명(home.module.css의 .posterCardExplain)과 같은 글씨 */
+.dialogInfoLines {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+}
+
+.dialogInfoLines span {
+    font-size: 11px;
+    line-height: 11px;
+    /* 기울인 제목은 마지막 글자의 윗부분이 줄 상자 오른쪽으로 삐져나가는데, 아이폰 사파리는 상자 밖을 잘라 그림.
+       글자 줄의 상자를 좌우로 조금 넓혀서 그 부분이 상자 안에 들어오게 함 (글자 자리는 그대로: 넓힌 만큼 바깥 여백을 음수로 줌).
+       오른쪽에 맞춘 줄이라 삐져나가는 자리가 딱 상자 끝임 (홈 화면 설명과 같은 처리) */
+    margin: 0 -0.25em 0 -0.1em;
+    padding: 0 0.25em 0 0.1em;
 }
 
 .dialogInfoTitle {
-    letter-spacing: .1em;
-    margin: 0 0 16px;
-    font-size: 14px;
+    font-weight: 600;
+    font-style: italic;
 }
 
+/* 설명 글: 2D 화면의 그림 아래 설명(Season.module.css의 .captionText)과 같은 글씨. 정보 줄과 조금 떼고 옅게 */
 .dialogInfoOverView {
-    border-top: 1px solid #e0e0e0;
-    padding-top: calc(var(--sp) * 6);
+    margin-top: calc(var(--sp) * 3);
+    max-width: 100%;
+    line-height: 1.5;
+    opacity: 0.6;
     /* 관리자에서 줄을 바꿔 적은 설명은 그대로 줄을 바꿔 보여 줌 */
     white-space: pre-line;
+    /* 모든 글씨는 세로로 75% 눌려 그려지는데(global.css), 가운데를 기준으로 누르면 글이 길수록 위쪽이 많이 내려와서 정보 줄과 멀어짐.
+       위를 기준으로 눌러서 글 길이와 상관없이 같은 간격이 되게 함 */
+    transform-origin: top;
 }
 
 
-/* 세로가 긴 화면 (높이가 더 클 때) */
+/* 세로가 긴 화면 (모바일): 오른쪽에 글씨 칸을 둘 자리가 없어서 그림을 화면 폭 가득 놓고 글씨는 그림 아래에 */
 @media (max-aspect-ratio: 1/1) {
 
-    /* 세로 화면(모바일): 창을 화면 폭 가까이 넓히고 그림이 창 폭을 꽉 채우게 함 (전에는 창이 화면 폭의 70%, 그림은 그 90%).
-       높이는 내용만큼: 그림(비율대로) + 그 아래 정보. 화면 높이의 90%를 넘으면 정보 칸이 스크롤됨 */
-    .dialogContainer {
-        width: 94vw;
-        height: auto;
-        max-height: 90dvh;
-        aspect-ratio: auto;
+    /* 그림은 화면 높이의 66%까지 (아래에 글씨가 보일 자리를 남김) */
+    .dialogOverlay {
+        padding: calc(var(--sp) * 4) 4vw;
+        --max-h: 66vh;
+        --gap: calc(var(--sp) * 2);
+    }
+
+    @supports (height: 1dvh) {
+        .dialogOverlay {
+            --max-h: 66dvh;
+        }
+    }
+
+    /* 글씨 칸은 그림과 같은 폭이라 글씨 오른쪽 끝이 그림 오른쪽 끝에 맞음. 아주 좁은 그림일 때만 글씨 칸이 너무 좁아지지 않게 최소 폭을 둠 */
+    .dialogContent {
         flex-direction: column;
+        align-items: center;
+        min-width: min(100%, 150px);
     }
 
-    .dialogImageContainer {
-        flex: 0 0 auto;
-        width: 100%;
-        height: auto;
-        max-height: none;
-        aspect-ratio: auto;
-        border-right: none;
-        border-bottom: 1px solid rgba(230, 230, 230, 0.3);
-    }
-
-    /* 그림 자리: 창 폭 가득, 높이는 그림 비율대로 (--picture-ratio = 가로/세로, MainImgDialog가 넣어 줌).
-       세로로 아주 긴 그림은 화면 높이의 64%까지만 (아래에 정보가 보일 자리를 남김) */
     .dialogImageBox {
-        width: 100%;
-        height: auto;
-        aspect-ratio: var(--picture-ratio, 1);
-        max-height: 64dvh;
+        --max-w: 92vw;
     }
 
+    /* 글씨 칸의 폭은 그림 폭과 같게 (글이 길어도 그림보다 넓어지지 않음), 높이는 내용만큼: 길면 창 전체를 넘겨 봄 */
     .dialogInfo {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow-y: auto;
-        gap: var(--sp);
-        padding: calc(var(--sp) * 2) calc(var(--sp) * 2)
+        flex: 0 0 auto;
+        width: 0;
+        min-width: 100%;
+        max-height: none;
+        overflow-y: visible;
+        padding-right: 0;
+        margin-top: 0;
     }
 
 }

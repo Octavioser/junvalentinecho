@@ -21,13 +21,19 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    font-size: 24px;
+    /* 버튼의 기본 안쪽 여백은 브라우저마다 달라서(아이폰은 넓음) 없앰: 안의 줄 세 개 그림이 버튼 한가운데에 오게 */
+    padding: 0;
     border: none;
     background: none;
     cursor: pointer;
     position: fixed;
     top: var(--sp);
     left: var(--sp);
+}
+
+.hamburger svg {
+    display: block;
+    flex: none;
 }
 
 
@@ -101,7 +107,7 @@
     }
 
     /* 이름과 햄버거 버튼을 같은 줄에 놓음: 둘 다 위에서 22px, 높이 32px인 줄의 세로 가운데 (버튼이 이름보다 위에 떠 보이지 않게).
-       이름의 자리는 그대로이고(가운데가 위에서 38px), 버튼이 그 높이로 내려옴 */
+       이름 글자의 가운데와 버튼 줄 세 개의 가운데가 똑같이 위에서 38px에 옴 */
     .mainTitle {
         width: 100%;
         justify-content: center;
@@ -109,6 +115,12 @@
         opacity: 1;
         top: 22px;
         height: 32px;
+        align-items: center;
+    }
+
+    /* 이름 글자를 링크 상자의 세로 가운데에 놓음 (그냥 두면 글자 기준선에 맞춰져서 상자 가운데보다 1px쯤 아래에 옴) */
+    .titleLink {
+        display: flex;
         align-items: center;
     }
 

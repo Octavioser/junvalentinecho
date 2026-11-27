@@ -43,11 +43,10 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
     // 지금 보여 주는 그림. 제목에 마우스를 올리거나 누르면 그 그림으로 바뀌고 그대로 남음 (마우스를 떼도 돌아가지 않음)
     const [showId, setShowId] = useState<String | null>(null);
 
-    // 제목 목록을 넘겨 볼 수 있다는 표시: 더 있는 쪽(위·아래) 끝을 서서히 흐리게 하고, 오른쪽 가는 막대로 지금 위치를 보여 줌.
+    // 제목 목록을 넘겨 볼 수 있다는 표시: 더 있는 쪽(위·아래) 끝을 서서히 흐리게 함 (스크롤 막대는 어떤 것도 보여 주지 않음. 넘기는 기능은 그대로).
     // 제목도 목록 가운데에서 멀수록(끝으로 갈수록) 연하고 더 흐리게 보임.
     // 넘길 때마다 화면 전체를 다시 그리지 않게, 상태로 두지 않고 요소에 바로 적음
     const listRef = useRef<HTMLDivElement>(null);
-    const thumbRef = useRef<HTMLDivElement>(null);
     const updateScrollCue = useCallback(() => {
         const el = listRef.current;
         if (!el) return;
@@ -55,12 +54,6 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
         // 끝까지 남은 거리만큼만 흐리게 해서, 끝에 다가가면 흐림이 줄다가 없어짐
         el.style.setProperty('--fade-top', `${Math.min(LIST_FADE, Math.max(0, scrollTop))}px`);
         el.style.setProperty('--fade-bottom', `${Math.min(LIST_FADE, Math.max(0, scrollHeight - clientHeight - scrollTop))}px`);
-        const thumb = thumbRef.current;
-        if (thumb) {
-            thumb.style.opacity = scrollHeight > clientHeight + 1 ? '1' : '0';
-            thumb.style.height = `${clientHeight / scrollHeight * 100}%`;
-            thumb.style.top = `${scrollTop / scrollHeight * 100}%`;
-        }
         // 제목마다 목록 가운데에서 얼마나 떨어져 있는지 (--away: 가운데 0 ~ 위아래 끝 1).
         // 이 값이 클수록 연하고 흐리게 보임 (Season.module.css)
         const box = el.getBoundingClientRect();
@@ -148,8 +141,6 @@ const SeasonDetail = ({ param, id }: { param: string, id: string | null; }) => {
                     </div>
                 ))}
             </div>
-            {/* 목록의 어디쯤을 보고 있는지 알려 주는 가는 막대 (세로 화면에서 목록이 넘칠 때만 보임) */}
-            <div className={styles.scrollBar} aria-hidden="true"><div className={styles.scrollThumb} ref={thumbRef} /></div>
         </div>
         {dialogArtwork && <MainImgDialog targetImg={dialogArtwork} previewSrc={dialogPreview} dialogClose={() => { setDialogId(null); }} />}
     </div>;
