@@ -179,11 +179,19 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
         return () => window.removeEventListener(VIDEO_SOUND_ON, stop);
     }, []);
 
-    // 이전/다음 곡 (끝에서는 처음으로). 음악이 하나도 없으면 아무것도 안 함
+    // 이전/다음 곡. 목록의 끝에서는 처음 곡으로 돌아감 → 마지막 곡이 끝나면 처음 곡부터 다시, 계속 반복해서 나옴.
+    // 음악이 하나도 없으면 아무것도 안 함
     const step = (delta: number) => {
         if (!musicList.length) return;
         const current = Math.max(0, musicList.findIndex(({ url }) => url === playUrl));
-        setPlayUrl(musicList[(current + delta + musicList.length) % musicList.length].url);
+        const next = musicList[(current + delta + musicList.length) % musicList.length].url;
+        if (next !== playUrl) { setPlayUrl(next); return; }
+        // 곡이 하나뿐이면 "다음 곡"이 지금 곡이라 주소가 바뀌지 않아서, 위의 "곡이 바뀌면 재생"이 일어나지 않음
+        // (그래서 한 곡이 끝나면 그대로 멈췄음). 같은 곡을 처음부터 다시 틂
+        const el = audioRef.current;
+        if (!el) return;
+        el.currentTime = 0;
+        el.play().catch(() => { });
     };
 
     return <div className={playerContainer}>

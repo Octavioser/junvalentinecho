@@ -16,7 +16,7 @@ export type SceneProps = {
 };
 
 // 첫 화면을 그리기 전에 셰이더를 비동기로 미리 컴파일 (첫 렌더에서 한꺼번에 컴파일하느라 화면이 멈추는 것을 막음).
-// 그림은 텍스처를 받은 뒤에 붙으므로, 그림이 쓰는 재질 종류(단색 프레임, 불투명/반투명 이미지)를 임시 메시로 같이 컴파일
+// 그림은 텍스처를 받은 뒤에 붙으므로, 그림이 쓰는 재질 종류(불투명/반투명 이미지)를 임시 메시로 같이 컴파일
 const ShaderWarmup = ({ onDone }: { onDone: () => void; }) => {
     const gl = useThree(state => state.gl);
     const scene = useThree(state => state.scene);
@@ -39,7 +39,6 @@ const ShaderWarmup = ({ onDone }: { onDone: () => void; }) => {
 
     return (
         <group position={[0, -50, 0]}>
-            <mesh><boxGeometry args={[0.01, 0.01, 0.01]} /><meshBasicMaterial /></mesh>
             <mesh><planeGeometry args={[0.01, 0.01]} /><meshBasicMaterial map={map} /></mesh>
             <mesh><planeGeometry args={[0.01, 0.01]} /><meshBasicMaterial map={map} transparent /></mesh>
         </group>
