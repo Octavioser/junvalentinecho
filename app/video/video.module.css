@@ -128,6 +128,8 @@
     line-height: 1.5;
     opacity: 0.6;
     transform: none;
+    /* 글 안의 줄바꿈을 그대로 보여 줌 (마지막 문장 앞의 빈 줄) */
+    white-space: pre-line;
 }
 
 /* 세로 화면(모바일): 좌우 배치는 PC와 같음 (영상 아래 왼쪽에 사진, 오른쪽에 제목·설명을 같은 줄에).

@@ -37,8 +37,11 @@ const Video = () =>
                         <div className={styles.details}>
                             {DETAILS.map(line => <span key={line}>{line}</span>)}
                         </div>
+                        {/* 마지막 문장(저작권 문구)은 설명 글과 한 줄 띄움: 줄바꿈 두 번 = 빈 줄 하나 (.description의 white-space: pre-line) */}
                         <span className={styles.description}>
-                            A video based on an essay I wrote- [Me &amp; Eddies], where I have researched the physical and spiritual meaning of the corner. All images, videos, and music produced by me.
+                            A video based on an essay I wrote- [Me &amp; Eddies], where I have researched the physical and spiritual meaning of the corner.
+                            {'\n\n'}
+                            All images, videos, and music produced by me.
                         </span>
                     </div>
                 </div>
