@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { MUSIC_PLAY, VIDEO_SOUND_ON, announce } from "@/common/soundTurn";
 import { MusicBlob } from '@/types';
 import styles from './Player.module.css';
 
@@ -171,6 +172,13 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
         audioRef.current?.play().catch(() => { });
     }, [playUrl]);
 
+    // video 화면의 영상이 소리를 내기 시작하면 음악을 멈춤 (소리는 한 번에 하나만. common/soundTurn.ts)
+    useEffect(() => {
+        const stop = () => { audioRef.current?.pause(); };
+        window.addEventListener(VIDEO_SOUND_ON, stop);
+        return () => window.removeEventListener(VIDEO_SOUND_ON, stop);
+    }, []);
+
     // 이전/다음 곡 (끝에서는 처음으로). 음악이 하나도 없으면 아무것도 안 함
     const step = (delta: number) => {
         if (!musicList.length) return;
@@ -277,7 +285,8 @@ const Player = ({ musicList }: { musicList: MusicBlob[]; }) => {
             ref={audioRef}
             src={playUrl || undefined} // 음악이 없을 때 빈 문자열을 넣으면 브라우저가 페이지를 다시 요청함
             style={{ width: 0, height: 0, opacity: 0, position: 'absolute' }}
-            onPlay={() => setIsPlaying(true)}
+            // 음악이 나오기 시작하면 알림 → video 화면의 영상이 소리를 끔
+            onPlay={() => { setIsPlaying(true); announce(MUSIC_PLAY); }}
             onPause={() => setIsPlaying(false)}
             onEnded={() => step(1)}
             crossOrigin='anonymous'

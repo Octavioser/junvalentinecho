@@ -1,0 +1,142 @@
+/* Vimeo 영상 칸 + 직접 그린 조작 버튼. 버튼의 모양·크기·간격은 xip 사이트의 VimeoPlayer와 같음.
+   다른 점: 조작 줄을 영상 위에 겹쳐 놓지 않고 영상 바로 아래에 둠 (영상 아래쪽에 자막이 들어 있어서 겹치면 글씨가 서로 가림).
+   그래서 버튼 색도 흰색이 아니라 화면의 글씨 색(검정)을 그대로 씀 */
+.wrap {
+    width: 100%;
+}
+
+/* 영상 비율(16:9) 그대로의 칸: 위아래 검은 띠나 잘림 없이 보임 */
+.frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: black;
+    overflow: hidden;
+}
+
+.iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* 영상 아래의 조작 줄: 재생·정지 / 위치 막대 / 시간 / 소리 */
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.6rem;
+    user-select: none;
+}
+
+.iconBtn {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0.15rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.iconBtn svg {
+    width: 1.2rem;
+    height: 1.2rem;
+    display: block;
+}
+
+.iconBtn:hover {
+    opacity: 0.75;
+}
+
+/* 전체화면 버튼: 줄의 오른쪽 끝으로 밀어 영상 오른쪽 끝 아래에 오게 함 */
+.fullBtn {
+    margin-left: auto;
+}
+
+/* 위치 막대: 누른 자리로 옮겨 감 */
+.slider {
+    position: relative;
+    width: 8rem;
+    height: 0.9rem;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+    .slider {
+        width: 5rem;
+    }
+}
+
+/* 막대 양 끝의 짧은 세로 눈금 */
+.slider::before,
+.slider::after {
+    content: "";
+    position: absolute;
+    background: currentColor;
+    width: 2px;
+    height: 50%;
+    top: 25%;
+}
+
+.slider::before {
+    left: 0;
+}
+
+.slider::after {
+    right: 0;
+}
+
+.track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    margin-top: -0.5px;
+    background: currentColor;
+}
+
+/* 지금 위치를 가리키는 세로 선 */
+.thumb {
+    position: absolute;
+    top: 0;
+    width: 2px;
+    height: 100%;
+    background: currentColor;
+    transform: translateX(-1px);
+    pointer-events: none;
+}
+
+/* 아래 글씨들(시간, Sound: On/Off)은 이 사이트의 기본 글씨 모양 그대로 (Inter, 11px, 세로로 75% 눌림 — global.css의 span).
+   xip에서는 더 크고 눌리지 않은 글씨였는데, 메뉴·설명 같은 사이트의 다른 글씨와 맞춤 */
+.time {
+    width: 2.4rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.soundBtn {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem;
+    /* 버튼은 사이트 글꼴(종류·굵기)을 물려받지 않아서 직접 물려받게 함 */
+    font: inherit;
+}
+
+.soundBtn:hover .soundState {
+    opacity: 0.75;
+}
+
+.soundState {
+    text-decoration: underline;
+}

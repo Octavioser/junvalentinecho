@@ -1,0 +1,126 @@
+/* video 화면의 바깥 칸: 내비와 하단 플레이어 자리를 비워 둠 */
+.container {
+    width: 100%;
+    height: 100%;
+    /* 내비가 전체 화면 투명 오버레이라, 내비 폭만큼 밀어 겹침 방지 */
+    padding-left: var(--nav-width);
+    /* 하단 플레이어에 가려지지 않게 */
+    padding-bottom: var(--player-height);
+    box-sizing: border-box;
+}
+
+/* 내용(영상 + 조작 줄 + 사진·글)은 한 화면에 다 들어오게 크기를 잡아서(.inner) 평소에는 넘길 것이 없음.
+   아주 작은 화면처럼 그래도 넘칠 때만 이 칸 안에서 넘겨 볼 수 있게 해 두고, 스크롤 막대는 보이지 않게 함.
+   바깥 칸이 아니라 이 칸을 넘기는 이유: 바깥 칸은 화면 맨 아래까지라서, 거기서 넘기면 내용이 하단 플레이어 뒤로 비쳐 보임 */
+.scroll {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.scroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* 내용 한 줄의 폭 = 영상의 폭. 셋 중 가장 작은 값:
+   - 내비 옆에 남은 자리에서 좌우 여백을 뺀 폭
+   - 1040px
+   - 화면 높이에 맞춘 폭: 영상(16:9) + 조작 줄 + 사진 줄이 플레이어 위 한 화면에 다 들어오는 가장 큰 폭 → 스크롤이 생기지 않음.
+     높이 합계 = 위 여백 56 + 영상 0.5625W + 조작 줄 34 + 사진 줄의 위아래 여백 24+24 + 사진(폭의 절반, 16:9) 0.281W = 140px + 0.844W
+     다만 가로로 눕힌 휴대폰처럼 화면이 아주 낮을 때는 영상이 너무 작아지지 않게 320px 아래로는 줄이지 않음 (그때는 넘겨서 봄)
+   위 여백은 왼쪽 위의 이름(JOONHYEOK DANIEL CHO)보다 아래에서 시작하도록 */
+.inner {
+    width: min(100% - var(--sp) * 12, 1040px, max(320px, (100vh - var(--player-height) - 140px) / 0.844));
+    margin: 0 auto;
+    padding: calc(var(--sp) * 7) 0 0;
+    /* 화면 높이를 다 채우는 세로 줄: 영상은 위에, 사진·글 줄(.info)은 그 아래 남는 자리의 세로 가운데에 */
+    min-height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 주소창이 들락거리는 휴대폰 브라우저에서는 지금 보이는 화면 높이(dvh)를 기준으로 */
+@supports (height: 1dvh) {
+    .inner {
+        width: min(100% - var(--sp) * 12, 1040px, max(320px, (100dvh - var(--player-height) - 140px) / 0.844));
+    }
+}
+
+/* 사진·글 줄: 왼쪽 사진, 오른쪽 제목·설명 (글씨는 오른쪽 정렬: 오른쪽 끝이 영상의 오른쪽 끝과 맞음).
+   영상(조작 줄) 아래부터 하단 플레이어 위까지 남는 자리의 세로 가운데에 놓음: 위아래 자동 여백이 남는 높이를 반씩 나눠 가짐.
+   남는 자리가 없어도 위아래로 적어도 padding만큼은 떨어짐 (위아래 같은 값이라 가운데가 어긋나지 않음) */
+.info {
+    display: flex;
+    /* 사진의 위쪽 끝과 제목의 윗선을 맞춤 */
+    align-items: flex-start;
+    gap: calc(var(--sp) * 4);
+    margin: auto 0;
+    padding: calc(var(--sp) * 3) 0;
+}
+
+.sheet {
+    flex: 0 0 50%;
+    min-width: 0;
+}
+
+.text {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: end;
+    overflow-wrap: break-word;
+    /* 사이트의 글씨는 모두 세로로 75% 눌려 그려짐(global.css). 여기서는 제목과 설명을 따로따로 누르지 않고 글 묶음을 통째로,
+       위를 기준으로 누름: 따로 누르면 줄 수에 따라 빈 자리가 생겨서 제목과 설명 사이가 벌어짐.
+       통째로 누르면 사이 간격이 일정하고, 위를 기준으로 하니 제목의 윗선이 사진 위쪽 끝에 그대로 맞음 */
+    transform: scaleY(0.75);
+    transform-origin: right top;
+    /* 이 칸은 누르는 효과 때문에 따로 그려지는 층이 됨. 아이폰 사파리는 그런 층의 끝에 걸친 글자를 자를 때가 있어서,
+       칸을 오른쪽으로 조금 넓혀(글자 자리는 그대로) 기울인 제목의 끝이 칸 안에 들어오게 함 */
+    padding-right: 8px;
+    margin-right: -8px;
+}
+
+/* 제목: 사이트의 작품 제목과 같은 모양(굵게·기울임)에 크기만 크게. 세로로 누르는 것은 위의 .text가 묶음째 함 */
+.title {
+    font-size: clamp(18px, 2.2vw, 28px);
+    line-height: 1.15;
+    font-weight: 600;
+    font-style: italic;
+    transform: none;
+    /* 위쪽 여백(음수): 글자 줄의 위쪽에는 빈 자리가 조금 있어서(글자 크기의 0.21배쯤), 그만큼 올려 대문자의 윗선이 사진 위쪽 끝에 오게 함.
+       좌우: 기울인 글자는 마지막 글자의 윗부분이 줄 상자 오른쪽으로 삐져나가는데, 아이폰 사파리는 상자 밖을 잘라 그림.
+       오른쪽에 맞춘 줄이라 그 자리가 딱 상자 끝이어서, 상자를 좌우로 조금 넓힘 (글자 자리는 그대로: 넓힌 만큼 바깥 여백을 음수로 줌) */
+    margin: -0.21em -0.25em 0 -0.1em;
+    padding: 0 0.25em 0 0.1em;
+}
+
+/* 설명: 2D 화면의 그림 설명과 같은 글씨 (옅게, 줄 간격 넉넉히) */
+.description {
+    margin-top: calc(var(--sp) * 1);
+    max-width: 56ch;
+    line-height: 1.5;
+    opacity: 0.6;
+    transform: none;
+}
+
+/* 세로 화면(모바일): 배치는 PC와 같음 (영상 아래 왼쪽에 사진, 오른쪽에 제목·설명을 같은 줄에).
+   화면이 좁아서 좌우 여백과 사이 간격을 줄이고 제목을 작게 함 */
+@media (max-aspect-ratio: 1/1) {
+    .inner {
+        width: 92%;
+        /* 화면 위 가운데의 이름과 햄버거 버튼(위에서 22~54px) 아래에서 시작 */
+        padding-top: calc(var(--sp) * 8);
+    }
+
+    .info {
+        gap: calc(var(--sp) * 2);
+    }
+
+    .title {
+        font-size: 14px;
+    }
+}
